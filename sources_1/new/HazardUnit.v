@@ -26,12 +26,17 @@ module HazardUnit(
     input [3:0] RA1E,
     input [3:0] RA2E,
     input [3:0] RA2M,
+    input [3:0] WA3D,
     input [3:0] WA3E,
     input [3:0] WA3M,
     input [3:0] WA3W,
+    input [3:0] WA5M,
+    input [3:0] WA5W,
     input RegWriteE,
     input RegWriteM,
     input RegWriteW,
+    input RegWrite2M,
+    input RegWrite2W,
     input MemWriteM,
     input MemtoRegE,
     input MemtoRegW,
@@ -39,8 +44,10 @@ module HazardUnit(
     input [3:0] MCycleWA3,
     input MCycleDone,
     input MCycleBusy,
-    output reg [1:0] ForwardAE,
-    output reg [1:0] ForwardBE,
+    input MStart,
+    input MS,
+    output reg [2:0] ForwardAE,
+    output reg [2:0] ForwardBE,
     output ForwardM,
     output StallF,
     output StallD,
@@ -50,26 +57,40 @@ module HazardUnit(
     );
     
     wire Match_1E_M, Match_2E_M;
+    wire Match_1E_5M, Match_2E_5M;
     wire Match_1E_W, Match_2E_W;
+    wire Match_1E_5W, Match_2E_5W;
     
     assign Match_1E_M = RA1E == WA3M;
     assign Match_2E_M = RA2E == WA3M;
+    assign Match_1E_5M = RA1E == WA5M;
+    assign Match_2E_5M = RA2E == WA5M;
     assign Match_1E_W = RA1E == WA3W;
     assign Match_2E_W = RA2E == WA3W;
+    assign Match_1E_5W = RA1E == WA5W;
+    assign Match_2E_5W = RA2E == WA5W;
     always @(*) begin
-        if (Match_1E_M & RegWriteM)
-            ForwardAE = 2'b10;
+        if (Match_1E_5M & RegWrite2M)
+            ForwardAE = 3'b110;
+        else if (Match_1E_5W & RegWrite2W)
+            ForwardAE = 3'b101;
+        else if (Match_1E_M & RegWriteM)
+            ForwardAE = 3'b010;
         else if (Match_1E_W & RegWriteW)
-            ForwardAE = 2'b01;
+            ForwardAE = 3'b001;
         else
-            ForwardAE = 2'b00;
+            ForwardAE = 3'b000;
             
-        if (Match_2E_M & RegWriteM)
-            ForwardBE = 2'b10;
+        if (Match_2E_5M & RegWrite2M)
+            ForwardBE = 3'b110;
+        else if (Match_2E_5W & RegWrite2W)
+            ForwardBE = 3'b101;
+        else if (Match_2E_M & RegWriteM)
+            ForwardBE = 3'b010;
         else if (Match_2E_W & RegWriteW)
-            ForwardBE = 2'b01;
+            ForwardBE = 3'b001;
         else
-            ForwardBE = 2'b00;
+            ForwardBE = 3'b000;
     end
     
     
@@ -81,13 +102,13 @@ module HazardUnit(
     assign Match_12D_E = (RA1D == WA3E) | (RA2D == WA3E);
     assign ldrstall = Match_12D_E & MemtoRegE & RegWriteE;
     
-    wire Match_12D_MCycleWA;
-    assign Match_12D_MCycleWA = (RA1D == MCycleWA3) || (RA2D == MCycleWA3);
+    wire Match_123D_MCycleWA;
+    assign Match_123D_MCycleWA = (RA1D == MCycleWA3) | (RA2D == MCycleWA3) | (WA3D == MCycleWA3) | (MStart & WA3D == WA3E);
     
-    assign StallF = ldrstall | MCycleDone | (Match_12D_MCycleWA & MCycleBusy);
-    assign StallD = ldrstall | MCycleDone | (Match_12D_MCycleWA & MCycleBusy);
+    assign StallF = ldrstall | MCycleDone | (Match_123D_MCycleWA & MCycleBusy);
+    assign StallD = ldrstall | MCycleDone | (Match_123D_MCycleWA & MCycleBusy);
     assign FlushD = PCSrcE;
     assign FlushE = ldrstall | PCSrcE;
     
-    assign MCycleHazard = Match_12D_MCycleWA;
+    assign MCycleHazard = Match_123D_MCycleWA | (MCycleBusy & MS);
 endmodule
