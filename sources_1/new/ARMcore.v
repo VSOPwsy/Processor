@@ -15,24 +15,17 @@
 module ARMcore(
     input               CLK,
     input               Reset,
-    input   [31:0]      Instr,
-    input   [31:0]      ReadData,
-    
-    output              MemWrite,
-    output  [31:0]      PC,
-    output  [31:0]      ALUResult,
-    output  [31:0]      WriteData
+
+    input   [31:0]      IO_ReadData,
+    output  [31:0]      IO_Addr,
+    output  [31:0]      IO_WriteData,
+    output              IO_WE
     );
-    
-    // Test
-    assign  ALUResult   =   EMReg_ALUOutM;
-    assign  WriteData   =   HazardUnit_ForwardM ? ResultW : EMReg_WriteDataM;
-    assign  DataMemory_RD   =   ReadData;
-    assign  MemWrite    =   EMReg_MemWriteM;
-    assign  PC          =   InstructionMemory_PC;
-    assign  InstructionMemory_Instr     =   Instr;
-    
-    
+
+    assign  IO_Addr         =   MemOrIO_io_addr;
+    assign  IO_WriteData    =   MemOrIO_io_wdata;
+    assign  IO_WE           =   MemOrIO_io_we;
+
     
     // HazardUnit
     // Input
@@ -431,7 +424,31 @@ module ARMcore(
 
     
     
+    // MemOrIO
+    // Input
+    wire                MemOrIO_we;
+    wire    [31:0]      MemOrIO_addr_in;
+    wire    [31:0]      MemOrIO_m_rdata;
+    wire    [31:0]      MemOrIO_r_rdata;
+    wire    [31:0]      MemOrIO_io_rdata;
+    // Output
+    wire    [31:0]      MemOrIO_m_wdata;
+    wire    [31:0]      MemOrIO_m_addr;
+    wire                MemOrIO_m_we;
+    wire    [31:0]      MemOrIO_r_wdata;
+    wire    [31:0]      MemOrIO_io_wdata;
+    wire    [31:0]      MemOrIO_io_addr;
+    wire    [31:0]      MemOrIO_io_we;
+    // Assignment
+    assign  MemOrIO_we          =   EMReg_MemWriteM;
+    assign  MemOrIO_addr_in     =   EMReg_ALUOutM;
+    assign  MemOrIO_m_rdata     =   DataMemory_RD;
+    assign  MemOrIO_r_rdata     =   HazardUnit_ForwardM ? ResultW : EMReg_WriteDataM;
+    assign  MemOrIO_io_rdata    =   IO_ReadData;
     
+
+
+
     // DataMemory
     // Input
     wire                DataMemory_WE;
@@ -440,9 +457,10 @@ module ARMcore(
     // Output
     wire    [31:0]      DataMemory_RD;
     // Assignment
-    assign  DataMemory_WE   =   EMReg_MemWriteM;
-    assign  DataMemory_A    =   EMReg_ALUOutM;
-    assign  DataMemory_WD   =   HazardUnit_ForwardM ? ResultW : EMReg_WriteDataM;
+    assign  DataMemory_WE   =   MemOrIO_m_we;
+    assign  DataMemory_A    =   MemOrIO_m_addr;
+    assign  DataMemory_WD   =   MemOrIO_m_wdata;
+    
     
     
     
@@ -469,19 +487,20 @@ module ARMcore(
     assign  MWReg_RegWriteM     =   EMReg_RegWriteM;
     assign  MWReg_RegWrite2M    =   EMReg_RegWrite2M;
     assign  MWReg_MemtoRegM     =   EMReg_MemtoRegM;
-    assign  MWReg_ReadDataM     =   DataMemory_RD;
+    assign  MWReg_ReadDataM     =   MemOrIO_r_wdata;
     assign  MWReg_ALUOutM       =   EMReg_ALUOutM;
     assign  MWReg_WA3M          =   EMReg_WA3M;
     assign  MWReg_WA5M          =   EMReg_WA5M;
     assign  MWReg_MCResultHighM =   EMReg_MCResultHighM;
     
-    
+
     
     wire    [31:0]      ResultW;
     assign  ResultW  =  MWReg_MemtoRegW ? MWReg_ReadDataW : MWReg_ALUOutW;
     
     
-    
+
+
     HazardUnit HazardUnit(
         .RA1D   (HazardUnit_RA1D),
         .RA2D   (HazardUnit_RA2D),
@@ -546,9 +565,9 @@ module ARMcore(
         .PCPlus4    (ProgramCounter_PCPlus4     ));
     
     
-//    InstructionMemory InstructionMemory(
-//        .PC     (InstructionMemory_PC       ),
-//        .Instr  (InstructionMemory_Instr    ));
+    InstructionMemory InstructionMemory(
+        .PC     (InstructionMemory_PC       ),
+        .Instr  (InstructionMemory_Instr    ));
     
     
     FDReg FDReg(
@@ -720,13 +739,28 @@ module ARMcore(
         .RA2M       (EMReg_RA2M         ),
         .MCResultHighM(EMReg_MCResultHighM));
         
+
+    MemOrIO MemOrIO(
+        .we         (MemOrIO_we         ),
+        .addr_in    (MemOrIO_addr_in    ),
+        .m_rdata    (MemOrIO_m_rdata    ),
+        .r_rdata    (MemOrIO_r_rdata    ),
+        .io_rdata   (MemOrIO_io_rdata   ),
+        .m_wdata    (MemOrIO_m_wdata    ),
+        .m_addr     (MemOrIO_m_addr     ),
+        .m_we       (MemOrIO_m_we       ),
+        .r_wdata    (MemOrIO_r_wdata    ),
+        .io_wdata   (MemOrIO_io_wdata   ),
+        .io_addr    (MemOrIO_io_addr    ),
+        .io_we      (MemOrIO_io_we      ));
         
-//    DataMemory DataMemory(
-//        .CLK    (CLK            ),
-//        .WE     (DataMemory_WE  ),
-//        .A      (DataMemory_A   ),
-//        .WD     (DataMemory_WD  ),
-//        .RD     (DataMemory_RD  ));
+
+    DataMemory DataMemory(
+        .CLK    (CLK            ),
+        .WE     (DataMemory_WE  ),
+        .A      (DataMemory_A   ),
+        .WD     (DataMemory_WD  ),
+        .RD     (DataMemory_RD  ));
 
 
     MWReg MWReg(

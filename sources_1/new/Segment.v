@@ -10,10 +10,10 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module seg_display#(
+module Segment#(
     parameter CLK_FREQ = 100_000_000    
 )(
-    input           clk,
+    input           CLK,
     input   [31:0]  data,
     output  [7:0]   anode,
     output  [6:0]   cathode,
@@ -25,7 +25,7 @@ module seg_display#(
     reg     [31:0]  clk_cnt = 32'b0;
     reg     [6:0]   cathode_reg = 7'b0;
     
-    always @(posedge clk) begin
+    always @(posedge CLK) begin
         clk_cnt <= clk_cnt < DELAY_1_MS ? clk_cnt + 1 : 32'b0;
         seg_index <= clk_cnt == DELAY_1_MS ? seg_index + 1 : seg_index;
     end
