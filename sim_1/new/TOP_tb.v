@@ -43,13 +43,17 @@ always #5 CLK = ~CLK;
     
 initial begin
     CLK = 0;
-    DIP = 0;
+    DIP = 7'b1010101;
     Reset = 0;
     #10;
     Reset = 1;
     #30;
     Reset = 0;
-    #8000;
+    #1000;
+    
+    
+    DIP = 7'b0001111;
+    #7000;
     $finish;
 end
  

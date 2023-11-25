@@ -44,7 +44,7 @@ module MemOrIO(
     
     wire dec_DATA_MEM, dec_IO;
     assign dec_DATA_MEM		= (addr_in >= `DATA_ADDR_LOW & addr_in <= `DATA_ADDR_HIGH) ? 1'b1 : 1'b0;
-    assign dec_IO			= (addr_in >= `PERIPHERAL_ADDR_LOW & addr_in <= `PERIPHERAL_ADDR_LOW) ? 1'b1 : 1'b0;
+    assign dec_IO			= (addr_in >= `PERIPHERAL_ADDR_LOW & addr_in <= `PERIPHERAL_ADDR_HIGH) ? 1'b1 : 1'b0;
 
     assign m_we = we & dec_DATA_MEM;
     assign io_we = we & dec_IO;
