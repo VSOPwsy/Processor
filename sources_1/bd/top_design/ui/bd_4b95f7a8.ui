@@ -1,0 +1,42 @@
+{
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"1.00328",
+   "Default View_TopLeft":"-100,-164",
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS
+#  -string -flagsOSRD
+preplace port port-id_CLK -pg 1 -lvl 0 -x 0 -y 70 -defaultsOSRD
+preplace port port-id_Reset -pg 1 -lvl 0 -x 0 -y 90 -defaultsOSRD
+preplace portBus DIP -pg 1 -lvl 0 -x 0 -y 210 -defaultsOSRD
+preplace portBus LED -pg 1 -lvl 5 -x 1260 -y 150 -defaultsOSRD
+preplace portBus SevenSegAn -pg 1 -lvl 5 -x 1260 -y 280 -defaultsOSRD
+preplace portBus SevenSegCat -pg 1 -lvl 5 -x 1260 -y 300 -defaultsOSRD
+preplace inst ARMcore_0 -pg 1 -lvl 1 -x 210 -y 90 -defaultsOSRD
+preplace inst Segment_0 -pg 1 -lvl 4 -x 1110 -y 300 -defaultsOSRD
+preplace inst PeripheralConnector_0 -pg 1 -lvl 2 -x 550 -y 180 -defaultsOSRD
+preplace inst LedDriver_0 -pg 1 -lvl 4 -x 1110 -y 150 -defaultsOSRD
+preplace inst SegmentDriver_0 -pg 1 -lvl 3 -x 850 -y 310 -defaultsOSRD
+preplace inst DipDriver_0 -pg 1 -lvl 1 -x 210 -y 210 -defaultsOSRD
+preplace netloc CLK_1 1 0 4 30 290 NJ 290 730 190 970
+preplace netloc Reset_1 1 0 4 20 280 NJ 280 720 200 980J
+preplace netloc SegmentDriver_0_SEG 1 3 1 N 310
+preplace netloc PeripheralConnector_0_LED_WE 1 2 2 NJ 160 N
+preplace netloc PeripheralConnector_0_LED_WD 1 2 2 NJ 180 N
+preplace netloc PeripheralConnector_0_SEG_WD 1 2 1 700 220n
+preplace netloc PeripheralConnector_0_SEG_WE 1 2 1 710 200n
+preplace netloc PeripheralConnector_0_RD 1 0 3 40 10 NJ 10 730
+preplace netloc ARMcore_0_IO_Addr 1 1 1 400 70n
+preplace netloc ARMcore_0_IO_WE 1 1 1 380 110n
+preplace netloc ARMcore_0_IO_WriteData 1 1 1 390 90n
+preplace netloc LedDriver_0_LED 1 4 1 NJ 150
+preplace netloc Segment_0_anode 1 4 1 NJ 280
+preplace netloc Segment_0_cathode 1 4 1 NJ 300
+preplace netloc DIP_1 1 0 1 NJ 210
+preplace netloc DipDriver_0_RD 1 1 1 NJ 210
+levelinfo -pg 1 0 210 550 850 1110 1260
+pagesize -pg 1 -db -bbox -sgen -100 0 1430 400
+"
+}
+{
+   "da_clkrst_cnt":"4"
+}

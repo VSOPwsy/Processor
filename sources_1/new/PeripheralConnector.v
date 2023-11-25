@@ -20,9 +20,11 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
+`include "config.v"
+
 module PeripheralConnector(
+    input [31:0] ADDR,
     input [31:0] WD,
-    input [31:0] WA,
     input WE,
     output reg [31:0] RD,
 
@@ -36,9 +38,9 @@ module PeripheralConnector(
     );
 
     wire dec_LED, dec_DIP, dec_SEG;
-    assign dec_LED = WA == `LED;
-    assign dec_DIP = WA == `DIP;
-    assign dec_SEG = WA == `SEG;
+    assign dec_LED = ADDR == `LED;
+    assign dec_DIP = ADDR == `DIP;
+    assign dec_SEG = ADDR == `SEG;
 
     assign LED_WE = dec_LED & WE;
     assign LED_WD = WD;

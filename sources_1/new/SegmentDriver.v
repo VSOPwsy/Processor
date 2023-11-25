@@ -23,9 +23,9 @@
 module SegmentDriver(
     input CLK,
     input Reset,
-    input [31:0] WD,
     input WE,
-    output reg [32:0] SEG
+    input [31:0] WD,
+    output reg [31:0] SEG
     );
     initial SEG = 0;
     always @(posedge CLK, posedge Reset) SEG <= Reset ? 0 : WE ? WD : SEG;

@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 2023/11/25 17:39:06
+// Create Date: 2023/11/25 18:42:00
 // Design Name: 
-// Module Name: LedDriver
+// Module Name: DipDriver
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -20,13 +20,9 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module LedDriver(
-    input CLK,
-    input Reset,
-    input WE,
-    input [31:0] WD,
-    output reg [15:0] LED
+module DipDriver(
+    input [6:0] DIP,
+    output [31:0] RD
     );
-    initial LED = 0;
-    always @(posedge CLK, posedge Reset) LED <= Reset ? 0 : WE ? WD : LED;
+    assign RD = {24'b0, DIP};
 endmodule

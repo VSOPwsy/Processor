@@ -1,7 +1,7 @@
 ## Clock signal 
 ##Bank = 35, Pin name = IO_L12P_T1_MRCC_35,					Sch name = CLK100MHZ
-set_property PACKAGE_PIN E3 [get_ports CLK_undiv]
-set_property IOSTANDARD LVCMOS33 [get_ports CLK_undiv]
+set_property PACKAGE_PIN E3 [get_ports CLK]
+set_property IOSTANDARD LVCMOS33 [get_ports CLK]
 
 ## Switches
 #Bank = 34, Pin name = IO_L23P_T3_34,						Sch name = SW2
@@ -127,10 +127,6 @@ set_property IOSTANDARD LVCMOS33 [get_ports {SevenSegAn[7]}]
 
 
 
-##Buttons
-##Bank = 15, Pin name = IO_L14P_T2_SRCC_15,					Sch name = BTNU
-set_property PACKAGE_PIN M18 [get_ports {PAUSE}]
-set_property IOSTANDARD LVCMOS33 [get_ports {PAUSE}]
 #Bank = 14, Pin name = IO_L21P_T3_DQS_14,					Sch name = BTND
 set_property PACKAGE_PIN P18 [get_ports {Reset}]
 set_property IOSTANDARD LVCMOS33 [get_ports {Reset}]

@@ -39,7 +39,7 @@ module TOP(
     // Input
     wire                PeripheralConnector_WE;
     wire    [31:0]      PeripheralConnector_WD;
-    wire    [31:0]      PeripheralConnector_WA;
+    wire    [31:0]      PeripheralConnector_ADDR;
     wire    [31:0]      PeripheralConnector_DIP_RD;
     // Output
     wire    [31:0]      PeripheralConnector_RD;
@@ -50,8 +50,8 @@ module TOP(
     // Assignment
     assign  PeripheralConnector_WE  =   ARMcore_IO_WE;
     assign  PeripheralConnector_WD  =   ARMcore_IO_WriteData;
-    assign  PeripheralConnector_WA  =   ARMcore_IO_Addr;
-    assign  PeripheralConnector_DIP_RD  =   DIP;
+    assign  PeripheralConnector_ADDR    =   ARMcore_IO_Addr;
+    assign  PeripheralConnector_DIP_RD  =   DipDriver_RD;
 
 
     ARMcore ARMcore(
@@ -65,7 +65,7 @@ module TOP(
 
     PeripheralConnector PeripheralConnector(
         .WD     (PeripheralConnector_WD     ),
-        .WA     (PeripheralConnector_WA     ),
+        .ADDR   (PeripheralConnector_ADDR   ),
         .WE     (PeripheralConnector_WE     ),
         .DIP_RD (PeripheralConnector_DIP_RD ),
         .RD     (PeripheralConnector_RD     ),
@@ -84,6 +84,11 @@ module TOP(
         .LED    (LED                       ),
         .WE     (PeripheralConnector_LED_WE),
         .WD     (PeripheralConnector_LED_WD));
+
+    wire    [31:0]      DipDriver_RD;
+    DipDriver DipDriver(
+        .DIP    (DIP         ),
+        .RD     (DipDriver_RD));
 
     wire [31:0] SEG;
     SegmentDriver SegmentDriver(
