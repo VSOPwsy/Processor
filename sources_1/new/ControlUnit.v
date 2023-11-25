@@ -78,7 +78,7 @@ module ControlUnit(
                             MCAdd = 1'b1;
                             MCLong = 1'b0;
                         end
-                        else if (Instr[7:4] == 4'b1001 && Instr[24:21] == 4'b0100) begin: _MULL
+                        else if (Instr[7:4] == 4'b1001 && Instr[24:21] == 4'b0100) begin: _UMULL
                             Branch = 1'b0;
                             MemtoReg = 1'b0;
                             MemW = 1'b0;

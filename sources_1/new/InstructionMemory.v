@@ -20,8 +20,9 @@ module InstructionMemory(
     initial begin
         INSTR_MEM[0] = 32'hE5909C04;    //   LOOP:  LDR  R9,  DIP
         INSTR_MEM[1] = 32'hE5809C00;    //          STR  R9,  LED
-        INSTR_MEM[2] = 32'hEAFFFFFC;    //          B    LOOP
-        for(i = 3; i < 128; i = i+1) begin 
+        INSTR_MEM[2] = 32'hE5809C18;    //          STR  R9,  SEG
+        INSTR_MEM[3] = 32'hEAFFFFFB;    //          B    LOOP
+        for(i = 4; i < 128; i = i+1) begin 
             INSTR_MEM[i] = 32'h0; 
         end
     end
