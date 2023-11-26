@@ -11,16 +11,17 @@
 
 
 module adder_4_cla(
-    input cin,
-    input [3:0] a,
-    input [3:0] b,
-    output [3:0] s,
-    output cout
+    input           cin,
+    input   [3:0]   a,
+    input   [3:0]   b,
+    
+    output  [3:0]   s,
+    output          cout
     );
     
-    wire [3:0] p;
-    wire [3:0] g;
-    wire [3:0] c;
+    wire    [3:0]   p;
+    wire    [3:0]   g;
+    wire    [3:0]   c;
     
     genvar i;
     

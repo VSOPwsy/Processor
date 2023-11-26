@@ -13,12 +13,13 @@
 `include "config.v"
 
 module ALU(
-    input [31:0] SrcA,
-    input [31:0] SrcB,
-    input Carry,
-    input [3:0] ALUControl,
-    output reg [31:0] ALUResult,
-    output [3:0] ALUFlags
+    input   [31:0]  SrcA,
+    input   [31:0]  SrcB,
+    input           Carry,
+    input   [3:0]   ALUControl,
+    
+    output reg  [31:0]  ALUResult,
+    output      [3:0]   ALUFlags
     );
     
     wire N, Z, C, V;

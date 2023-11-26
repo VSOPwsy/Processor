@@ -23,27 +23,28 @@
 module MCycle #(
     parameter width = 32
 )(
-    input CLK,
-    input Reset,
-    input Start,
-    input MCycleOp,
-    input [width-1:0] Operand1, // Multiplicand / Dividend
-    input [width-1:0] Operand2, // Multiplier / Divisor
-    input [width-1:0] Operand3,
-    input [3:0] WA3,
-    input [3:0] WA5,
-    input MCAdd,
-    input MCLong,
-    input MCycleHazard,
-    output [width-1:0] ResultHigh,
-    output [width-1:0] ResultLow,
-    output reg [width-1:0] AddSrc,
-    output reg MCycleLong,
-    output Busy,
-    output reg [3:0] MCycleWA3,
-    output reg [3:0] MCycleWA5,
-    output Done,
-    output reg MPushIn
+    input                   CLK,
+    input                   Reset,
+    input                   Start,
+    input                   MCycleOp,
+    input   [width-1:0]     Operand1, // Multiplicand / Dividend
+    input   [width-1:0]     Operand2, // Multiplier / Divisor
+    input   [width-1:0]     Operand3,
+    input   [3:0]           WA3,
+    input   [3:0]           WA5,
+    input                   MCAdd,
+    input                   MCLong,
+    input                   MCycleHazard,
+
+    output  [width-1:0]     ResultHigh,
+    output  [width-1:0]     ResultLow,
+    output                  Busy,
+    output                  Done,
+    output  reg [width-1:0] AddSrc,
+    output  reg             MCycleLong,
+    output  reg [3:0]       MCycleWA3,
+    output  reg [3:0]       MCycleWA5,
+    output  reg             MPushIn
 );
 
     initial begin

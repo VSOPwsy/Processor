@@ -31,15 +31,15 @@ module PeripheralConnector(
     output LED_WE,
     output [31:0] LED_WD,
 
-    input [31:0] DIP_RD,
+    input [31:0] SW_RD,
 
     output SEG_WE,
     output [31:0] SEG_WD
     );
 
-    wire dec_LED, dec_DIP, dec_SEG;
+    wire dec_LED, dec_SW, dec_SEG;
     assign dec_LED = ADDR == `LED;
-    assign dec_DIP = ADDR == `DIP;
+    assign dec_SW = ADDR == `SW;
     assign dec_SEG = ADDR == `SEG;
 
     assign LED_WE = dec_LED & WE;
@@ -49,8 +49,8 @@ module PeripheralConnector(
     assign SEG_WD = WD;
 
     always @(*) begin
-        if (dec_DIP) begin
-            RD = DIP_RD;
+        if (dec_SW) begin
+            RD = SW_RD;
         end
         else begin
             RD = 32'b0;

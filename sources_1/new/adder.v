@@ -11,14 +11,15 @@
 
 
 module adder(
-    input cin,
-    input [31:0] a,
-    input [31:0] b,
-    output [31:0] s,
-    output cout
+    input           cin,
+    input   [31:0]  a,
+    input   [31:0]  b,
+    output  [31:0]  s,
+    
+    output          cout
     );
     
-    wire [8:0] c;
+    wire    [8:0]   c;
     assign c[0] = cin;
     assign cout = c[8];
     

@@ -25,20 +25,20 @@
 module MemOrIO(
     input we,
 
-    input [31:0] addr_in,
+    input   [31:0]  addr_in,
     
-    input [31:0] m_rdata,
-    output [31:0] m_wdata,
-    output [31:0] m_addr,
-    output m_we,
+    input   [31:0]  m_rdata,
+    output  [31:0]  m_wdata,
+    output  [31:0]  m_addr,
+    output          m_we,
     
-    input [31:0] r_rdata,
-    output [31:0] r_wdata,
+    input   [31:0]  r_rdata,
+    output  [31:0]  r_wdata,
     
-    input [31:0] io_rdata,
-    output [31:0] io_wdata,
-    output [31:0] io_addr,
-    output io_we
+    input   [31:0]  io_rdata,
+    output  [31:0]  io_wdata,
+    output  [31:0]  io_addr,
+    output          io_we
     );
     
     

@@ -21,24 +21,25 @@
 
 
 module MWReg(
-    input CLK,
-    input Reset,
-    input RegWriteM,
-    input RegWrite2M,
-    input MemtoRegM,
-    input [31:0] ReadDataM,
-    input [31:0] ALUOutM,
-    input [31:0] MCResultHighM,
-    input [3:0] WA3M,
-    input [3:0] WA5M,
-    output reg RegWriteW,
-    output reg RegWrite2W,
-    output reg MemtoRegW,
-    output reg [31:0] ReadDataW,
-    output reg [31:0] ALUOutW,
-    output reg [31:0] MCResultHighW,
-    output reg [3:0] WA3W,
-    output reg [3:0] WA5W
+    input           CLK,
+    input           Reset,
+    input           RegWriteM,
+    input           RegWrite2M,
+    input           MemtoRegM,
+    input   [31:0]  ReadDataM,
+    input   [31:0]  ALUOutM,
+    input   [31:0]  MCResultHighM,
+    input   [3:0]   WA3M,
+    input   [3:0]   WA5M,
+    
+    output reg          RegWriteW,
+    output reg          RegWrite2W,
+    output reg          MemtoRegW,
+    output reg  [31:0]  ReadDataW,
+    output reg  [31:0]  ALUOutW,
+    output reg  [31:0]  MCResultHighW,
+    output reg  [3:0]   WA3W,
+    output reg  [3:0]   WA5W
     );
     
     initial begin

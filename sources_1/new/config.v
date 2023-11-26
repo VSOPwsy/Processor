@@ -24,7 +24,7 @@
 `define     PERIPHERAL_ADDR_HIGH    32'h00000C18
 
 `define     LED      32'h00000C00
-`define     DIP      32'h00000C04
+`define     SW       32'h00000C04
 `define     SEG      32'h00000C18
 
 
