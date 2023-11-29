@@ -57,8 +57,8 @@ module Cache #(
     wire [$clog2(TOTAL_CACHE_SIZE_KB)-1:0] Set_Addr_Buf;
 
     always @(posedge CLK) Addr_Buf <= rc_Addr;
-    assign Set_Addr     = rc_Addr      [$clog2(TOTAL_CACHE_SIZE_KB)+$clog2(DATA_WIDTH/8)-1:$clog2(DATA_WIDTH/8)];
-    assign Set_Addr_Buf = Addr_Buf  [$clog2(TOTAL_CACHE_SIZE_KB)+$clog2(DATA_WIDTH/8)-1:$clog2(DATA_WIDTH/8)];
+    assign Set_Addr = rc_Addr[$clog2(TOTAL_CACHE_SIZE_KB)+$clog2(DATA_WIDTH/8)-1:$clog2(DATA_WIDTH/8)];
+    assign Set_Addr_Buf = Addr_Buf[$clog2(TOTAL_CACHE_SIZE_KB)+$clog2(DATA_WIDTH/8)-1:$clog2(DATA_WIDTH/8)];
 
     wire [TOTAL_CACHE_SIZE_KB-1:0] Cache_rc_Hit;
     wire [TOTAL_CACHE_SIZE_KB-1:0] Cache_rc_Valid;
