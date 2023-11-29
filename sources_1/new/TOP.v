@@ -27,12 +27,68 @@ module TOP(
     // ARMcore
     // Input
     wire    [31:0]      ARMcore_IO_ReadData;
+    wire                ARMcore_Cache_Hit;
+    wire    [31:0]      ARMcore_Cache_ReadData;
+    wire                ARMcore_Mem_ReadReady;
+    wire    [31:0]      ARMcore_Mem_ReadData;
     // Output
     wire    [31:0]      ARMcore_IO_Addr;
     wire    [31:0]      ARMcore_IO_WriteData;
     wire                ARMcore_IO_WE;
+    wire                ARMcore_Cache_RW;
+    wire    [31:0]      ARMcore_Cache_Addr;
+    wire    [31:0]      ARMcore_Cache_WriteData;
+    wire                ARMcore_Cache_Valid;
     // Assignment
     assign  ARMcore_IO_ReadData     =   PeripheralConnector_RD;
+    assign  ARMcore_Cache_Hit       =   Cache_rc_Hit;
+    assign  ARMcore_Cache_ReadData  =   Cache_rc_ReadData;
+    assign  ARMcore_Mem_ReadReady   =   DataMemory_ReadReady;
+    assign  ARMcore_Mem_ReadData    =   DataMemory_ReadData;
+
+    // Cache
+    // Input
+    wire Cache_rc_RW;
+    wire Cache_rc_Valid;
+    wire [31:0] Cache_rc_Addr;
+    wire [31:0] Cache_rc_WriteData;
+    wire Cache_cm_ReadReady;
+    wire [31:0] Cache_cm_ReadData;
+    // Output
+    wire [31:0] Cache_rc_ReadData;
+    wire Cache_rc_Hit;
+    wire Cache_cm_ReadValid;
+    wire Cache_cm_WriteValid;
+    wire [31:0] Cache_cm_WriteAddr;
+    wire [31:0] Cache_cm_WriteData;
+    wire [31:0] Cache_cm_ReadAddr;
+    // Assignment
+    assign  Cache_rc_Addr       =   ARMcore_Cache_Addr;
+    assign  Cache_rc_RW         =   ARMcore_Cache_RW;
+    assign  Cache_rc_Valid      =   ARMcore_Cache_Valid;
+    assign  Cache_rc_WriteData  =   ARMcore_Cache_WriteData;
+    assign  Cache_cm_ReadReady  =   DataMemory_ReadReady;
+    assign  Cache_cm_ReadData   =   DataMemory_ReadData;
+
+
+
+    // DataMemory
+    // Input
+    wire                DataMemory_ReadValid;
+    wire                DataMemory_WriteValid;
+    wire    [31:0]      DataMemory_WriteAddr;
+    wire    [31:0]      DataMemory_ReadAddr;
+    wire    [31:0]      DataMemory_WriteData;
+    // Output
+    wire    [31:0]      DataMemory_ReadData;
+    wire                DataMemory_ReadReady;
+    // Assignment
+    assign  DataMemory_ReadValid    =   Cache_cm_ReadValid;
+    assign  DataMemory_WriteValid   =   Cache_cm_WriteValid;
+    assign  DataMemory_WriteAddr    =   Cache_cm_WriteAddr;
+    assign  DataMemory_ReadAddr     =   Cache_cm_ReadAddr;
+    assign  DataMemory_WriteData    =   Cache_cm_WriteData;
+
 
 
     // PeripheralConnector
@@ -48,20 +104,63 @@ module TOP(
     wire                PeripheralConnector_SEG_WE;
     wire    [31:0]      PeripheralConnector_SEG_WD;
     // Assignment
-    assign  PeripheralConnector_WE  =   ARMcore_IO_WE;
-    assign  PeripheralConnector_WD  =   ARMcore_IO_WriteData;
+    assign  PeripheralConnector_WE      =   ARMcore_IO_WE;
+    assign  PeripheralConnector_WD      =   ARMcore_IO_WriteData;
     assign  PeripheralConnector_ADDR    =   ARMcore_IO_Addr;
-    assign  PeripheralConnector_SW_RD  =   SWDriver_RD;
+    assign  PeripheralConnector_SW_RD   =   SWDriver_RD;
+
 
 
     ARMcore ARMcore(
-    .CLK            (CLK                    ),
-    .Reset          (Reset                  ),
-    .IO_ReadData    (ARMcore_IO_ReadData    ),
-    .IO_Addr        (ARMcore_IO_Addr        ),
-    .IO_WriteData   (ARMcore_IO_WriteData   ),
-    .IO_WE          (ARMcore_IO_WE          ));
+        .CLK            (CLK                    ),
+        .Reset          (Reset                  ),
+        .IO_ReadData    (ARMcore_IO_ReadData    ),
+        .IO_Addr        (ARMcore_IO_Addr        ),
+        .IO_WriteData   (ARMcore_IO_WriteData   ),
+        .IO_WE          (ARMcore_IO_WE          ),
+        .Cache_RW       (ARMcore_Cache_RW       ),
+        .Cache_Addr     (ARMcore_Cache_Addr     ),
+        .Cache_WriteData(ARMcore_Cache_WriteData),
+        .Cache_Valid    (ARMcore_Cache_Valid    ),
+        .Cache_Hit      (ARMcore_Cache_Hit      ),
+        .Cache_ReadData (ARMcore_Cache_ReadData ),
+        .Mem_ReadReady  (ARMcore_Mem_ReadReady  ),
+        .Mem_ReadData   (ARMcore_Mem_ReadData   ));
     
+    
+
+    Cache Cache(
+        .CLK            (CLK                ),
+        .Reset          (Reset              ),
+        .rc_RW          (Cache_rc_RW        ),
+        .rc_Valid       (Cache_rc_Valid     ),
+        .rc_Addr        (Cache_rc_Addr      ),
+        .rc_WriteData   (Cache_rc_WriteData ),
+
+        .cm_ReadValid   (Cache_cm_ReadValid ),
+        .cm_WriteValid  (Cache_cm_WriteValid),
+        .cm_ReadAddr    (Cache_cm_ReadAddr  ),
+        .cm_WriteAddr   (Cache_cm_WriteAddr ),
+        .cm_WriteData   (Cache_cm_WriteData ),
+
+        .cm_ReadReady   (Cache_cm_ReadReady ),
+        .cm_ReadData    (Cache_cm_ReadData  ),
+    
+        .rc_ReadData    (Cache_rc_ReadData  ),
+        .rc_Hit         (Cache_rc_Hit       ));
+
+
+
+    DataMemory DataMemory(
+        .CLK        (CLK                    ),
+        .ReadAddr   (DataMemory_ReadAddr    ),
+        .WriteAddr  (DataMemory_WriteAddr   ),
+        .ReadValid  (DataMemory_ReadValid   ),
+        .WriteValid (DataMemory_WriteValid  ),
+        .WriteData  (DataMemory_WriteData   ),
+        .ReadData   (DataMemory_ReadData    ),
+        .ReadReady  (DataMemory_ReadReady   ));
+
 
     PeripheralConnector PeripheralConnector(
         .WD     (PeripheralConnector_WD     ),

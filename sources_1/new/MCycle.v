@@ -46,13 +46,21 @@ module MCycle #(
     output  reg [3:0]       MCycleWA5,
     output  reg             MPushIn
 );
-
+    reg MCycleOp_reg;
+    always @(posedge CLK, posedge Reset) begin
+        if (Reset)
+            MCycleOp_reg <= MCycleOp;
+        else
+            MCycleOp_reg <= Start ? MCycleOp : MCycleOp_reg;
+    end
+    
     initial begin
         MPushIn = 0;
         MCycleWA3 = 0;
         MCycleWA5 = 0;
         AddSrc = 0;
         MCycleLong = 0;
+        MCycleOp_reg = 0;
     end
     
     wire Done;
@@ -61,9 +69,9 @@ module MCycle #(
     )ControlTest(
         .CLK(CLK),
         .Reset(Reset),
-        .MCycleOp(MCycleOp),
+        .MCycleOp(MCycleOp_reg),
         .Start(Start),
-        .Control(MCycleOp ? cout : temp_sum[0]),
+        .Control(MCycleOp_reg ? cout : temp_sum[0]),
         .Init(Init),
         .Shift(Shift),
         .Write(Write),
@@ -74,9 +82,9 @@ module MCycle #(
     wire [width-1:0] a, b, s;
     wire cout;
     adder adder(
-        .cin(MCycleOp),
+        .cin(MCycleOp_reg),
         .a(a),
-        .b(MCycleOp? ~b : b),
+        .b(MCycleOp_reg? ~b : b),
         .s(s),
         .cout(cout)
     );
@@ -91,15 +99,15 @@ module MCycle #(
 
     always @(posedge CLK, posedge Reset) begin: COMPUTING_PROCESS // process which does the actual computation
         if (Reset | Init) begin
-            temp_sum <= {{width{1'b0}}, MCycleOp ? Operand1 : Operand2};
-            shifted_op1 <= MCycleOp ? Operand2 : Operand1;
+            temp_sum <= {{width{1'b0}}, (Start ? MCycleOp : MCycleOp_reg) ? Operand1 : Operand2};
+            shifted_op1 <= (Start ? MCycleOp : MCycleOp_reg) ? Operand2 : Operand1;
             MCycleWA3 <= WA3;
             MCycleWA5 <= WA5;
             AddSrc <= MCAdd ? Operand3 : 0;
             MCycleLong <= MCLong; 
         end
         else if (Shift) begin
-            if(~MCycleOp) begin
+            if(~MCycleOp_reg) begin
                 if (Write)
                     temp_sum <= {cout, s, temp_sum[width-1:1]};
                 else

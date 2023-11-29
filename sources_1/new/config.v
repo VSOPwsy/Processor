@@ -46,4 +46,9 @@
 `define     BIC     4'b1110
 `define     MVN     4'b1111
 
+
+`define     FIFO    1'b0
+`define     RANDOM  1'b1
+
+
 `endif

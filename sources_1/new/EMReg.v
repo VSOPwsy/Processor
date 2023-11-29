@@ -23,6 +23,7 @@
 module EMReg(
     input CLK,
     input Reset,
+    input EN,
     input RegWriteE,
     input RegWrite2E,
     input MemWriteE,
@@ -71,7 +72,7 @@ module EMReg(
             WA5M <= 0;
             MCResultHighM <= 0;
         end
-        else begin
+        else if (EN) begin
             RegWriteM <= RegWriteE;
             RegWrite2M <= RegWrite2E;
             MemWriteM <= MemWriteE;
@@ -82,6 +83,18 @@ module EMReg(
             RA2M <= RA2E;
             WA5M <= WA5E;
             MCResultHighM <= MCResultHighE;
+        end
+        else begin
+            RegWriteM <= RegWriteM;
+            RegWrite2M <= RegWrite2M;
+            MemWriteM <= MemWriteM;
+            MemtoRegM <= MemtoRegM;
+            ALUOutM <= ALUOutM;
+            WriteDataM <= WriteDataM;
+            WA3M <= WA3M;
+            RA2M <= RA2M;
+            WA5M <= WA5M;
+            MCResultHighM <= MCResultHighM;
         end
     end
     

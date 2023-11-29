@@ -1,6 +1,7 @@
 module DEReg(
     input CLK,
     input Reset,
+    input EN,
     input CLR,
     input [3:0] RA1D,
     input [3:0] RA2D,
@@ -107,7 +108,7 @@ module DEReg(
             MCAddE <= 0;
             MCLongE <= 0;
         end
-        else begin
+        else if (EN) begin
             CondE <= CondD;
             FlagWE <= FlagWD;
             PCSE <= PCSD;
@@ -132,6 +133,32 @@ module DEReg(
             WA5E <= WA5D;
             MCAddE <= MCAddD;
             MCLongE <= MCLongD;
+        end
+        else begin
+            CondE <= CondE;
+            FlagWE <= FlagWE;
+            PCSE <= PCSE;
+            RegWE <= RegWE;
+            MemWE <= MemWE;
+            MemtoRegE <= MemtoRegE;
+            WA3E <= WA3E;
+            ALUSrcE <= ALUSrcE;
+            ALUControlE <= ALUControlE;
+            RD1E <= RD1E;
+            RD2E <= RD2E;
+            RD4E <= RD4E;
+            ExtImmE <= ExtImmE;
+            RA1E <= RA1E;
+            RA2E <= RA2E;
+            ShE <= ShE;
+            Shamt5E <= Shamt5E;
+            NoWriteE <= NoWriteE;
+            MSE <= MSE;
+            MCycleOpE <= MCycleOpE;
+            MCycleHazardE <= MCycleHazardE;
+            WA5E <= WA5E;
+            MCAddE <= MCAddE;
+            MCLongE <= MCLongE;
         end
     end
 

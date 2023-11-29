@@ -16,16 +16,34 @@ module ARMcore(
     input               CLK,
     input               Reset,
 
+
     input   [31:0]      IO_ReadData,
     output  [31:0]      IO_Addr,
     output  [31:0]      IO_WriteData,
-    output              IO_WE
+    output              IO_WE,
+
+
+    output              Cache_RW,
+    output  [31:0]      Cache_Addr,
+    output  [31:0]      Cache_WriteData,
+    output              Cache_Valid,
+    input               Cache_Hit,
+    input   [31:0]      Cache_ReadData,
+    
+    
+    input   [31:0]      Mem_ReadData,
+    input               Mem_ReadReady
     );
 
     assign  IO_Addr         =   MemOrIO_io_addr;
     assign  IO_WriteData    =   MemOrIO_io_wdata;
     assign  IO_WE           =   MemOrIO_io_we;
 
+    assign  Cache_RW        =   MemOrIO_m_we;
+    assign  Cache_Addr      =   MemOrIO_m_addr;
+    assign  Cache_Valid     =   MemOrIO_dec_mem & (EMReg_MemtoRegM | EMReg_MemWriteM);
+    assign  Cache_WriteData =   MemOrIO_m_wdata;
+    
     
     // HazardUnit
     // Input
@@ -54,6 +72,9 @@ module ARMcore(
     wire                HazardUnit_MS;
     wire                HazardUnit_RegWrite2M;
     wire                HazardUnit_RegWrite2W;
+    wire                HazardUnit_Cache_Hit;
+    wire                HazardUnit_RW;
+    wire                HazardUnit_Mem_Ready;
     // Output
     wire    [2:0]       HazardUnit_ForwardAE;
     wire    [2:0]       HazardUnit_ForwardBE;
@@ -89,7 +110,9 @@ module ARMcore(
     assign  HazardUnit_MS           =   ControlUnit_MS;
     assign  HazardUnit_RegWrite2M   =   EMReg_RegWrite2M;
     assign  HazardUnit_RegWrite2W   =   MWReg_RegWrite2W;
-    
+    assign  HazardUnit_Cache_Hit  =     Cache_Hit;
+    assign  HazardUnit_RW           =   MemOrIO_m_we;
+    assign  HazardUnit_Mem_ReadReady    =   Mem_ReadReady;
     
     
     // ProgramCounter
@@ -198,6 +221,7 @@ module ARMcore(
     
     // DEReg
     //Input
+    wire                DEReg_EN;
     wire                DEReg_CLR;
     wire    [3:0]       DEReg_CondD;     
     wire    [1:0]       DEReg_FlagWD;    
@@ -249,6 +273,7 @@ module ARMcore(
     wire                DEReg_MCAddE;
     wire                DEReg_MCLongE;
     // Assignment
+    assign  DEReg_EN            =   ~HazardUnit_StallE;
     assign  DEReg_CLR           =   HazardUnit_FlushE;
     assign  DEReg_CondD         =   FDReg_InstrD[31:28];
     assign  DEReg_FlagWD        =   ControlUnit_FlagW;
@@ -389,6 +414,7 @@ module ARMcore(
     
     // EMReg
     // Input
+    wire                EMReg_EN;
     wire                EMReg_RegWriteE;
     wire                EMReg_RegWrite2E;
     wire                EMReg_MemWriteE;
@@ -411,6 +437,7 @@ module ARMcore(
     wire    [3:0]       EMReg_WA5M;
     wire    [3:0]       EMReg_RA2M;
     // Assignment
+    assign  EMReg_EN            =   ~HazardUnit_StallM;
     assign  EMReg_RegWriteE     =   MCycle_MPushIn | (~(MCycle_Busy & DEReg_MCycleHazardE) & CondUnit_RegWrite);
     assign  EMReg_RegWrite2E    =   MCycle_MPushIn & MCycle_MCycleLong;
     assign  EMReg_MemWriteE     =   CondUnit_MemWrite;
@@ -432,17 +459,18 @@ module ARMcore(
     wire    [31:0]      MemOrIO_r_rdata;
     wire    [31:0]      MemOrIO_io_rdata;
     // Output
+    wire                MemOrIO_dec_mem;
     wire    [31:0]      MemOrIO_m_wdata;
     wire    [31:0]      MemOrIO_m_addr;
     wire                MemOrIO_m_we;
     wire    [31:0]      MemOrIO_r_wdata;
     wire    [31:0]      MemOrIO_io_wdata;
     wire    [31:0]      MemOrIO_io_addr;
-    wire    [31:0]      MemOrIO_io_we;
+    wire                MemOrIO_io_we;
     // Assignment
     assign  MemOrIO_we          =   EMReg_MemWriteM;
     assign  MemOrIO_addr_in     =   EMReg_ALUOutM;
-    assign  MemOrIO_m_rdata     =   DataMemory_RD;
+    assign  MemOrIO_m_rdata     =   Cache_Hit ? Cache_ReadData : Mem_ReadData;
     assign  MemOrIO_r_rdata     =   HazardUnit_ForwardM ? ResultW : EMReg_WriteDataM;
     assign  MemOrIO_io_rdata    =   IO_ReadData;
     
@@ -513,28 +541,33 @@ module ARMcore(
         .WA3W   (HazardUnit_WA3W),
         .WA5M   (HazardUnit_WA5M),
         .WA5W   (HazardUnit_WA5W),
-        .RegWriteE  (HazardUnit_RegWriteE),
-        .RegWriteM  (HazardUnit_RegWriteM),
-        .RegWriteW  (HazardUnit_RegWriteW),
-        .MemWriteM  (HazardUnit_MemWriteM),
-        .MemtoRegE  (HazardUnit_MemtoRegE),
-        .MemtoRegW  (HazardUnit_MemtoRegW),
-        .PCSrcE     (HazardUnit_PCSrcE),
-        .MCycleWA3  (HazardUnit_MCycleWA3),
-        .MCycleDone (HazardUnit_MCycleDone),
-        .MCycleBusy (HazardUnit_MCycleBusy),
-        .MStart     (HazardUnit_MStart),
-        .ForwardAE  (HazardUnit_ForwardAE),
-        .ForwardBE  (HazardUnit_ForwardBE),
-        .ForwardM   (HazardUnit_ForwardM),
-        .StallF     (HazardUnit_StallF),
-        .StallD     (HazardUnit_StallD),
-        .FlushD     (HazardUnit_FlushD),
-        .FlushE     (HazardUnit_FlushE),
+        .RegWriteE  (HazardUnit_RegWriteE   ),
+        .RegWriteM  (HazardUnit_RegWriteM   ),
+        .RegWriteW  (HazardUnit_RegWriteW   ),
+        .MemWriteM  (HazardUnit_MemWriteM   ),
+        .MemtoRegE  (HazardUnit_MemtoRegE   ),
+        .MemtoRegW  (HazardUnit_MemtoRegW   ),
+        .PCSrcE     (HazardUnit_PCSrcE      ),
+        .MCycleWA3  (HazardUnit_MCycleWA3   ),
+        .MCycleDone (HazardUnit_MCycleDone  ),
+        .MCycleBusy (HazardUnit_MCycleBusy  ),
+        .MStart     (HazardUnit_MStart      ),
+        .ForwardAE  (HazardUnit_ForwardAE   ),
+        .ForwardBE  (HazardUnit_ForwardBE   ),
+        .ForwardM   (HazardUnit_ForwardM    ),
         .MCycleHazard(HazardUnit_MCycleHazard),
-        .MS         (HazardUnit_MS),
-        .RegWrite2M (HazardUnit_RegWrite2M),
-        .RegWrite2W (HazardUnit_RegWrite2W));
+        .StallF     (HazardUnit_StallF  ),
+        .StallD     (HazardUnit_StallD  ),
+        .StallE     (HazardUnit_StallE  ),
+        .StallM     (HazardUnit_StallM  ),
+        .FlushD     (HazardUnit_FlushD  ),
+        .FlushE     (HazardUnit_FlushE  ),
+        .MS         (HazardUnit_MS          ),
+        .RegWrite2M (HazardUnit_RegWrite2M  ),
+        .RegWrite2W (HazardUnit_RegWrite2W  ),
+        .Cache_Hit(HazardUnit_Cache_Hit ),
+        .RW         (HazardUnit_RW          ),
+        .Mem_ReadReady  (HazardUnit_Mem_ReadReady   ));
     
     
     ControlUnit ControlUnit(
@@ -614,6 +647,7 @@ module ARMcore(
     DEReg DEReg(
         .CLK            (CLK                ),
         .Reset          (Reset              ),
+        .EN             (DEReg_EN           ),
         .CLR            (DEReg_CLR          ),
         .CondD          (DEReg_CondD        ),
         .FlagWD         (DEReg_FlagWD       ),
@@ -718,6 +752,7 @@ module ARMcore(
     EMReg EMReg(
         .CLK        (CLK                ),
         .Reset      (Reset              ),
+        .EN         (EMReg_EN           ),
         .RegWriteE  (EMReg_RegWriteE    ),
         .RegWrite2E (EMReg_RegWrite2E   ),
         .MemWriteE  (EMReg_MemWriteE    ),
@@ -743,6 +778,7 @@ module ARMcore(
     MemOrIO MemOrIO(
         .we         (MemOrIO_we         ),
         .addr_in    (MemOrIO_addr_in    ),
+        .dec_mem    (MemOrIO_dec_mem    ),
         .m_rdata    (MemOrIO_m_rdata    ),
         .r_rdata    (MemOrIO_r_rdata    ),
         .io_rdata   (MemOrIO_io_rdata   ),
@@ -754,14 +790,6 @@ module ARMcore(
         .io_addr    (MemOrIO_io_addr    ),
         .io_we      (MemOrIO_io_we      ));
         
-
-    DataMemory DataMemory(
-        .CLK    (CLK            ),
-        .WE     (DataMemory_WE  ),
-        .A      (DataMemory_A   ),
-        .WD     (DataMemory_WD  ),
-        .RD     (DataMemory_RD  ));
-
 
     MWReg MWReg(
         .CLK        (CLK                ),
