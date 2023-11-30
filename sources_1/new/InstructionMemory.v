@@ -30,7 +30,7 @@ module InstructionMemory(
 			INSTR_MEM[9] = 32'hE0426001; 
 			INSTR_MEM[10] = 32'hE5046004; 
 			INSTR_MEM[11] = 32'hE2444008; 
-			INSTR_MEM[12] = 32'hE5946004; 
+			INSTR_MEM[12] = 32'hE5946004;
 			INSTR_MEM[13] = 32'hE0070295;
 			INSTR_MEM[14] = 32'hE59F81D4;
 			INSTR_MEM[15] = 32'hE59F31D4;
@@ -47,9 +47,9 @@ module InstructionMemory(
 			INSTR_MEM[26] = 32'hE08BB00A; 
 			INSTR_MEM[27] = 32'hE58CB000; 
 			INSTR_MEM[28] = 32'hEAFFFFFE; 
-        for(i = 29; i < 128; i = i+1) begin 
-            INSTR_MEM[i] = 32'h0; 
-        end
+			for(i = 29; i < 128; i = i+1) begin 
+				INSTR_MEM[i] = 32'h0; 
+			end
     end
     
     assign Instr = INSTR_MEM[PC[31:2]];

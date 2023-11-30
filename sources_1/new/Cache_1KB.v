@@ -57,7 +57,12 @@ module Cache_1KB #(
     localparam TAG_WIDTH = ADDR_WIDTH - ($clog2(WAY_NUM) + $clog2(DATA_WIDTH/8));
     
     initial begin
+        rc_ReadData = 0;
         cm_ReadValid = 0;
+        cm_WriteValid = 0;
+        cm_WriteData = 0;
+        cm_WriteTag = 0;
+        cm_ReadAddr = 0;
     end
     
     wire [INDEX_WIDTH-1:0] Hit_Index;
@@ -117,12 +122,10 @@ module Cache_1KB #(
         case (r_current_state)
             `IDLE: begin
                 if (rc_Valid & ~rc_Hit & ~rc_RW) begin
-                    if (cm_ReadReady) begin
+                    if (cm_ReadReady)
                         r_next_state = `IDLE;
-                    end
-                    else begin
+                    else
                         r_next_state = `READING;
-                    end
                 end
                 else begin
                     r_next_state = `IDLE;
@@ -130,32 +133,13 @@ module Cache_1KB #(
             end
 
             `READING: begin
-                if (cm_ReadReady) begin
+                if (cm_ReadReady)
                     r_next_state = `IDLE;
-                end
-                else begin
+                else
                     r_next_state = `READING;
-                end
             end
         endcase
     end
-
-    reg [$clog2(SET_NUM)-1:0] tempPtr = 0;
-
-    always @(posedge CLK) begin
-        case (r_current_state)
-            `IDLE: begin
-                if (rc_Valid & ~rc_Hit & ~rc_RW) begin
-                    tempPtr <= RepPtr;
-                end
-            end
-
-            `READING: begin
-            end
-        endcase
-    end
-
-
 
     always @(*) begin
         if ((r_current_state == `IDLE & rc_Valid & ~rc_Hit & ~rc_RW) | r_current_state == `READING) begin

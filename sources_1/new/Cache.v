@@ -52,13 +52,8 @@ module Cache #(
     localparam OFFSET_WIDTH = $clog2(DATA_WIDTH/4);
     localparam TAG_WIDTH = ADDR_WIDTH - ($clog2(WAY_NUM) + $clog2(DATA_WIDTH/8));
 
-    reg [ADDR_WIDTH-1:0] Addr_Buf = 0;
     wire [$clog2(TOTAL_CACHE_SIZE_KB)-1:0] Set_Addr;
-    wire [$clog2(TOTAL_CACHE_SIZE_KB)-1:0] Set_Addr_Buf;
-
-    always @(posedge CLK) Addr_Buf <= rc_Addr;
     assign Set_Addr = rc_Addr[$clog2(TOTAL_CACHE_SIZE_KB)+$clog2(DATA_WIDTH/8)-1:$clog2(DATA_WIDTH/8)];
-    assign Set_Addr_Buf = Addr_Buf[$clog2(TOTAL_CACHE_SIZE_KB)+$clog2(DATA_WIDTH/8)-1:$clog2(DATA_WIDTH/8)];
 
     wire [TOTAL_CACHE_SIZE_KB-1:0] Cache_rc_Hit;
     wire [TOTAL_CACHE_SIZE_KB-1:0] Cache_rc_Valid;
@@ -104,7 +99,7 @@ module Cache #(
     assign cm_ReadValid = Cache_cm_ReadValid[Set_Addr];
     assign cm_WriteValid = Cache_cm_WriteValid[Set_Addr];
     assign cm_WriteAddr = {Cache_cm_WriteTag[(Set_Addr+1)*TAG_WIDTH-1-:TAG_WIDTH], Set_Addr, {OFFSET_WIDTH{1'b0}}};
-    assign cm_WriteData = Cache_cm_WriteData[(Set_Addr_Buf+1)*DATA_WIDTH-1-:DATA_WIDTH];
+    assign cm_WriteData = Cache_cm_WriteData[(Set_Addr+1)*DATA_WIDTH-1-:DATA_WIDTH];
 
     assign rc_Hit = |Cache_rc_Hit;
 
