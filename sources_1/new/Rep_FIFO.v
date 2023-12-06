@@ -1,10 +1,10 @@
 module Rep_FIFO #(
-    parameter LINE_NUM = 256
+    parameter SET_NUM = 256
 )(
     input CLK,
     input Valid,
     input Hit,
-    output reg [$clog2(LINE_NUM)-1:0] RepPtr
+    output reg [$clog2(SET_NUM)-1:0] RepPtr
     );
 
     initial begin

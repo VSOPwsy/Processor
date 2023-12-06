@@ -69,9 +69,9 @@ module Cache #(
         for (i = 0; i < TOTAL_CACHE_SIZE_KB; i = i + 1) begin
             Cache_1KB #(
                 .TOTAL_CACHE_SIZE_KB(TOTAL_CACHE_SIZE_KB),
-                .ADDR_WIDTH     (ADDR_WIDTH          ),
-                .DATA_WIDTH     (DATA_WIDTH          ),
-                .POLICY         (POLICY              )
+                .ADDR_WIDTH     (ADDR_WIDTH ),
+                .DATA_WIDTH     (DATA_WIDTH ),
+                .POLICY         (POLICY     )
             )Set(
                 .CLK            (CLK                ),
                 .Reset          (Reset              ),
@@ -84,22 +84,22 @@ module Cache #(
                 
                 .cm_ReadValid   (Cache_cm_ReadValid[i]  ),
                 .cm_WriteValid  (Cache_cm_WriteValid[i] ),
-                .cm_WriteTag    (Cache_cm_WriteTag[(i+1)*TAG_WIDTH-1-:TAG_WIDTH]),
-                .cm_WriteData   (Cache_cm_WriteData[(i+1)*DATA_WIDTH-1-:DATA_WIDTH]),
-                .cm_ReadReady   (cm_ReadReady     ),
-                .cm_ReadData    (cm_ReadData  ),
-                .cm_ReadAddr    (Cache_cm_ReadAddr[(i+1)*ADDR_WIDTH-1-:ADDR_WIDTH]));
+                .cm_ReadReady   (cm_ReadReady           ),
+                .cm_ReadData    (cm_ReadData            ),
+                .cm_WriteTag    (Cache_cm_WriteTag[(i+1)*TAG_WIDTH-1-:TAG_WIDTH]    ),
+                .cm_WriteData   (Cache_cm_WriteData[(i+1)*DATA_WIDTH-1-:DATA_WIDTH] ),
+                .cm_ReadAddr    (Cache_cm_ReadAddr[(i+1)*ADDR_WIDTH-1-:ADDR_WIDTH]  ));
 
             assign Cache_rc_Valid[i] = (Set_Addr == i) & rc_Valid;
         end
     endgenerate
 
-    assign rc_ReadData = Cache_rc_ReadData[(Set_Addr+1)*DATA_WIDTH-1-:DATA_WIDTH];
-    assign cm_ReadAddr = Cache_cm_ReadAddr[(Set_Addr+1)*ADDR_WIDTH-1-:ADDR_WIDTH];
-    assign cm_ReadValid = Cache_cm_ReadValid[Set_Addr];
-    assign cm_WriteValid = Cache_cm_WriteValid[Set_Addr];
-    assign cm_WriteAddr = {Cache_cm_WriteTag[(Set_Addr+1)*TAG_WIDTH-1-:TAG_WIDTH], Set_Addr, {OFFSET_WIDTH{1'b0}}};
-    assign cm_WriteData = Cache_cm_WriteData[(Set_Addr+1)*DATA_WIDTH-1-:DATA_WIDTH];
+    assign rc_ReadData      =   Cache_rc_ReadData[(Set_Addr+1)*DATA_WIDTH-1-:DATA_WIDTH];
+    assign cm_ReadAddr      =   Cache_cm_ReadAddr[(Set_Addr+1)*ADDR_WIDTH-1-:ADDR_WIDTH];
+    assign cm_ReadValid     =   Cache_cm_ReadValid[Set_Addr];
+    assign cm_WriteValid    =   Cache_cm_WriteValid[Set_Addr];
+    assign cm_WriteAddr     =   {Cache_cm_WriteTag[(Set_Addr+1)*TAG_WIDTH-1-:TAG_WIDTH], Set_Addr, {OFFSET_WIDTH{1'b0}}};
+    assign cm_WriteData     =   Cache_cm_WriteData[(Set_Addr+1)*DATA_WIDTH-1-:DATA_WIDTH];
 
     assign rc_Hit = |Cache_rc_Hit;
 
