@@ -14,7 +14,7 @@
 
 module ControlUnit(
     input [31:0] Instr,
-    output reg [1:0] FlagW,
+    output reg [3:0] FlagW,
     output PCS,
     output reg RegW,
     output reg MemW, 
@@ -49,30 +49,6 @@ module ControlUnit(
                 casex (Funct)
                     6'b0XXXXX: begin
                         if (Instr[7:4] == 4'b1001 && Instr[24:21] == 4'b0000) begin: _MUL
-                            Branch = 1'b0;
-                            MemtoReg = 1'b0;
-                            MemW = 1'b0;
-                            ALUSrc = 2'b10;
-                            ImmSrc = 2'b00;
-                            RegW = 1'b0;
-                            RegSrc = 3'b100;
-                            ALUOp = 2'b11;
-                            MS = 1'b1;
-                            MCycleOp = 1'b0;
-                        end
-                        else if (Instr[7:4] == 4'b1001 && Instr[24:21] == 4'b0001) begin: _MLA
-                            Branch = 1'b0;
-                            MemtoReg = 1'b0;
-                            MemW = 1'b0;
-                            ALUSrc = 2'b10;
-                            ImmSrc = 2'b00;
-                            RegW = 1'b0;
-                            RegSrc = 3'b100;
-                            ALUOp = 2'b11;
-                            MS = 1'b1;
-                            MCycleOp = 1'b0;
-                        end
-                        else if (Instr[7:4] == 4'b1001 && Instr[24:21] == 4'b0100) begin: _UMULL
                             Branch = 1'b0;
                             MemtoReg = 1'b0;
                             MemW = 1'b0;
@@ -184,97 +160,101 @@ module ControlUnit(
                 case (Funct[4:1])
                     `AND: begin
                         ALUControl = `AND;
-                        FlagW = Funct[0] ? 2'b10 : 2'b00;
+                        FlagW = Funct[0] ? 4'b1110 : 4'b0000;
                         NoWrite = 1'b0;
                     end
                     
                     `EOR: begin
                         ALUControl = `EOR;
-                        FlagW = Funct[0] ? 2'b10 : 2'b00;
+                        FlagW = Funct[0] ? 4'b1110 : 4'b0000;
                         NoWrite = 1'b0;
                     end
                     
                     `SUB: begin
                         ALUControl = `SUB;
-                        FlagW = Funct[0] ? 2'b11 : 2'b00;
+                        FlagW = Funct[0] ? 4'b1111 : 4'b0000;
                         NoWrite = 1'b0;
                     end
                     
                     `RSB: begin
                         ALUControl = `RSB;
-                        FlagW = Funct[0] ? 2'b11 : 2'b00;
+                        FlagW = Funct[0] ? 4'b1111 : 4'b0000;
                         NoWrite = 1'b0;
                     end
                     
                     `ADD: begin
                         ALUControl = `ADD;
-                        FlagW = Funct[0] ? 2'b11 : 2'b00;
+                        FlagW = Funct[0] ? 4'b1111 : 4'b0000;
                         NoWrite = 1'b0;
                     end
                     
                     `ADC: begin
                         ALUControl = `ADC;
-                        FlagW = Funct[0] ? 2'b11 : 2'b00;
+                        FlagW = Funct[0] ? 4'b1111 : 4'b0000;
                         NoWrite = 1'b0;
                     end
                     
                     `SBC: begin
                         ALUControl = `SBC;
-                        FlagW = Funct[0] ? 2'b11 : 2'b00;
+                        FlagW = Funct[0] ? 4'b1111 : 4'b0000;
                         NoWrite = 1'b0;
                     end
                     
                     `RSC: begin
                         ALUControl = `RSC;
-                        FlagW = Funct[0] ? 2'b11 : 2'b00;
+                        FlagW = Funct[0] ? 4'b1111 : 4'b0000;
                         NoWrite = 1'b0;
                     end
                     
                     `TST: begin
-                        ALUControl = `TST;
-                        FlagW = Funct[0] ? 2'b10 : 2'b00;
+                        if (Funct[0])   // TST with S bit clear is not a DP instruction
+                            ALUControl = `TST;
+                        FlagW = Funct[0] ? 4'b1110 : 4'b0000;
                         NoWrite = 1'b1;
                     end
                     
                     `TEQ: begin
-                        ALUControl = `TEQ;
-                        FlagW = Funct[0] ? 2'b10 : 2'b00;
+                        if (Funct[0])   // TEQ with S bit clear is not a DP instruction
+                            ALUControl = `TEQ;
+                        FlagW = Funct[0] ? 4'b1110 : 4'b0000;
                         NoWrite = 1'b1;
                     end
                     
                     `CMP: begin
-                        ALUControl = `CMP;
-                        FlagW = Funct[0] ? 2'b11 : 2'b00;
+                        if (Funct[0])   // CMP with S bit clear is not a DP instruction
+                            ALUControl = `CMP;
+                        FlagW = Funct[0] ? 4'b1111 : 4'b0000;
                         NoWrite = 1'b1;
                     end
                     
                     `CMN: begin
-                        ALUControl = `CMN;
-                        FlagW = Funct[0] ? 2'b11 : 2'b00;
+                        if (Funct[0])   // CMN with S bit clear is not a DP instruction
+                            ALUControl = `CMN;
+                        FlagW = Funct[0] ? 4'b1111 : 4'b0000;
                         NoWrite = 1'b1;
                     end
                     
                     `ORR: begin
                         ALUControl = `ORR;
-                        FlagW = 2'b11;
+                        FlagW = Funct[0] ? 4'b1110 : 4'b0000;
                         NoWrite = 1'b0;
                     end
                     
                     `MOV: begin
                         ALUControl = `MOV;
-                        FlagW = 2'b11;
+                        FlagW = Funct[0] ? 4'b1110 : 4'b0000;
                         NoWrite = 1'b0;
                     end
                     
                     `BIC: begin
                         ALUControl = `BIC;
-                        FlagW = 2'b11;
+                        FlagW = Funct[0] ? 4'b1110 : 4'b0000;
                         NoWrite = 1'b0;
                     end
                     
                     `MVN: begin
                         ALUControl = `MVN;
-                        FlagW = 2'b11;
+                        FlagW = Funct[0] ? 4'b1110 : 4'b0000;
                         NoWrite = 1'b0;
                     end
                 endcase

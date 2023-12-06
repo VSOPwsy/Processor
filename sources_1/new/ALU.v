@@ -15,7 +15,7 @@
 module ALU(
     input   [31:0]  SrcA,
     input   [31:0]  SrcB,
-    input           Carry,
+    input           CFlag,
     input   [3:0]   ALUControl,
     
     output reg  [31:0]  ALUResult,
@@ -31,54 +31,53 @@ module ALU(
     wire [31:0] s;
     
     always @(*) begin
-        if (ALUControl == `SUB | ALUControl == `RSB | ALUControl == `CMP)
-            cin = 1;
-        else if (ALUControl == `ADC | ALUControl == `SBC | ALUControl == `RSC)
-            cin = Carry;
-        else
-            cin = 0;
-    end
-    
-    always @(*) begin
         case (ALUControl)
             `SUB: begin
                 a = SrcA;
                 b = ~SrcB;
+                cin = 1;
             end
             
             `RSB: begin
                 a = SrcB;
                 b = ~SrcA;
+                cin = 1;
             end
             
             `ADD: begin
                 a = SrcA;
                 b = SrcB;
+                cin = 0;
             end
             
             `ADC: begin
                 a = SrcA;
                 b = SrcB;
+                cin = CFlag;
             end
             
             `SBC: begin
                 a = SrcA;
                 b = ~SrcB;
+                cin = CFlag;
             end
             
             `RSC: begin
                 a = SrcB;
                 b = ~SrcA;
+                cin = CFlag;
             end
             
             `CMP: begin
                 a = SrcA;
                 b = ~SrcB;
+                cin = 1;
             end
             
             `CMN: begin
                 a = SrcA;
                 b = SrcB;
+                cin = 0;
             end
         endcase
     end
@@ -92,7 +91,7 @@ module ALU(
     );
     
     always @(*) begin
-        casex (ALUControl)
+        case (ALUControl)
             `AND: ALUResult = SrcA & SrcB;
             `EOR: ALUResult = SrcA ^ SrcB;
             `TST: ALUResult = SrcA & SrcB;
