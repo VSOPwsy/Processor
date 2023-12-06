@@ -25,9 +25,7 @@ module ControlUnit(
     output reg [3:0] RegSrc,
     output reg [3:0] ALUControl,
     output reg MS,
-    output reg MCycleOp,
-    output reg MCAdd,
-    output reg MCLong
+    output reg MCycleOp
     );
     
     reg Branch;
@@ -61,8 +59,6 @@ module ControlUnit(
                             ALUOp = 2'b11;
                             MS = 1'b1;
                             MCycleOp = 1'b0;
-                            MCAdd = 1'b0;
-                            MCLong = 1'b0;
                         end
                         else if (Instr[7:4] == 4'b1001 && Instr[24:21] == 4'b0001) begin: _MLA
                             Branch = 1'b0;
@@ -75,8 +71,6 @@ module ControlUnit(
                             ALUOp = 2'b11;
                             MS = 1'b1;
                             MCycleOp = 1'b0;
-                            MCAdd = 1'b1;
-                            MCLong = 1'b0;
                         end
                         else if (Instr[7:4] == 4'b1001 && Instr[24:21] == 4'b0100) begin: _UMULL
                             Branch = 1'b0;
@@ -89,8 +83,6 @@ module ControlUnit(
                             ALUOp = 2'b11;
                             MS = 1'b1;
                             MCycleOp = 1'b0;
-                            MCAdd = 1'b0;
-                            MCLong = 1'b1;
                         end
                         else begin: _DP_reg
                             Branch = 1'b0;
@@ -103,8 +95,6 @@ module ControlUnit(
                             ALUOp = 2'b11;
                             MS = 1'b0;
                             MCycleOp = 1'b0;
-                            MCAdd = 1'b0;
-                            MCLong = 1'b0;
                         end
                     end
                     
@@ -119,8 +109,6 @@ module ControlUnit(
                         ALUOp = 2'b11;
                         MS = 1'b0;
                         MCycleOp = 1'b0;
-                        MCAdd = 1'b0;
-                        MCLong = 1'b0;
                     end
                 endcase
             end
@@ -138,8 +126,6 @@ module ControlUnit(
                         ALUOp = 2'b01;
                         MS = 1'b0;
                         MCycleOp = 1'b0;
-                        MCAdd = 1'b0;
-                        MCLong = 1'b0;
                     end
                     
                     6'bXXXXX1: begin
@@ -154,8 +140,6 @@ module ControlUnit(
                             ALUOp = 2'b11;
                             MS = 1'b1;
                             MCycleOp = 1'b1;
-                            MCAdd = 1'b0;
-                            MCLong = 1'b0;
                         end
                         else begin: _LDR
                             Branch = 1'b0;
@@ -168,8 +152,6 @@ module ControlUnit(
                             ALUOp = 2'b01;
                             MS = 1'b0;
                             MCycleOp = 1'b0;
-                            MCAdd = 1'b0;
-                            MCLong = 1'b0;
                         end
                     end
                 endcase
@@ -188,8 +170,6 @@ module ControlUnit(
                         ALUOp = 2'b00;
                         MS = 1'b0;
                         MCycleOp = 1'b0;
-                        MCAdd = 1'b0;
-                        MCLong = 1'b0;
                     end
                 endcase
             end

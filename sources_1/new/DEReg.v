@@ -12,12 +12,10 @@ module DEReg(
     input MemWD,
     input MemtoRegD,
     input [3:0] WA3D,
-    input [3:0] WA5D,
     input ALUSrcD,
     input [3:0] ALUControlD,
     input [31:0] RD1D,
     input [31:0] RD2D,
-    input [31:0] RD4D,
     input [31:0] ExtImmD,
     input [1:0] ShD,
     input [4:0] Shamt5D,
@@ -25,8 +23,6 @@ module DEReg(
     input MSD,
     input MCycleOpD,
     input MCycleHazardD,
-    input MCAddD,
-    input MCLongD,
     output reg [3:0] CondE,
     output reg [1:0] FlagWE,
     output reg PCSE,
@@ -34,24 +30,19 @@ module DEReg(
     output reg MemWE,
     output reg MemtoRegE,
     output reg [3:0] WA3E,
-    output reg [3:0] WA5E,
     output reg ALUSrcE,
     output reg [3:0] ALUControlE,
     output reg [3:0] RA1E,
     output reg [3:0] RA2E,
-    output reg [3:0] RA4E,
     output reg [31:0] RD1E,
     output reg [31:0] RD2E,
-    output reg [31:0] RD4E,
     output reg [31:0] ExtImmE,
     output reg [1:0] ShE,
     output reg [4:0] Shamt5E,
     output reg NoWriteE,
     output reg MSE,
     output reg MCycleOpE,
-    output reg MCycleHazardE,
-    output reg MCAddE,
-    output reg MCLongE
+    output reg MCycleHazardE
 );
 
     initial begin
@@ -66,7 +57,6 @@ module DEReg(
         ALUControlE = 0;
         RD1E = 0;
         RD2E = 0;
-        RD4E = 0;
         ExtImmE = 0;
         RA1E = 0;
         RA2E = 0;
@@ -76,9 +66,6 @@ module DEReg(
         MSE = 0;
         MCycleOpE = 0;
         MCycleHazardE = 0;
-        WA5E = 0;
-        MCAddE = 0;
-        MCLongE = 0;
     end
 
     always @(posedge CLK, posedge Reset) begin
@@ -94,7 +81,6 @@ module DEReg(
             ALUControlE <= 0;
             RD1E <= 0;
             RD2E <= 0;
-            RD4E <= 0;
             ExtImmE <= 0;
             RA1E <= 0;
             RA2E <= 0;
@@ -104,9 +90,6 @@ module DEReg(
             MSE <= 0;
             MCycleOpE <= 0;
             MCycleHazardE <= 0;
-            WA5E <= 0;
-            MCAddE <= 0;
-            MCLongE <= 0;
         end
         else if (EN) begin
             CondE <= CondD;
@@ -120,7 +103,6 @@ module DEReg(
             ALUControlE <= ALUControlD;
             RD1E <= RD1D;
             RD2E <= RD2D;
-            RD4E <= RD4D;
             ExtImmE <= ExtImmD;
             RA1E <= RA1D;
             RA2E <= RA2D;
@@ -130,9 +112,6 @@ module DEReg(
             MSE <= MSD;
             MCycleOpE <= MCycleOpD;
             MCycleHazardE <= MCycleHazardD;
-            WA5E <= WA5D;
-            MCAddE <= MCAddD;
-            MCLongE <= MCLongD;
         end
         else begin
             CondE <= CondE;
@@ -146,7 +125,6 @@ module DEReg(
             ALUControlE <= ALUControlE;
             RD1E <= RD1E;
             RD2E <= RD2E;
-            RD4E <= RD4E;
             ExtImmE <= ExtImmE;
             RA1E <= RA1E;
             RA2E <= RA2E;
@@ -156,9 +134,6 @@ module DEReg(
             MSE <= MSE;
             MCycleOpE <= MCycleOpE;
             MCycleHazardE <= MCycleHazardE;
-            WA5E <= WA5E;
-            MCAddE <= MCAddE;
-            MCLongE <= MCLongE;
         end
     end
 

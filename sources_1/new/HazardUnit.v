@@ -30,13 +30,9 @@ module HazardUnit(
     input [3:0] WA3E,
     input [3:0] WA3M,
     input [3:0] WA3W,
-    input [3:0] WA5M,
-    input [3:0] WA5W,
     input RegWriteE,
     input RegWriteM,
     input RegWriteW,
-    input RegWrite2M,
-    input RegWrite2W,
     input MemWriteM,
     input MemtoRegE,
     input MemtoRegW,
@@ -62,40 +58,26 @@ module HazardUnit(
     );
     
     wire Match_1E_M, Match_2E_M;
-    wire Match_1E_5M, Match_2E_5M;
     wire Match_1E_W, Match_2E_W;
-    wire Match_1E_5W, Match_2E_5W;
     
     assign Match_1E_M = RA1E == WA3M;
     assign Match_2E_M = RA2E == WA3M;
-    assign Match_1E_5M = RA1E == WA5M;
-    assign Match_2E_5M = RA2E == WA5M;
     assign Match_1E_W = RA1E == WA3W;
     assign Match_2E_W = RA2E == WA3W;
-    assign Match_1E_5W = RA1E == WA5W;
-    assign Match_2E_5W = RA2E == WA5W;
     always @(*) begin
-        if (Match_1E_5M & RegWrite2M)
-            ForwardAE = 3'b110;
-        else if (Match_1E_5W & RegWrite2W)
-            ForwardAE = 3'b101;
-        else if (Match_1E_M & RegWriteM)
-            ForwardAE = 3'b010;
+        if (Match_1E_M & RegWriteM)
+            ForwardAE = 2'b10;
         else if (Match_1E_W & RegWriteW)
-            ForwardAE = 3'b001;
+            ForwardAE = 2'b01;
         else
-            ForwardAE = 3'b000;
+            ForwardAE = 2'b00;
             
-        if (Match_2E_5M & RegWrite2M)
-            ForwardBE = 3'b110;
-        else if (Match_2E_5W & RegWrite2W)
-            ForwardBE = 3'b101;
-        else if (Match_2E_M & RegWriteM)
-            ForwardBE = 3'b010;
+        if (Match_2E_M & RegWriteM)
+            ForwardBE = 2'b10;
         else if (Match_2E_W & RegWriteW)
-            ForwardBE = 3'b001;
+            ForwardBE = 2'b01;
         else
-            ForwardBE = 3'b000;
+            ForwardBE = 2'b00;
     end
     
     
@@ -105,7 +87,6 @@ module HazardUnit(
     wire Match_12D_E;
     wire ldrstall;
     wire memstall;
-    wire cachestall;
     assign Match_12D_E = (RA1D == WA3E) | (RA2D == WA3E);
     assign ldrstall = Match_12D_E & MemtoRegE & RegWriteE;
     assign memstall = ~Cache_Hit & ~RW & ~Mem_ReadReady;      // Stall pipline while reading from Cache but not hitting and memory is no ready

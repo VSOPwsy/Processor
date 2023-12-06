@@ -29,21 +29,13 @@ module MCycle #(
     input                   MCycleOp,
     input   [width-1:0]     Operand1, // Multiplicand / Dividend
     input   [width-1:0]     Operand2, // Multiplier / Divisor
-    input   [width-1:0]     Operand3,
     input   [3:0]           WA3,
-    input   [3:0]           WA5,
-    input                   MCAdd,
-    input                   MCLong,
     input                   MCycleHazard,
 
-    output  [width-1:0]     ResultHigh,
-    output  [width-1:0]     ResultLow,
+    output  [width-1:0]     Result,
     output                  Busy,
     output                  Done,
-    output  reg [width-1:0] AddSrc,
-    output  reg             MCycleLong,
     output  reg [3:0]       MCycleWA3,
-    output  reg [3:0]       MCycleWA5,
     output  reg             MPushIn
 );
     reg MCycleOp_reg;
@@ -57,9 +49,6 @@ module MCycle #(
     initial begin
         MPushIn = 0;
         MCycleWA3 = 0;
-        MCycleWA5 = 0;
-        AddSrc = 0;
-        MCycleLong = 0;
         MCycleOp_reg = 0;
     end
     
@@ -97,14 +86,11 @@ module MCycle #(
     assign a = temp_sum[2*width-1 -: width];
     assign b = shifted_op1;
 
-    always @(posedge CLK, posedge Reset) begin: COMPUTING_PROCESS // process which does the actual computation
+    always @(posedge CLK, posedge Reset) begin
         if (Reset | Init) begin
             temp_sum <= {{width{1'b0}}, (Start ? MCycleOp : MCycleOp_reg) ? Operand1 : Operand2};
             shifted_op1 <= (Start ? MCycleOp : MCycleOp_reg) ? Operand2 : Operand1;
             MCycleWA3 <= WA3;
-            MCycleWA5 <= WA5;
-            AddSrc <= MCAdd ? Operand3 : 0;
-            MCycleLong <= MCLong; 
         end
         else if (Shift) begin
             if(~MCycleOp_reg) begin
@@ -122,6 +108,6 @@ module MCycle #(
         end
     end
 
-    assign {ResultHigh, ResultLow} = temp_sum;
+    assign Result = temp_sum[width-1:0];
     always @(posedge CLK, posedge Reset) MPushIn <= Reset ? 0 : Done;
 endmodule
