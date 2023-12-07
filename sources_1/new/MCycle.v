@@ -30,7 +30,6 @@ module MCycle #(
     input   [width-1:0]     Operand1, // Multiplicand / Dividend
     input   [width-1:0]     Operand2, // Multiplier / Divisor
     input   [3:0]           WA3,
-    input                   MCycleHazard,
 
     output  [width-1:0]     Result,
     output                  Busy,

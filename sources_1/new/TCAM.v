@@ -40,7 +40,7 @@ module TCAM #(
     endgenerate
 
     wire none;
-    PriorityEncode #(SET_NUM) PriorityEncode(
+    PriorityEncoder #(SET_NUM) PriorityEncoder(
         .in(response),
         .out(Hit_Index),
         .none(none));

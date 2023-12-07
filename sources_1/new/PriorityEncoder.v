@@ -1,4 +1,4 @@
-module PriorityEncode #(
+module PriorityEncoder #(
 	parameter INPUT_NUM = 256
 )(
     input [INPUT_NUM-1:0] in,
