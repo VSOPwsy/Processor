@@ -1,6 +1,6 @@
 module PriorityMUX #(
-    parameter SEL_WIDTH = 4;
-    parameter DATA_WIDTH = 32;
+    parameter SEL_WIDTH = 4,
+    parameter DATA_WIDTH = 32
 )(
     input [SEL_WIDTH-1:0] sel,
     input [SEL_WIDTH*DATA_WIDTH-1:0] data_in,

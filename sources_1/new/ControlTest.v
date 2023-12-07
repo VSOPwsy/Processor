@@ -38,6 +38,11 @@ module ControlTest #(
     output reg Done
     );
     
+    
+    reg current_state, next_state;
+    reg [5:0] count = 0;
+    reg done = 0;
+
     initial begin
         Shift = 0;
         Busy = 0;
@@ -45,10 +50,7 @@ module ControlTest #(
         next_state = `IDLE;
         Done = 0;
     end
-    
-    reg current_state, next_state;
-    reg [5:0] count = 0;
-    reg done = 0;
+
     assign Init = current_state == `IDLE & next_state == `COMPUTING;
     
     always @(posedge CLK, posedge Reset) begin

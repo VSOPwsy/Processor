@@ -27,9 +27,6 @@
 `define     WRITING     1'b1    // For 2 different FSM
 
 module Cache_1KB #(
-    parameter TOTAL_CACHE_SIZE_KB = 4,
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32,
     parameter POLICY = `FIFO
 )(
 
@@ -37,25 +34,29 @@ module Cache_1KB #(
     input Reset,
     input rc_RW,   // 0 for Read, 1 for Write
     input rc_Valid,
-    input [ADDR_WIDTH-1:0] rc_Addr,
-    input [DATA_WIDTH-1:0] rc_WriteData,
+    input [31:0] rc_Addr,
+    input [31:0] rc_WriteData,
     output rc_Hit,
-    output reg [DATA_WIDTH-1:0] rc_ReadData,
+    output reg [31:0] rc_ReadData,
 
     output reg cm_ReadValid,
     output reg cm_WriteValid,
-    output reg [DATA_WIDTH-1:0] cm_WriteData,
-    output reg [TAG_WIDTH-1:0] cm_WriteTag,
+    output reg [31:0] cm_WriteData,
+    output reg [27:0] cm_WriteTag,
     input cm_ReadReady,
-    input [DATA_WIDTH-1:0] cm_ReadData,
-    output reg [ADDR_WIDTH-1:0] cm_ReadAddr
+    input [31:0] cm_ReadData,
+    output reg [31:0] cm_ReadAddr
     );
     
-    localparam WAY_NUM = TOTAL_CACHE_SIZE_KB;
-    localparam SET_NUM = 8196 / DATA_WIDTH;
-    localparam INDEX_WIDTH = $clog2(SET_NUM);
-    localparam TAG_WIDTH = ADDR_WIDTH - ($clog2(WAY_NUM) + $clog2(DATA_WIDTH/8));
-    
+    wire [7:0] Hit_Index;
+    wire [7:0] RepPtr;
+    wire [27:0] replaced_Tag;
+    wire h;
+    reg V [0:255];
+    reg D [0:255];
+    reg [31:0] DATA [0:255];
+    integer i;
+
     initial begin
         rc_ReadData = 0;
         cm_ReadValid = 0;
@@ -65,13 +66,9 @@ module Cache_1KB #(
         cm_ReadAddr = 0;
     end
     
-    wire [INDEX_WIDTH-1:0] Hit_Index;
-    wire [INDEX_WIDTH-1:0] RepPtr;
-    wire [TAG_WIDTH-1:0] replaced_Tag;
 
     RepPolicy #(
-        .POLICY     (POLICY     ),
-        .SET_NUM   (SET_NUM   )
+        .POLICY     (POLICY     )
     )RepPolicy(
         .CLK        (CLK        ),
         .Valid      (rc_Valid   ),
@@ -80,7 +77,6 @@ module Cache_1KB #(
         .RepPtr     (RepPtr     ));
 
 
-    wire h;
     TCAM TCAm(
         .CLK        (CLK        ),
         .Addr       (rc_Addr    ),
@@ -92,12 +88,8 @@ module Cache_1KB #(
 
     assign rc_Hit = h & V[Hit_Index] & rc_Valid;
 
-    reg V [0:SET_NUM-1];
-    reg D [0:SET_NUM-1];
-    reg [DATA_WIDTH-1:0] DATA [0:SET_NUM-1];
-    integer i;
     initial begin
-        for (i = 0; i < SET_NUM; i = i + 1) begin
+        for (i = 0; i < 256; i = i + 1) begin
             V[i] = 0;
             D[i] = 0;
             DATA[i] = 0;

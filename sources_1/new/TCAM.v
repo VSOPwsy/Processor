@@ -1,24 +1,17 @@
-module TCAM #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32,
-    parameter SET_NUM = 256,
-    parameter WAY_NUM = 4
-)(
+module TCAM(
     input CLK,
-    input [ADDR_WIDTH-1:0] Addr,
+    input [31:0] Addr,
     input Valid,
-    input [$clog2(SET_NUM)-1:0] RepPtr,
+    input [7:0] RepPtr,
     output h,
-    output [$clog2(SET_NUM)-1:0] Hit_Index,
-    output [TAG_WIDTH-1:0] replaced_Tag
-);
-    
-    localparam TAG_WIDTH = ADDR_WIDTH - ($clog2(WAY_NUM) + $clog2(DATA_WIDTH/8));
+    output [7:0] Hit_Index,
+    output [27:0] replaced_Tag
+    );
 
-    reg [TAG_WIDTH-1:0] Tag [0:SET_NUM-1];
+    reg [27:0] Tag [0:255];
     integer i;
     initial begin
-        for (i = 0; i < SET_NUM; i = i + 1) begin
+        for (i = 0; i < 256; i = i + 1) begin
             Tag[i] = 0;
         end
     end
@@ -27,20 +20,20 @@ module TCAM #(
 
     always @(posedge CLK) begin
         if (Valid) begin
-            Tag[RepPtr] <= Addr[ADDR_WIDTH-1-:TAG_WIDTH];
+            Tag[RepPtr] <= Addr[31-:28];
         end
     end
 
-    wire [SET_NUM:0] response;
+    wire [255:0] response;
     genvar j;
     generate
-        for (j = 0; j < SET_NUM; j = j + 1) begin
-            assign response[j] = Tag[j] == Addr[ADDR_WIDTH-1-:TAG_WIDTH];
+        for (j = 0; j < 256; j = j + 1) begin
+            assign response[j] = Tag[j] == Addr[31-:28];
         end
     endgenerate
 
     wire none;
-    PriorityEncoder #(SET_NUM) PriorityEncoder(
+    PriorityEncoder #(256) PriorityEncoder(
         .in(response),
         .out(Hit_Index),
         .none(none));

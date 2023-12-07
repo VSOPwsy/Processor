@@ -16,12 +16,10 @@ module ARMcore(
     input               CLK,
     input               Reset,
 
-
     input   [31:0]      IO_ReadData,
     output  [31:0]      IO_Addr,
     output  [31:0]      IO_WriteData,
     output              IO_WE,
-
 
     output              Cache_RW,
     output  [31:0]      Cache_Addr,
@@ -30,23 +28,11 @@ module ARMcore(
     input               Cache_Hit,
     input   [31:0]      Cache_ReadData,
     
-    
     input   [31:0]      Mem_ReadData,
     input               Mem_ReadReady
     );
-
-    assign  IO_Addr         =   MemOrIO_io_addr;
-    assign  IO_WriteData    =   MemOrIO_io_wdata;
-    assign  IO_WE           =   MemOrIO_io_we;
-
-    assign  Cache_RW        =   MemOrIO_m_we;
-    assign  Cache_Addr      =   MemOrIO_m_addr;
-    assign  Cache_Valid     =   MemOrIO_dec_mem & (EMReg_MemtoRegM | EMReg_MemWriteM);
-    assign  Cache_WriteData =   MemOrIO_m_wdata;
     
     
-    // HazardUnit
-    // Input
     wire    [3:0]       HazardUnit_RA1D;
     wire    [3:0]       HazardUnit_RA2D;
     wire    [3:0]       HazardUnit_RA1E;
@@ -80,6 +66,184 @@ module ARMcore(
     wire                HazardUnit_FlushD;
     wire                HazardUnit_FlushE;
     wire                HazardUnit_MCycleHazard;
+
+    wire                ProgramCounter_EN;
+    wire                ProgramCounter_PCSrc;
+    wire    [31:0]      ProgramCounter_Result;
+    wire    [31:0]      ProgramCounter_PC;
+    wire    [31:0]      ProgramCounter_PCPlus4;
+
+    wire    [31:0]      InstructionMemory_PC;
+    wire    [31:0]      InstructionMemory_Instr;
+
+    wire                FDReg_EN;
+    wire                FDReg_CLR;
+    wire    [31:0]      FDReg_InstrF;
+    wire    [31:0]      FDReg_InstrD;
+
+    wire    [31:0]      ControlUnit_Instr;
+    wire    [3:0]       ControlUnit_ALUControl;
+    wire                ControlUnit_ALUSrc;
+    wire    [1:0]       ControlUnit_ImmSrc;
+    wire                ControlUnit_MemW;
+    wire    [3:0]       ControlUnit_FlagW;
+    wire                ControlUnit_MemtoReg;
+    wire                ControlUnit_PCS;
+    wire    [3:0]       ControlUnit_RegSrc;
+    wire                ControlUnit_RegW;
+    wire                ControlUnit_NoWrite;
+    wire                ControlUnit_MS;
+    wire                ControlUnit_MCycleOp;
+
+    wire                RegisterFile_WE3;
+    wire    [3:0]       RegisterFile_A1;
+    wire    [3:0]       RegisterFile_A2;
+    wire    [3:0]       RegisterFile_A3;
+    wire    [31:0]      RegisterFile_WD3;
+    wire    [31:0]      RegisterFile_R15;
+    wire    [31:0]      RegisterFile_RD1;
+    wire    [31:0]      RegisterFile_RD2;
+
+    wire    [1:0]       Extend_ImmSrc;
+    wire    [23:0]      Extend_InstrImm;
+    wire    [31:0]      Extend_ExtImm;
+
+    wire                DEReg_EN;
+    wire                DEReg_CLR;
+    wire    [3:0]       DEReg_CondD;
+    wire    [3:0]       DEReg_FlagWD;
+    wire                DEReg_PCSD;
+    wire                DEReg_RegWD;
+    wire                DEReg_MemWD;
+    wire                DEReg_MemtoRegD;
+    wire    [3:0]       DEReg_WA3D;
+    wire                DEReg_ALUSrcD;
+    wire    [3:0]       DEReg_ALUControlD;
+    wire    [31:0]      DEReg_RD1D;
+    wire    [31:0]      DEReg_RD2D;
+    wire    [31:0]      DEReg_ExtImmD;
+    wire    [3:0]       DEReg_RA1D;
+    wire    [3:0]       DEReg_RA2D;
+    wire    [1:0]       DEReg_ShD;
+    wire    [4:0]       DEReg_Shamt5D;
+    wire                DEReg_NoWriteD;
+    wire                DEReg_MSD;
+    wire                DEReg_MCycleOpD;
+    wire                DEreg_MCycleHazardD;
+    wire    [3:0]       DEReg_CondE;
+    wire    [3:0]       DEReg_FlagWE;
+    wire                DEReg_PCSE;
+    wire                DEReg_RegWE;
+    wire                DEReg_MemWE;
+    wire                DEReg_MemtoRegE;
+    wire    [3:0]       DEReg_WA3E;
+    wire                DEReg_ALUSrcE;
+    wire    [3:0]       DEReg_ALUControlE;
+    wire    [31:0]      DEReg_RD1E;
+    wire    [31:0]      DEReg_RD2E;
+    wire    [31:0]      DEReg_ExtImmE;
+    wire    [3:0]       DEReg_RA1E;
+    wire    [3:0]       DEReg_RA2E;
+    wire    [1:0]       DEReg_ShE;
+    wire    [4:0]       DEReg_Shamt5E;
+    wire                DEReg_NoWriteE;
+    wire                DEReg_MSE;
+    wire                DEReg_MCycleOpE;
+    wire                DEreg_MCycleHazardE;
+
+    wire    [1:0]       Shifter_Sh;
+    wire    [4:0]       Shifter_Shamt5;
+    wire    [31:0]      Shifter_ShIn;
+    wire                Shifter_CFlag;
+    wire    [31:0]      Shifter_ShOut;
+    wire                Shifter_Carry;
+
+    wire    [3:0]       CondUnit_Cond;
+    wire                CondUnit_PCS;
+    wire                CondUnit_RegW;
+    wire                CondUnit_MemW;
+    wire    [3:0]       CondUnit_FlagW;
+    wire    [3:0]       CondUnit_ALUFlags;
+    wire                CondUnit_ShifterCarry;
+    wire                CondUnit_NoWrite;
+    wire                CondUnit_MS;
+    wire                CondUnit_PCSrc;
+    wire                CondUnit_RegWrite;
+    wire                CondUnit_MemWrite;
+    wire                CondUnit_CFlag;
+    wire                CondUnit_MStart;
+
+    reg     [31:0]      SA;
+    reg     [31:0]      SB;
+
+    wire    [31:0]      ALU_SrcA;
+    wire    [31:0]      ALU_SrcB;
+    wire    [3:0]       ALU_ALUControl;
+    wire                ALU_CFlag;
+    wire    [31:0]      ALU_ALUResult;
+    wire    [3:0]       ALU_ALUFlags;
+
+    wire                MCycle_Start;
+    wire                MCycle_MCycleOp;
+    wire    [31:0]      MCycle_Operand1;
+    wire    [31:0]      MCycle_Operand2;
+    wire    [3:0]       MCycle_WA3;
+    wire                MCycle_MCycleHazard;
+    wire    [31:0]      MCycle_Result;
+    wire                MCycle_Busy;
+    wire                MCycle_Done;
+    wire    [3:0]       MCycle_MCycleWA3;
+    wire                MCycle_MPushIn;
+
+    wire                EMReg_EN;
+    wire                EMReg_RegWriteE;
+    wire                EMReg_MemWriteE;
+    wire                EMReg_MemtoRegE;
+    wire    [31:0]      EMReg_ALUResultE;
+    wire    [31:0]      EMReg_WriteDataE;
+    wire    [3:0]       EMReg_WA3E;
+    wire    [3:0]       EMReg_RA2E;
+    wire                EMReg_RegWriteM;
+    wire                EMReg_MemWriteM;
+    wire                EMReg_MemtoRegM;
+    wire    [31:0]      EMReg_ALUOutM;
+    wire    [31:0]      EMReg_WriteDataM;
+    wire    [3:0]       EMReg_WA3M;
+    wire    [3:0]       EMReg_RA2M;
+
+    wire                MemOrIO_we;
+    wire    [31:0]      MemOrIO_addr_in;
+    wire    [31:0]      MemOrIO_m_rdata;
+    wire    [31:0]      MemOrIO_r_rdata;
+    wire    [31:0]      MemOrIO_io_rdata;
+    wire                MemOrIO_dec_mem;
+    wire    [31:0]      MemOrIO_m_wdata;
+    wire    [31:0]      MemOrIO_m_addr;
+    wire                MemOrIO_m_we;
+    wire    [31:0]      MemOrIO_r_wdata;
+    wire    [31:0]      MemOrIO_io_wdata;
+    wire    [31:0]      MemOrIO_io_addr;
+    wire                MemOrIO_io_we;
+
+    wire                DataMemory_WE;
+    wire    [31:0]      DataMemory_A;
+    wire    [31:0]      DataMemory_WD;
+    wire    [31:0]      DataMemory_RD;
+
+    wire                MWReg_RegWriteM;
+    wire                MWReg_MemtoRegM;
+    wire    [31:0]      MWReg_ReadDataM;
+    wire    [31:0]      MWReg_ALUOutM;
+    wire    [3:0]       MWReg_WA3M;
+    wire                MWReg_RegWriteW;
+    wire                MWReg_MemtoRegW;
+    wire    [31:0]      MWReg_ReadDataW;
+    wire    [31:0]      MWReg_ALUOutW;
+    wire    [3:0]       MWReg_WA3W;
+
+    wire    [31:0]      ResultW;
+
+
     // Assignment
     assign  HazardUnit_RA1D     =   RegisterFile_A1;
     assign  HazardUnit_RA2D     =   RegisterFile_A2;
@@ -106,79 +270,18 @@ module ARMcore(
     assign  HazardUnit_RW           =   MemOrIO_m_we;
     assign  HazardUnit_Mem_ReadReady    =   Mem_ReadReady;
     
-    
-    // ProgramCounter
-    // Input
-    wire                ProgramCounter_EN;
-    wire                ProgramCounter_PCSrc;
-    wire    [31:0]      ProgramCounter_Result;
-    // Output
-    wire    [31:0]      ProgramCounter_PC;
-    wire    [31:0]      ProgramCounter_PCPlus4;
-    // Assignment
     assign  ProgramCounter_EN       =   ~HazardUnit_StallF;
     assign  ProgramCounter_PCSrc    =   CondUnit_PCSrc;
     assign  ProgramCounter_Result   =   ALU_ALUResult;
     
-    
-    
-    // InstructionMemory
-    // Input
-    wire    [31:0]      InstructionMemory_PC;
-    // Output
-    wire    [31:0]      InstructionMemory_Instr;
-    // Assignment
     assign  InstructionMemory_PC    =   ProgramCounter_PC;
     
-    
-    
-    // FDReg
-    // Input
-    wire                FDReg_EN;
-    wire                FDReg_CLR;
-    wire    [31:0]      FDReg_InstrF;
-    // Output
-    wire    [31:0]      FDReg_InstrD;
-    // Assignment
     assign  FDReg_EN        =   ~HazardUnit_StallD;
     assign  FDReg_CLR       =   HazardUnit_FlushD;
     assign  FDReg_InstrF    =   InstructionMemory_Instr;
     
-    
-    
-    // ControlUnit
-    // Input
-    wire    [31:0]      ControlUnit_Instr;
-    // Output
-    wire    [3:0]       ControlUnit_ALUControl;
-    wire                ControlUnit_ALUSrc;
-    wire    [1:0]       ControlUnit_ImmSrc;
-    wire                ControlUnit_MemW;
-    wire    [3:0]       ControlUnit_FlagW;
-    wire                ControlUnit_MemtoReg;
-    wire                ControlUnit_PCS;
-    wire    [3:0]       ControlUnit_RegSrc;
-    wire                ControlUnit_RegW;
-    wire                ControlUnit_NoWrite;
-    wire                ControlUnit_MS;
-    wire                ControlUnit_MCycleOp;
-    // Assignment
     assign  ControlUnit_Instr       =   FDReg_InstrD;
     
-    
-    
-    // RegisterFile
-    // Input
-    wire                RegisterFile_WE3;
-    wire    [3:0]       RegisterFile_A1;
-    wire    [3:0]       RegisterFile_A2;
-    wire    [3:0]       RegisterFile_A3;
-    wire    [31:0]      RegisterFile_WD3;
-    wire    [31:0]      RegisterFile_R15;
-    // Output
-    wire    [31:0]      RegisterFile_RD1;
-    wire    [31:0]      RegisterFile_RD2;
-    // Assignment
     assign  RegisterFile_WE3    =   MWReg_RegWriteW;
     assign  RegisterFile_A1     =   ControlUnit_RegSrc[2] ? FDReg_InstrD[11:8] : ControlUnit_RegSrc[0] ? 4'd15 : FDReg_InstrD[19:16];
     assign  RegisterFile_A2     =   ControlUnit_RegSrc[2] ? FDReg_InstrD[3:0] : ControlUnit_RegSrc[1] ? FDReg_InstrD[15:12] : FDReg_InstrD[3:0];
@@ -186,66 +289,9 @@ module ARMcore(
     assign  RegisterFile_WD3    =   ResultW;
     assign  RegisterFile_R15    =   ProgramCounter_PCPlus4;
     
-    
-    
-    // Extend
-    // Input
-    wire    [1:0]       Extend_ImmSrc;
-    wire    [23:0]      Extend_InstrImm;
-    // Output
-    wire    [31:0]      Extend_ExtImm;
-    // Assignment
     assign  Extend_ImmSrc       =   ControlUnit_ImmSrc;
     assign  Extend_InstrImm     =   FDReg_InstrD[23:0];
     
-    
-    
-    // DEReg
-    //Input
-    wire                DEReg_EN;
-    wire                DEReg_CLR;
-    wire    [3:0]       DEReg_CondD;
-    wire    [3:0]       DEReg_FlagWD;
-    wire                DEReg_PCSD;
-    wire                DEReg_RegWD;
-    wire                DEReg_MemWD;
-    wire                DEReg_MemtoRegD;
-    wire    [3:0]       DEReg_WA3D;
-    wire                DEReg_ALUSrcD;
-    wire    [3:0]       DEReg_ALUControlD;
-    wire    [31:0]      DEReg_RD1D;
-    wire    [31:0]      DEReg_RD2D;
-    wire    [31:0]      DEReg_ExtImmD;
-    wire    [3:0]       DEReg_RA1D;
-    wire    [3:0]       DEReg_RA2D;
-    wire    [1:0]       DEReg_ShD;
-    wire    [4:0]       DEReg_Shamt5D;
-    wire                DEReg_NoWriteD;
-    wire                DEReg_MSD;
-    wire                DEReg_MCycleOpD;
-    wire                DEreg_MCycleHazardD;
-    // Output
-    wire    [3:0]       DEReg_CondE;
-    wire    [3:0]       DEReg_FlagWE;
-    wire                DEReg_PCSE;
-    wire                DEReg_RegWE;
-    wire                DEReg_MemWE;
-    wire                DEReg_MemtoRegE;
-    wire    [3:0]       DEReg_WA3E;
-    wire                DEReg_ALUSrcE;
-    wire    [3:0]       DEReg_ALUControlE;
-    wire    [31:0]      DEReg_RD1E;
-    wire    [31:0]      DEReg_RD2E;
-    wire    [31:0]      DEReg_ExtImmE;
-    wire    [3:0]       DEReg_RA1E;
-    wire    [3:0]       DEReg_RA2E;
-    wire    [1:0]       DEReg_ShE;
-    wire    [4:0]       DEReg_Shamt5E;
-    wire                DEReg_NoWriteE;
-    wire                DEReg_MSE;
-    wire                DEReg_MCycleOpE;
-    wire                DEreg_MCycleHazardE;
-    // Assignment
     assign  DEReg_EN            =   ~HazardUnit_StallE;
     assign  DEReg_CLR           =   HazardUnit_FlushE;
     assign  DEReg_CondD         =   FDReg_InstrD[31:28];
@@ -269,42 +315,11 @@ module ARMcore(
     assign  DEReg_MCycleOpD     =   ControlUnit_MCycleOp;
     assign  DEReg_MCycleHazardD =   HazardUnit_MCycleHazard;
     
-    
-    // Shifter
-    // Input
-    wire    [1:0]       Shifter_Sh;
-    wire    [4:0]       Shifter_Shamt5;
-    wire    [31:0]      Shifter_ShIn;
-    wire                Shifter_CFlag;
-    // Output
-    wire    [31:0]      Shifter_ShOut;
-    wire                Shifter_Carry;
-    // Assignment
     assign  Shifter_Sh      =   DEReg_ShE;
     assign  Shifter_Shamt5  =   DEReg_Shamt5E;
     assign  Shifter_ShIn    =   SB;
     assign  Shifter_CFlag   =   CondUnit_CFlag;
     
-    
-    
-    // CondUnit
-    // Input
-    wire    [3:0]       CondUnit_Cond;
-    wire                CondUnit_PCS;
-    wire                CondUnit_RegW;
-    wire                CondUnit_MemW;
-    wire    [3:0]       CondUnit_FlagW;
-    wire    [3:0]       CondUnit_ALUFlags;
-    wire                CondUnit_ShifterCarry;
-    wire                CondUnit_NoWrite;
-    wire                CondUnit_MS;
-    // Output
-    wire                CondUnit_PCSrc;
-    wire                CondUnit_RegWrite;
-    wire                CondUnit_MemWrite;
-    wire                CondUnit_CFlag;
-    wire                CondUnit_MStart;
-    // Assignment
     assign  CondUnit_Cond       =   DEReg_CondE;
     assign  CondUnit_PCS        =   DEReg_PCSE;
     assign  CondUnit_RegW       =   DEReg_RegWE;
@@ -316,8 +331,6 @@ module ARMcore(
     assign  CondUnit_MS         =   DEReg_MSE;
     
     
-    reg     [31:0]      SA;
-    reg     [31:0]      SB;
     always @(*) 
         case (HazardUnit_ForwardAE)
             2'b00:  SA = DEReg_RD1E;
@@ -330,65 +343,19 @@ module ARMcore(
             2'b01:  SB =  ResultW;
             2'b10:  SB =  EMReg_ALUOutM;
         endcase
-    
-    // ALU
-    // Input
-    wire    [31:0]      ALU_SrcA;
-    wire    [31:0]      ALU_SrcB;
-    wire    [3:0]       ALU_ALUControl;
-    wire                ALU_CFlag;
-    // Output
-    wire    [31:0]      ALU_ALUResult;
-    wire    [3:0]       ALU_ALUFlags;
-    // Assignment
+        
     assign  ALU_SrcA        =   SA;
     assign  ALU_SrcB        =   DEReg_ALUSrcE ? DEReg_ExtImmE : Shifter_ShOut;
     assign  ALU_ALUControl  =   DEReg_ALUControlE;
     assign  ALU_CFlag       =   CondUnit_CFlag;
     
-    
-    // MCycle
-    // Input
-    wire                MCycle_Start;
-    wire                MCycle_MCycleOp;
-    wire    [31:0]      MCycle_Operand1;
-    wire    [31:0]      MCycle_Operand2;
-    wire    [3:0]       MCycle_WA3;
-    wire                MCycle_MCycleHazard;
-    // Output
-    wire    [31:0]      MCycle_Result;
-    wire                MCycle_Busy;
-    wire                MCycle_Done;
-    wire    [3:0]       MCycle_MCycleWA3;
-    wire                MCycle_MPushIn;
-    // Assignment
     assign  MCycle_Start        =   CondUnit_MStart;
     assign  MCycle_MCycleOp     =   DEReg_MCycleOpE;
     assign  MCycle_Operand1     =   SA;
     assign  MCycle_Operand2     =   SB;
     assign  MCycle_WA3          =   DEReg_WA3E;
     assign  MCycle_MCycleHazard =   HazardUnit_MCycleHazard;
-    
-    
-    // EMReg
-    // Input
-    wire                EMReg_EN;
-    wire                EMReg_RegWriteE;
-    wire                EMReg_MemWriteE;
-    wire                EMReg_MemtoRegE;
-    wire    [31:0]      EMReg_ALUResultE;
-    wire    [31:0]      EMReg_WriteDataE;
-    wire    [3:0]       EMReg_WA3E;
-    wire    [3:0]       EMReg_RA2E;
-    // Output
-    wire                EMReg_RegWriteM;
-    wire                EMReg_MemWriteM;
-    wire                EMReg_MemtoRegM;
-    wire    [31:0]      EMReg_ALUOutM;
-    wire    [31:0]      EMReg_WriteDataM;
-    wire    [3:0]       EMReg_WA3M;
-    wire    [3:0]       EMReg_RA2M;
-    // Assignment
+
     assign  EMReg_EN            =   ~HazardUnit_StallM;
     assign  EMReg_RegWriteE     =   MCycle_MPushIn | (~(MCycle_Busy & DEReg_MCycleHazardE) & CondUnit_RegWrite);
     assign  EMReg_MemWriteE     =   CondUnit_MemWrite;
@@ -398,75 +365,37 @@ module ARMcore(
     assign  EMReg_WA3E          =   MCycle_MPushIn ? MCycle_MCycleWA3 : DEReg_WA3E;
     assign  EMReg_RA2E          =   DEReg_RA2E;
 
-    
-    
-    // MemOrIO
-    // Input
-    wire                MemOrIO_we;
-    wire    [31:0]      MemOrIO_addr_in;
-    wire    [31:0]      MemOrIO_m_rdata;
-    wire    [31:0]      MemOrIO_r_rdata;
-    wire    [31:0]      MemOrIO_io_rdata;
-    // Output
-    wire                MemOrIO_dec_mem;
-    wire    [31:0]      MemOrIO_m_wdata;
-    wire    [31:0]      MemOrIO_m_addr;
-    wire                MemOrIO_m_we;
-    wire    [31:0]      MemOrIO_r_wdata;
-    wire    [31:0]      MemOrIO_io_wdata;
-    wire    [31:0]      MemOrIO_io_addr;
-    wire                MemOrIO_io_we;
-    // Assignment
     assign  MemOrIO_we          =   EMReg_MemWriteM;
     assign  MemOrIO_addr_in     =   EMReg_ALUOutM;
     assign  MemOrIO_m_rdata     =   Cache_Hit ? Cache_ReadData : Mem_ReadData;
     assign  MemOrIO_r_rdata     =   HazardUnit_ForwardM ? ResultW : EMReg_WriteDataM;
     assign  MemOrIO_io_rdata    =   IO_ReadData;
-    
 
-
-
-    // DataMemory
-    // Input
-    wire                DataMemory_WE;
-    wire    [31:0]      DataMemory_A;
-    wire    [31:0]      DataMemory_WD;
-    // Output
-    wire    [31:0]      DataMemory_RD;
-    // Assignment
     assign  DataMemory_WE   =   MemOrIO_m_we;
     assign  DataMemory_A    =   MemOrIO_m_addr;
     assign  DataMemory_WD   =   MemOrIO_m_wdata;
-    
-    
-    
-    
-    // MWReg
-    // Input
-    wire                MWReg_RegWriteM;
-    wire                MWReg_MemtoRegM;
-    wire    [31:0]      MWReg_ReadDataM;
-    wire    [31:0]      MWReg_ALUOutM;
-    wire    [3:0]       MWReg_WA3M;
-    // Output
-    wire                MWReg_RegWriteW;
-    wire                MWReg_MemtoRegW;
-    wire    [31:0]      MWReg_ReadDataW;
-    wire    [31:0]      MWReg_ALUOutW;
-    wire    [3:0]       MWReg_WA3W;
-    // Assignment
+
     assign  MWReg_RegWriteM     =   EMReg_RegWriteM;
     assign  MWReg_MemtoRegM     =   EMReg_MemtoRegM;
     assign  MWReg_ReadDataM     =   MemOrIO_r_wdata;
     assign  MWReg_ALUOutM       =   EMReg_ALUOutM;
     assign  MWReg_WA3M          =   EMReg_WA3M;
     
-
-    
-    wire    [31:0]      ResultW;
     assign  ResultW  =  MWReg_MemtoRegW ? MWReg_ReadDataW : MWReg_ALUOutW;
     
     
+
+
+    assign  IO_Addr         =   MemOrIO_io_addr;
+    assign  IO_WriteData    =   MemOrIO_io_wdata;
+    assign  IO_WE           =   MemOrIO_io_we;
+
+    assign  Cache_RW        =   MemOrIO_m_we;
+    assign  Cache_Addr      =   MemOrIO_m_addr;
+    assign  Cache_Valid     =   MemOrIO_dec_mem & (EMReg_MemtoRegM | EMReg_MemWriteM);
+    assign  Cache_WriteData =   MemOrIO_m_wdata;
+
+
 
 
     HazardUnit HazardUnit(
@@ -659,7 +588,6 @@ module ARMcore(
         .Operand1   (MCycle_Operand1    ),
         .Operand2   (MCycle_Operand2    ),
         .WA3        (MCycle_WA3         ),
-        .MCycleHazard(MCycle_MCycleHazard),
         .Result     (MCycle_Result      ),
         .Busy       (MCycle_Busy        ),
         .Done       (MCycle_Done        ),

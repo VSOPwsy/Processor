@@ -38,6 +38,18 @@ module MCycle #(
     output  reg             MPushIn
 );
     reg MCycleOp_reg;
+    wire [width-1:0] a, b, s;
+    wire cout;
+    wire Init;
+    reg [2*width-1:0] temp_sum = 0;
+    reg [width-1:0] shifted_op1 = 0 ;
+
+    initial begin
+        MPushIn = 0;
+        MCycleWA3 = 0;
+        MCycleOp_reg = 0;
+    end
+    
     always @(posedge CLK, posedge Reset) begin
         if (Reset)
             MCycleOp_reg <= MCycleOp;
@@ -45,13 +57,6 @@ module MCycle #(
             MCycleOp_reg <= Start ? MCycleOp : MCycleOp_reg;
     end
     
-    initial begin
-        MPushIn = 0;
-        MCycleWA3 = 0;
-        MCycleOp_reg = 0;
-    end
-    
-    wire Done;
     ControlTest #(
         .width(width)
     )ControlTest(
@@ -67,8 +72,6 @@ module MCycle #(
         .Done(Done)
     );
     
-    wire [width-1:0] a, b, s;
-    wire cout;
     adder adder(
         .cin(MCycleOp_reg),
         .a(a),
@@ -76,11 +79,6 @@ module MCycle #(
         .s(s),
         .cout(cout)
     );
-    
-    
-    wire Init;
-    reg [2*width-1:0] temp_sum = 0;
-    reg [width-1:0] shifted_op1 = 0 ;
 
     assign a = temp_sum[2*width-1 -: width];
     assign b = shifted_op1;

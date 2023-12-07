@@ -24,14 +24,11 @@ module TOP(
     output [6:0] SevenSegCat
 );
 
-    // ARMcore
-    // Input
     wire    [31:0]      ARMcore_IO_ReadData;
     wire                ARMcore_Cache_Hit;
     wire    [31:0]      ARMcore_Cache_ReadData;
     wire                ARMcore_Mem_ReadReady;
     wire    [31:0]      ARMcore_Mem_ReadData;
-    // Output
     wire    [31:0]      ARMcore_IO_Addr;
     wire    [31:0]      ARMcore_IO_WriteData;
     wire                ARMcore_IO_WE;
@@ -39,22 +36,13 @@ module TOP(
     wire    [31:0]      ARMcore_Cache_Addr;
     wire    [31:0]      ARMcore_Cache_WriteData;
     wire                ARMcore_Cache_Valid;
-    // Assignment
-    assign  ARMcore_IO_ReadData     =   PeripheralConnector_RD;
-    assign  ARMcore_Cache_Hit       =   Cache_rc_Hit;
-    assign  ARMcore_Cache_ReadData  =   Cache_rc_ReadData;
-    assign  ARMcore_Mem_ReadReady   =   DataMemory_ReadReady;
-    assign  ARMcore_Mem_ReadData    =   DataMemory_ReadData;
 
-    // Cache
-    // Input
     wire Cache_rc_RW;
     wire Cache_rc_Valid;
     wire [31:0] Cache_rc_Addr;
     wire [31:0] Cache_rc_WriteData;
     wire Cache_cm_ReadReady;
     wire [31:0] Cache_cm_ReadData;
-    // Output
     wire [31:0] Cache_rc_ReadData;
     wire Cache_rc_Hit;
     wire Cache_cm_ReadValid;
@@ -62,7 +50,35 @@ module TOP(
     wire [31:0] Cache_cm_WriteAddr;
     wire [31:0] Cache_cm_WriteData;
     wire [31:0] Cache_cm_ReadAddr;
-    // Assignment
+
+    wire                DataMemory_ReadValid;
+    wire                DataMemory_WriteValid;
+    wire    [31:0]      DataMemory_WriteAddr;
+    wire    [31:0]      DataMemory_ReadAddr;
+    wire    [31:0]      DataMemory_WriteData;
+    wire    [31:0]      DataMemory_ReadData;
+    wire                DataMemory_ReadReady;
+
+    wire                PeripheralConnector_WE;
+    wire    [31:0]      PeripheralConnector_WD;
+    wire    [31:0]      PeripheralConnector_ADDR;
+    wire    [31:0]      PeripheralConnector_SW_RD;
+    wire    [31:0]      PeripheralConnector_RD;
+    wire                PeripheralConnector_LED_WE;
+    wire    [31:0]      PeripheralConnector_LED_WD;
+    wire                PeripheralConnector_SEG_WE;
+    wire    [31:0]      PeripheralConnector_SEG_WD;
+
+    wire    [31:0]      SWDriver_RD;
+    wire    [31:0]      SEG;
+
+
+    assign  ARMcore_IO_ReadData     =   PeripheralConnector_RD;
+    assign  ARMcore_Cache_Hit       =   Cache_rc_Hit;
+    assign  ARMcore_Cache_ReadData  =   Cache_rc_ReadData;
+    assign  ARMcore_Mem_ReadReady   =   DataMemory_ReadReady;
+    assign  ARMcore_Mem_ReadData    =   DataMemory_ReadData;
+
     assign  Cache_rc_Addr       =   ARMcore_Cache_Addr;
     assign  Cache_rc_RW         =   ARMcore_Cache_RW;
     assign  Cache_rc_Valid      =   ARMcore_Cache_Valid;
@@ -70,40 +86,12 @@ module TOP(
     assign  Cache_cm_ReadReady  =   DataMemory_ReadReady;
     assign  Cache_cm_ReadData   =   DataMemory_ReadData;
 
-
-
-    // DataMemory
-    // Input
-    wire                DataMemory_ReadValid;
-    wire                DataMemory_WriteValid;
-    wire    [31:0]      DataMemory_WriteAddr;
-    wire    [31:0]      DataMemory_ReadAddr;
-    wire    [31:0]      DataMemory_WriteData;
-    // Output
-    wire    [31:0]      DataMemory_ReadData;
-    wire                DataMemory_ReadReady;
-    // Assignment
     assign  DataMemory_ReadValid    =   Cache_cm_ReadValid;
     assign  DataMemory_WriteValid   =   Cache_cm_WriteValid;
     assign  DataMemory_WriteAddr    =   Cache_cm_WriteAddr;
     assign  DataMemory_ReadAddr     =   Cache_cm_ReadAddr;
     assign  DataMemory_WriteData    =   Cache_cm_WriteData;
 
-
-
-    // PeripheralConnector
-    // Input
-    wire                PeripheralConnector_WE;
-    wire    [31:0]      PeripheralConnector_WD;
-    wire    [31:0]      PeripheralConnector_ADDR;
-    wire    [31:0]      PeripheralConnector_SW_RD;
-    // Output
-    wire    [31:0]      PeripheralConnector_RD;
-    wire                PeripheralConnector_LED_WE;
-    wire    [31:0]      PeripheralConnector_LED_WD;
-    wire                PeripheralConnector_SEG_WE;
-    wire    [31:0]      PeripheralConnector_SEG_WD;
-    // Assignment
     assign  PeripheralConnector_WE      =   ARMcore_IO_WE;
     assign  PeripheralConnector_WD      =   ARMcore_IO_WriteData;
     assign  PeripheralConnector_ADDR    =   ARMcore_IO_Addr;
@@ -184,12 +172,10 @@ module TOP(
         .WE     (PeripheralConnector_LED_WE),
         .WD     (PeripheralConnector_LED_WD));
 
-    wire    [31:0]      SWDriver_RD;
     SWDriver SWDriver(
         .SW     (SW          ),
         .RD     (SWDriver_RD));
 
-    wire [31:0] SEG;
     SegmentDriver SegmentDriver(
         .CLK    (CLK                       ),
         .Reset  (Reset                     ),
