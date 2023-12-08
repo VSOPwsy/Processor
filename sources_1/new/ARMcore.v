@@ -159,6 +159,7 @@ module ARMcore(
     wire                Shifter_Carry;
 
     wire    [3:0]       CondUnit_Cond;
+    wire    [3:0]       CondUnit_ALUControl;
     wire                CondUnit_PCS;
     wire                CondUnit_RegW;
     wire                CondUnit_MemW;
@@ -321,6 +322,7 @@ module ARMcore(
     assign  Shifter_CFlag   =   CondUnit_CFlag;
     
     assign  CondUnit_Cond       =   DEReg_CondE;
+    assign  CondUnit_ALUControl =   DEReg_ALUControlE;
     assign  CondUnit_PCS        =   DEReg_PCSE;
     assign  CondUnit_RegW       =   DEReg_RegWE;
     assign  CondUnit_MemW       =   DEReg_MemWE;
@@ -556,6 +558,7 @@ module ARMcore(
         .CLK        (CLK                ),
         .Reset      (Reset              ),
         .Cond       (CondUnit_Cond      ),
+        .ALUControl (CondUnit_ALUControl),
         .PCS        (CondUnit_PCS       ),
         .RegW       (CondUnit_RegW      ),
         .MemW       (CondUnit_MemW      ),

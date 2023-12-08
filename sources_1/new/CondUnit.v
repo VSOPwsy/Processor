@@ -28,7 +28,7 @@ module CondUnit(
     input RegW,
     input MemW,
     input [3:0] Cond,
-    input [3:0] ALUOp,
+    input [3:0] ALUControl,
     input [3:0] ALUFlags,
     input ShifterCarry,
     input NoWrite,
@@ -66,8 +66,8 @@ module CondUnit(
             if (FlagWrite[2])
                 Z <= ALUFlags[2];
             if (FlagWrite[1])
-                if (ALUOp == `AND || ALUOp == `EOR || ALUOp == `TST || ALUOp == `TEQ || 
-                    ALUOp == `ORR || ALUOp == `MOV || ALUOp == `BIC || ALUOp == `MVN)
+                if (ALUControl == `AND || ALUControl == `EOR || ALUControl == `TST || ALUControl == `TEQ || 
+                    ALUControl == `ORR || ALUControl == `MOV || ALUControl == `BIC || ALUControl == `MVN)
                     C <= ShifterCarry;
                 else
                     C <= ALUFlags[1];

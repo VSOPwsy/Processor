@@ -83,6 +83,7 @@ module ControlTest #(
             count <= 0;
             Shift <= 0;
             done <= 0;
+            Done <= 0;
         end
         else begin
             case (current_state)

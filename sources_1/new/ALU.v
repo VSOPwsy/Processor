@@ -27,6 +27,8 @@ module ALU(
     reg [31:0] a;
     reg [31:0] b;
     reg cin;
+    reg adder_en;
+    reg adder_op;   // 0 for add, 1 for sub
     wire cout;
     wire [31:0] s;
     
@@ -36,48 +38,72 @@ module ALU(
                 a = SrcA;
                 b = ~SrcB;
                 cin = 1;
+                adder_en = 1;
+                adder_op = 1;
             end
             
             `RSB: begin
                 a = SrcB;
                 b = ~SrcA;
                 cin = 1;
+                adder_en = 1;
+                adder_op = 1;
             end
             
             `ADD: begin
                 a = SrcA;
                 b = SrcB;
                 cin = 0;
+                adder_en = 1;
+                adder_op = 0;
             end
             
             `ADC: begin
                 a = SrcA;
                 b = SrcB;
                 cin = CFlag;
+                adder_en = 1;
+                adder_op = 0;
             end
             
             `SBC: begin
                 a = SrcA;
                 b = ~SrcB;
                 cin = CFlag;
+                adder_en = 1;
+                adder_op = 1;
             end
             
             `RSC: begin
                 a = SrcB;
                 b = ~SrcA;
                 cin = CFlag;
+                adder_en = 1;
+                adder_op = 1;
             end
             
             `CMP: begin
                 a = SrcA;
                 b = ~SrcB;
                 cin = 1;
+                adder_en = 1;
+                adder_op = 1;
             end
             
             `CMN: begin
                 a = SrcA;
                 b = SrcB;
                 cin = 0;
+                adder_en = 1;
+                adder_op = 0;
+            end
+            
+            default: begin
+                a = SrcA;
+                b = SrcB;
+                cin = 0;
+                adder_en = 0;
+                adder_op = 0;
             end
         endcase
     end
@@ -106,6 +132,6 @@ module ALU(
     
     assign N = ALUResult[31];
     assign Z = ~|ALUResult;
-    assign C = ~ALUControl[1] & cout;
-    assign V = ~ALUControl[1] & (SrcA[31] ^ s[31]) & ~(ALUControl[0] ^ SrcA[31] ^ SrcB[31]);
+    assign C = adder_en & cout;
+    assign V = adder_en & (SrcA[31] ^ s[31]) & ~(adder_op ^ SrcA[31] ^ SrcB[31]);
 endmodule

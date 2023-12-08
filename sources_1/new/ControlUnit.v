@@ -209,8 +209,8 @@ module ControlUnit(
                     `TST: begin
                         if (Funct[0])   // TST with S bit clear is not a DP instruction
                             ALUControl = `TST;
-                        FlagW = Funct[0] ? 4'b1110 : 4'b0000;
-                        NoWrite = 1'b1;
+                            FlagW = Funct[0] ? 4'b1110 : 4'b0000;
+                            NoWrite = 1'b1;
                     end
                     
                     `TEQ: begin
@@ -257,6 +257,12 @@ module ControlUnit(
                         FlagW = Funct[0] ? 4'b1110 : 4'b0000;
                         NoWrite = 1'b0;
                     end
+                    
+                    default: begin
+                        ALUControl = `ADD;
+                        FlagW = 4'b0000;
+                        NoWrite = 1'b0;
+                    end
                 endcase
             end
             
@@ -264,13 +270,13 @@ module ControlUnit(
                 casex (Funct[4:1])
                     4'bX1XX: begin
                         ALUControl = `ADD;
-                        FlagW = 2'b00;
+                        FlagW = 4'b0000;
                         NoWrite = 1'b0;
                     end
                     
                     4'bX0XX: begin
                         ALUControl = `SUB;
-                        FlagW = 2'b00;
+                        FlagW = 4'b0000;
                         NoWrite = 1'b0;
                     end
                 endcase
@@ -278,7 +284,13 @@ module ControlUnit(
             
             2'b00: begin: _Branch_
                 ALUControl = `ADD;
-                FlagW = 2'b00;
+                FlagW = 4'b0000;
+                NoWrite = 1'b0;
+            end
+            
+            default: begin
+                ALUControl = `ADD;
+                FlagW = 4'b0000;
                 NoWrite = 1'b0;
             end
         endcase

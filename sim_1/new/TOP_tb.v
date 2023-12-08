@@ -43,18 +43,13 @@ always #5 CLK = ~CLK;
     
 initial begin
     CLK = 0;
-    SW = 16'hF0;
+    SW = 16'h0004;
     Reset = 0;
     #10;
     Reset = 1;
     #30;
     Reset = 0;
-    #1000;
-    
-    
-    SW = 16'h0F;
     #7000;
-    $finish;
 end
  
 endmodule

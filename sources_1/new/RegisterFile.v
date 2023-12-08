@@ -33,8 +33,21 @@ module RegisterFile(
     
     always @(posedge CLK_n, posedge Reset) begin
         if (Reset) begin
-            for (i = 0; i < 15; i = i + 1)
-                RegBankCore[i] = 32'b0;
+            RegBankCore[0] <= 32'b0;
+            RegBankCore[1] <= 32'b0;
+            RegBankCore[2] <= 32'b0;
+            RegBankCore[3] <= 32'b0;
+            RegBankCore[4] <= 32'b0;
+            RegBankCore[5] <= 32'b0;
+            RegBankCore[6] <= 32'b0;
+            RegBankCore[7] <= 32'b0;
+            RegBankCore[8] <= 32'b0;
+            RegBankCore[9] <= 32'b0;
+            RegBankCore[10] <= 32'b0;
+            RegBankCore[11] <= 32'b0;
+            RegBankCore[12] <= 32'b0;
+            RegBankCore[13] <= 32'b0;
+            RegBankCore[14] <= 32'b0;
         end
         else begin
             if (WE3 & (A3 != 4'd15))

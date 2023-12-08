@@ -84,7 +84,12 @@ module MCycle #(
     assign b = shifted_op1;
 
     always @(posedge CLK, posedge Reset) begin
-        if (Reset | Init) begin
+        if (Reset) begin
+            temp_sum <= 0;
+            shifted_op1 <= 0;
+            MCycleWA3 <= 0;
+        end
+        else if (Init) begin
             temp_sum <= {{width{1'b0}}, (Start ? MCycleOp : MCycleOp_reg) ? Operand1 : Operand2};
             shifted_op1 <= (Start ? MCycleOp : MCycleOp_reg) ? Operand2 : Operand1;
             MCycleWA3 <= WA3;
