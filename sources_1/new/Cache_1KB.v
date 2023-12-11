@@ -81,6 +81,7 @@ module Cache_1KB #(
         .CLK        (CLK        ),
         .Addr       (rc_Addr    ),
         .Valid      (rc_Valid   ),
+        .cm_ReadReady(cm_ReadReady),
         .RepPtr     (RepPtr     ),
         .h          (h          ),
         .Hit_Index  (Hit_Index  ),
@@ -113,15 +114,10 @@ module Cache_1KB #(
     always @(*) begin
         case (r_current_state)
             `IDLE: begin
-                if (rc_Valid & ~rc_Hit & ~rc_RW) begin
-                    if (cm_ReadReady)
-                        r_next_state = `IDLE;
-                    else
-                        r_next_state = `READING;
-                end
-                else begin
+                if (rc_Valid & ~rc_Hit)
+                    r_next_state = `READING;
+                else
                     r_next_state = `IDLE;
-                end
             end
 
             `READING: begin
@@ -134,12 +130,13 @@ module Cache_1KB #(
     end
 
     always @(*) begin
-        if ((r_current_state == `IDLE & rc_Valid & ~rc_Hit & ~rc_RW) | r_current_state == `READING) begin
+        if ((r_current_state == `IDLE & rc_Valid & ~rc_Hit) | r_current_state == `READING) begin
             cm_ReadValid = 1;
             cm_ReadAddr = rc_Addr;
         end
         else begin
             cm_ReadValid = 0;
+            cm_ReadAddr = 0;
         end
     end
 
@@ -147,18 +144,13 @@ module Cache_1KB #(
     //////////////////////////////////////////////////////////////////
     // Write to Memory
     //////////////////////////////////////////////////////////////////
-    reg dirty_data_replace = 0;
+    reg dirty_data_replace;
 
     always @(*) begin
-        if (rc_RW & rc_Valid) begin
+        if (rc_Valid & ~rc_Hit)
             dirty_data_replace = D[RepPtr];
-        end
-        else if (r_current_state == `IDLE & rc_Valid & ~rc_Hit & ~rc_RW) begin
-            dirty_data_replace = D[RepPtr];
-        end
-        else begin
+        else
             dirty_data_replace = 0;
-        end
     end
 
 
@@ -169,6 +161,8 @@ module Cache_1KB #(
             cm_WriteValid = 1;
         end
         else begin
+            cm_WriteTag = 0;
+            cm_WriteData = 0;
             cm_WriteValid = 0;
         end
     end
@@ -184,10 +178,6 @@ module Cache_1KB #(
             V[RepPtr] <= 1;
         end
         else if (r_current_state == `READING & cm_ReadReady) begin
-            DATA[RepPtr] <= cm_ReadData;
-            V[RepPtr] <= 1;
-        end
-        else if (r_current_state == `IDLE & rc_Valid & ~rc_Hit & ~rc_RW & cm_ReadReady) begin
             DATA[RepPtr] <= cm_ReadData;
             V[RepPtr] <= 1;
         end

@@ -2,6 +2,7 @@ module TCAM(
     input CLK,
     input [31:0] Addr,
     input Valid,
+    input cm_ReadReady,
     input [7:0] RepPtr,
     output h,
     output [7:0] Hit_Index,
@@ -19,7 +20,7 @@ module TCAM(
     assign replaced_Tag = Tag[RepPtr];
 
     always @(posedge CLK) begin
-        if (Valid) begin
+        if (Valid & cm_ReadReady) begin
             Tag[RepPtr] <= Addr[31-:28];
         end
     end
