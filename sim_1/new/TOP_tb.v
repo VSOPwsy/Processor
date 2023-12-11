@@ -43,7 +43,7 @@ always #5 CLK = ~CLK;
     
 initial begin
     CLK = 0;
-    SW = 16'h0004;
+    SW = 16'h0010;
     Reset = 0;
     #10;
     Reset = 1;

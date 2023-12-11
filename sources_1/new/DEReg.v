@@ -69,7 +69,29 @@ module DEReg(
     end
 
     always @(posedge CLK, posedge Reset) begin
-        if (Reset | CLR) begin
+        if (Reset) begin
+            CondE <= 0;
+            FlagWE <= 0;
+            PCSE <= 0;
+            RegWE <= 0;
+            MemWE <= 0;
+            MemtoRegE <= 0;
+            WA3E <= 0;
+            ALUSrcE <= 0;
+            ALUControlE <= 0;
+            RD1E <= 0;
+            RD2E <= 0;
+            ExtImmE <= 0;
+            RA1E <= 0;
+            RA2E <= 0;
+            ShE <= 0;
+            Shamt5E <= 0;
+            NoWriteE <= 0;
+            MSE <= 0;
+            MCycleOpE <= 0;
+            MCycleHazardE <= 0;
+        end
+        else if (CLR) begin
             CondE <= 0;
             FlagWE <= 0;
             PCSE <= 0;

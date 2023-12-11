@@ -1,21 +1,21 @@
-## Clock signal 
+## Clock signal
 ##Bank = 35, Pin name = IO_L12P_T1_MRCC_35,					Sch name = CLK100MHZ
 set_property PACKAGE_PIN E3 [get_ports CLK]
 set_property IOSTANDARD LVCMOS33 [get_ports CLK]
 
-## Switches				
+## Switches
 set_property PACKAGE_PIN J15 [get_ports {SW[0]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {SW[0]}]
-				
+
 set_property PACKAGE_PIN L16 [get_ports {SW[1]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {SW[1]}]
-			
+
 set_property PACKAGE_PIN M13 [get_ports {SW[2]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {SW[2]}]
-		
+
 set_property PACKAGE_PIN R15 [get_ports {SW[3]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {SW[3]}]
-	
+
 set_property PACKAGE_PIN R17 [get_ports {SW[4]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {SW[4]}]
 
@@ -42,7 +42,7 @@ set_property IOSTANDARD LVCMOS33 [get_ports {SW[11]}]
 
 set_property PACKAGE_PIN H6 [get_ports {SW[12]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {SW[12]}]
-	
+
 set_property PACKAGE_PIN U12 [get_ports {SW[13]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {SW[13]}]
 
@@ -153,5 +153,7 @@ set_property IOSTANDARD LVCMOS33 [get_ports {SevenSegAn[7]}]
 
 
 #Bank = 14, Pin name = IO_L21P_T3_DQS_14,					Sch name = BTND
-set_property PACKAGE_PIN P18 [get_ports {Reset}]
-set_property IOSTANDARD LVCMOS33 [get_ports {Reset}]
+set_property PACKAGE_PIN P18 [get_ports Reset]
+set_property IOSTANDARD LVCMOS33 [get_ports Reset]
+
+create_clock -period 10.000 -name OSC_CLK -waveform {0.000 5.000} -add [get_ports CLK]

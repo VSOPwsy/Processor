@@ -44,6 +44,16 @@ module ControlUnit(
     
     
     always @(*) begin
+        Branch = 1'b0;
+        MemtoReg = 1'b0;
+        MemW = 1'b0;
+        ALUSrc = 1'b1;
+        ImmSrc = 2'b10;
+        RegW = 1'b0;
+        RegSrc = 3'b001;
+        ALUOp = 2'b00;
+        MS = 1'b0;
+        MCycleOp = 1'b0;
         casex (Op)
             2'b00: begin: _DP
                 casex (Funct)
@@ -155,6 +165,9 @@ module ControlUnit(
     
     
     always @(*) begin
+        ALUControl = `ADD;
+        FlagW = 4'b0000;
+        NoWrite = 1'b0;
         case (ALUOp)
             2'b11: begin
                 case (Funct[4:1])
@@ -257,12 +270,6 @@ module ControlUnit(
                         FlagW = Funct[0] ? 4'b1110 : 4'b0000;
                         NoWrite = 1'b0;
                     end
-                    
-                    default: begin
-                        ALUControl = `ADD;
-                        FlagW = 4'b0000;
-                        NoWrite = 1'b0;
-                    end
                 endcase
             end
             
@@ -283,12 +290,6 @@ module ControlUnit(
             end
             
             2'b00: begin: _Branch_
-                ALUControl = `ADD;
-                FlagW = 4'b0000;
-                NoWrite = 1'b0;
-            end
-            
-            default: begin
                 ALUControl = `ADD;
                 FlagW = 4'b0000;
                 NoWrite = 1'b0;

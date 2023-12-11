@@ -48,6 +48,8 @@ module ARMcore(
     wire                HazardUnit_MemWriteM;
     wire                HazardUnit_MemtoRegE;
     wire                HazardUnit_MemtoRegW;
+    wire                HazardUnit_MemtoRegM;
+    wire                HazardUnit_dec_mem;
     wire                HazardUnit_PCSrcE;
     wire    [3:0]       HazardUnit_MCycleWA3;
     wire                HazardUnit_MCycleDone;
@@ -261,6 +263,8 @@ module ARMcore(
     assign  HazardUnit_MemWriteM    =   EMReg_MemWriteM;
     assign  HazardUnit_MemtoRegE    =   DEReg_MemtoRegE;
     assign  HazardUnit_MemtoRegW    =   MWReg_MemtoRegW;
+    assign  HazardUnit_MemtoRegM    =   MWReg_MemtoRegM;
+    assign  HazardUnit_dec_mem      =   MemOrIO_dec_mem;
     assign  HazardUnit_PCSrcE       =   CondUnit_PCSrc;
     assign  HazardUnit_MCycleWA3    =   MCycle_MCycleWA3;
     assign  HazardUnit_MCycleDone   =   MCycle_Done;
@@ -416,6 +420,8 @@ module ARMcore(
         .MemWriteM  (HazardUnit_MemWriteM   ),
         .MemtoRegE  (HazardUnit_MemtoRegE   ),
         .MemtoRegW  (HazardUnit_MemtoRegW   ),
+        .MemtoRegM  (HazardUnit_MemtoRegM   ),
+        .dec_mem    (HazardUnit_dec_mem     ),
         .PCSrcE     (HazardUnit_PCSrcE      ),
         .MCycleWA3  (HazardUnit_MCycleWA3   ),
         .MCycleDone (HazardUnit_MCycleDone  ),

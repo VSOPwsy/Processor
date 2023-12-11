@@ -77,7 +77,7 @@ module Cache_1KB #(
         .RepPtr     (RepPtr     ));
 
 
-    TCAM TCAm(
+    TCAM TCAM(
         .CLK        (CLK        ),
         .Addr       (rc_Addr    ),
         .Valid      (rc_Valid   ),
