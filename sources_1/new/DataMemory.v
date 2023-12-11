@@ -50,7 +50,9 @@ module DataMemory(
     wire dec_w_DATA_VAR;
     assign dec_w_DATA_VAR       = (WriteAddr >= `DATA_VAR_ADDR_LOW & WriteAddr <= `DATA_VAR_ADDR_HIGH) ? 1'b1 : 1'b0;
 
-    always  @(*) begin
+    reg [31:0] ReadData_reg;
+    always @(posedge CLK) ReadData_reg <= ReadData;
+    always @(*) begin
         if (ReadValid) begin
             if (dec_r_DATA_VAR)
                 ReadData = DATA_VAR_MEM[ReadAddr[`DATA_VAR_ADDR_WIDTH+2-1:2]]; 
@@ -60,7 +62,7 @@ module DataMemory(
                 ReadData = 0; 
         end
         else begin
-            ReadData = 0;
+            ReadData = ReadData_reg;
         end
     end
     

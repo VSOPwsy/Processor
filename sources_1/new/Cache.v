@@ -22,9 +22,11 @@
 
 `include "config.v"
 
-module Cache #(
-    parameter POLICY = `FIFO
-)(
+`define     IDLE                2'b00
+`define     READING_MAIN_MEM    2'b01
+`define     WRITING_MAIN_MEM    2'b10
+
+module Cache(
     // rc_ means reg to cache, cm_ means cache to memory
     input CLK,
     input Reset,
@@ -32,86 +34,282 @@ module Cache #(
     input rc_Valid,
     input [31:0] rc_Addr,
     input [31:0] rc_WriteData,
-    output [31:0] rc_ReadData,
-    output rc_ReadReady,
+    output reg [31:0] rc_ReadData,
+    output reg rc_ReadReady,
     
-    output cm_ReadValid,
-    output cm_WriteValid,
+    output reg cm_ReadValid,
+    output reg [31:0] cm_ReadAddr,
+    output reg cm_WriteValid,
     output [31:0] cm_WriteAddr,
-    output [31:0] cm_WriteData,
+    output reg [31:0] cm_WriteData,
 
     input cm_ReadReady,
-    input [31:0] cm_ReadData,
-    output [31:0] cm_ReadAddr
+    input [31:0] cm_ReadData
     );
 
-    wire [1:0] Set_Addr;
-    assign Set_Addr = rc_Addr[3:2];
-
-    wire [3:0] Cache_rc_Valid;
-    wire [3:0] Cache_rc_ReadReady;
-    wire [4*32-1:0] Cache_rc_ReadData;
-    wire [3:0] Cache_FIFO_we;
-    wire [4*64-1:0] Cache_FIFO_wd;
-    wire [4*32-1:0] Cache_cm_ReadAddr;
-    wire [3:0] Cache_cm_ReadValid;
-    wire [1:0] Cache_Write_Set_Addr;
-    wire FIFO_re;
-    wire FIFO_we;
-    wire [63:0] FIFO_rd;
-    wire [63:0] FIFO_wd;
-    wire FIFO_empty;
-    wire FIFO_full;
+    reg all_dirty;
+    reg [1:0] rep_way;
+    reg [21:0] rep_tag;
+    reg [31:0] rep_data;
+    wire Hit_0, Hit_1, Hit_2, Hit_3;
+    wire v_0, v_1, v_2, v_3;
+    wire d_0, d_1, d_2, d_3;
+    reg WriteEnable;
+    wire WriteEnable_0, WriteEnable_1, WriteEnable_2, WriteEnable_3;
+    reg [31:0] WriteData;
+    wire [31:0] ReadData_0, ReadData_1, ReadData_2, ReadData_3;
+    wire [21:0] rep_tag_0, rep_tag_1, rep_tag_2, rep_tag_3;
+    Cache_1KB Way_0(
+        .CLK(CLK),
+        .Reset(Reset),
+        .Addr(rc_Addr),
+        .WriteEnable(WriteEnable_0),
+        .WriteData(WriteData),
+        .DirtyWrite(DirtyWrite),
+        .Hit(Hit_0),
+        .v(v_0),
+        .d(d_0),
+        .ReadData(ReadData_0),
+        .rep_tag(rep_tag_0)
+    );
     
-
-    FIFO FIFO(
-        .re(FIFO_re),
-        .rd(FIFO_rd),
-        .we(FIFO_we),
-        .wd(FIFO_wd),
-        .empty(FIFO_empty),
-        .full(FIFO_full));
-
-    genvar i;
-    generate
-        for (i = 0; i < 4; i = i + 1) begin
-            Cache_1KB #(
-                .POLICY         (POLICY     ),
-                .SET_ID         (i[1:0]     )
-            )Set(
-                .CLK            (CLK                ),
-                .Reset          (Reset              ),
-                .rc_RW          (rc_RW              ),
-                .rc_Addr        (rc_Addr            ),
-                .rc_WriteData   (rc_WriteData       ),
-                .rc_Valid       (Cache_rc_Valid[i]  ),
-                .rc_ReadReady   (Cache_rc_ReadReady[i]              ),
-                .rc_ReadData    (Cache_rc_ReadData[(i+1)*32-1-:32]  ),
-                
-                .FIFO_we        (Cache_FIFO_we[i]       ),
-                .FIFO_wd        (Cache_FIFO_wd[(i+1)*64-1-:32]      ),
-                .cm_ReadAddr    (Cache_cm_ReadAddr[(i+1)*32-1-:32]  ),
-                .cm_ReadValid   (Cache_cm_ReadValid[i]  ),
-                .cm_ReadReady   (cm_ReadReady           ),
-                .cm_ReadData    (cm_ReadData            ),
-                .FIFO_full      (FIFO_full              ));
-
-            assign Cache_rc_Valid[i] = (Set_Addr == i) & rc_Valid;
-        end
-    endgenerate
-
-    assign rc_ReadReady     =   |Cache_rc_ReadReady;
-    assign rc_ReadData      =   Cache_rc_ReadData[(Set_Addr+1)*32-1-:32];
-    assign FIFO_we          =   |Cache_FIFO_we;
-    assign FIFO_wd          =   Cache_FIFO_wd[(Cache_Write_Set_Addr+1)*64-1-:64];
-    assign cm_ReadAddr      =   Cache_cm_ReadAddr[(Set_Addr+1)*32-1-:32];
-    assign cm_ReadValid     =   Cache_cm_ReadValid[Set_Addr];
-
-
-    PriorityEncoder #(4) PriorityEncoder(
-        .in(Cache_FIFO_we),
-        .out(Cache_Write_Set_Addr),
-        .none()
+    Cache_1KB Way_1(
+        .CLK(CLK),
+        .Reset(Reset),
+        .Addr(rc_Addr),
+        .WriteEnable(WriteEnable_1),
+        .WriteData(WriteData),
+        .DirtyWrite(DirtyWrite),
+        .Hit(Hit_1),
+        .v(v_1),
+        .d(d_1),
+        .ReadData(ReadData_1),
+        .rep_tag(rep_tag_1)
     );
+    
+    Cache_1KB Way_2(
+        .CLK(CLK),
+        .Reset(Reset),
+        .Addr(rc_Addr),
+        .WriteEnable(WriteEnable_2),
+        .WriteData(WriteData),
+        .DirtyWrite(DirtyWrite),
+        .Hit(Hit_2),
+        .v(v_2),
+        .d(d_2),
+        .ReadData(ReadData_2),
+        .rep_tag(rep_tag_2)
+    );
+    
+    Cache_1KB Way_3(
+        .CLK(CLK),
+        .Reset(Reset),
+        .Addr(rc_Addr),
+        .WriteEnable(WriteEnable_3),
+        .WriteData(WriteData),
+        .DirtyWrite(DirtyWrite),
+        .Hit(Hit_3),
+        .v(v_3),
+        .d(d_3),
+        .ReadData(ReadData_3),
+        .rep_tag(rep_tag_3)
+    );
+
+    assign Hit = Hit_0 | Hit_1 | Hit_2 | Hit_3;
+    always @(*) begin
+        if (Hit_0) begin
+            rc_ReadData = ReadData_0;
+        end
+        else if (Hit_1) begin
+            rc_ReadData = ReadData_1;
+        end
+        else if (Hit_2) begin
+            rc_ReadData = ReadData_2;
+        end
+        else if (Hit_3) begin
+            rc_ReadData = ReadData_3;
+        end
+        else begin
+            rc_ReadData = 0;
+        end
+    end
+
+    reg [1:0] current_state = `IDLE;
+    reg [1:0] next_state;
+    always @(posedge CLK, posedge Reset) begin
+        if (Reset) begin
+            current_state <= `IDLE;
+        end
+        else begin
+            current_state <= next_state;
+        end
+    end
+
+    always @(*) begin
+        case (current_state)
+            `IDLE: begin
+                if (~Hit & rc_Valid) begin
+                    if (~rc_RW) begin                  // read miss
+                        next_state = `READING_MAIN_MEM;
+                    end
+                    else if (all_dirty) begin       // write and all ways are dirty
+                        next_state = `IDLE;
+                    end
+                end
+                else begin
+                    next_state = `IDLE;
+                end
+            end
+            
+            `READING_MAIN_MEM: begin
+                if (cm_ReadReady) begin
+                    next_state = `IDLE;
+                end
+                else begin
+                    next_state = `READING_MAIN_MEM;
+                end
+            end
+        endcase
+    end
+
+    reg DirtyWrite = 0;
+    assign cm_WriteAddr = {rep_tag, rc_Addr[9:2], rep_way};
+
+    reg [31:0] cm_ReadData_reg = 0;;
+    always @(posedge CLK, posedge Reset) begin
+        if (Reset) begin
+            cm_ReadData_reg <= 0;
+        end
+        else begin
+            if (current_state == `READING_MAIN_MEM & cm_ReadReady) begin
+                cm_ReadData_reg <= cm_ReadData;
+            end
+            else begin
+                cm_ReadData_reg <= cm_ReadData_reg;
+            end
+        end
+    end
+
+
+    always @(*) begin
+        if (current_state == `IDLE & rc_Valid & rc_RW & ~Hit) begin
+            WriteEnable = 1;
+            WriteData = rc_WriteData;
+            DirtyWrite = 1;
+        end
+        else if (current_state == `IDLE & rc_Valid & rc_RW & Hit) begin
+            WriteEnable = 1;
+            WriteData = rc_WriteData;
+            DirtyWrite = 1;
+        end
+        else if (current_state == `READING_MAIN_MEM & next_state == `IDLE) begin
+            WriteEnable <= 1;
+            WriteData <= cm_ReadData;
+            DirtyWrite = 0;
+        end
+        else begin
+            WriteEnable <= 0;
+            WriteData <= 0;
+            DirtyWrite = 0;
+        end
+
+
+        if (current_state == `IDLE & rc_Valid & ~rc_RW & ~Hit) begin
+            cm_ReadValid = 1;
+            cm_ReadAddr = rc_Addr;
+        end
+        else begin
+            cm_ReadValid = 0;
+            cm_ReadAddr = rc_Addr;
+        end
+
+
+        if (current_state == `IDLE & rc_Valid & rc_RW & ~Hit & all_dirty) begin
+            cm_WriteValid <= 1;
+            cm_WriteData <= rep_data;
+        end
+        else if (current_state == `READING_MAIN_MEM & next_state == `IDLE & all_dirty) begin
+            cm_WriteValid <= 1;
+            cm_WriteData <= rep_data;
+        end
+        else begin
+            cm_WriteValid <= 0;
+            cm_WriteData <= 0;
+        end
+    end
+
+
+
+    always @(*) begin
+        if (rc_Valid & ~rc_RW & Hit) begin
+            rc_ReadReady = 1;
+        end
+        else begin
+            rc_ReadReady <= 0;
+        end
+    end
+
+    always @(*) begin
+        if (~v_0) begin
+            rep_way = 2'd0;
+            rep_tag = rep_tag_0;
+            rep_data = ReadData_0;
+            all_dirty = 0;
+        end
+        else if (~v_1) begin
+            rep_way = 2'd1;
+            rep_tag = rep_tag_1;
+            rep_data = ReadData_1;
+            all_dirty = 0;
+        end
+        else if (~v_2) begin
+            rep_way = 2'd2;
+            rep_tag = rep_tag_2;
+            rep_data = ReadData_2;
+            all_dirty = 0;
+        end
+        else if (~v_3) begin
+            rep_way = 2'd3;
+            rep_tag = rep_tag_3;
+            rep_data = ReadData_3;
+            all_dirty = 0;
+        end
+        else if (~d_0) begin
+            rep_way = 2'd0;
+            rep_tag = rep_tag_0;
+            rep_data = ReadData_0;
+            all_dirty = 0;
+        end
+        else if (~d_1) begin
+            rep_way = 2'd1;
+            rep_tag = rep_tag_1;
+            rep_data = ReadData_1;
+            all_dirty = 0;
+        end
+        else if (~d_2) begin
+            rep_way = 2'd2;
+            rep_tag = rep_tag_2;
+            rep_data = ReadData_2;
+            all_dirty = 0;
+        end
+        else if (~d_3) begin
+            rep_way = 2'd3;
+            rep_tag = rep_tag_3;
+            rep_data = ReadData_3;
+            all_dirty = 0;
+        end
+        else begin
+            rep_way = 2'd0;
+            rep_tag = rep_tag_0;
+            rep_data = ReadData_0;
+            all_dirty = 1;
+        end
+    end
+
+
+    assign WriteEnable_0 = WriteEnable & rep_way == 2'd0;
+    assign WriteEnable_1 = WriteEnable & rep_way == 2'd1;
+    assign WriteEnable_2 = WriteEnable & rep_way == 2'd2;
+    assign WriteEnable_3 = WriteEnable & rep_way == 2'd3;
 
 endmodule

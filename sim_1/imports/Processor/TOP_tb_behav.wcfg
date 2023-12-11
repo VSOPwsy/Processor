@@ -11,17 +11,18 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="505.100 ns"></ZoomStartTime>
-      <ZoomEndTime time="594.501 ns"></ZoomEndTime>
-      <Cursor1Time time="576.100 ns"></Cursor1Time>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="187.201 ns"></ZoomEndTime>
+      <Cursor1Time time="19.800 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="224"></NameColumnWidth>
-      <ValueColumnWidth column_width="106"></ValueColumnWidth>
+      <NameColumnWidth column_width="222"></NameColumnWidth>
+      <ValueColumnWidth column_width="90"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="14" />
+   <WVObjectSize size="10" />
    <wave_markers>
       <marker time="535000" label="" />
+      <marker time="5041600" label="" />
    </wave_markers>
    <wvobject fp_name="/TOP_tb/CLK" type="logic">
       <obj_property name="ElementShortName">CLK</obj_property>
@@ -51,29 +52,13 @@
       <obj_property name="ElementShortName">InstrD[31:0]</obj_property>
       <obj_property name="ObjectShortName">InstrD[31:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/DEReg/WA3D" type="array">
-      <obj_property name="ElementShortName">WA3D[3:0]</obj_property>
-      <obj_property name="ObjectShortName">WA3D[3:0]</obj_property>
+   <wvobject fp_name="/TOP_tb/uut/Cache/Way_0/index" type="logic">
+      <obj_property name="ElementShortName">index</obj_property>
+      <obj_property name="ObjectShortName">index</obj_property>
    </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/DEReg/WA3E" type="array">
-      <obj_property name="ElementShortName">WA3E[3:0]</obj_property>
-      <obj_property name="ObjectShortName">WA3E[3:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/CondUnit/PCSrc" type="logic">
-      <obj_property name="ElementShortName">PCSrc</obj_property>
-      <obj_property name="ObjectShortName">PCSrc</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ResultW" type="array">
-      <obj_property name="ElementShortName">ResultW[31:0]</obj_property>
-      <obj_property name="ObjectShortName">ResultW[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/RegisterFile/WE3" type="logic">
-      <obj_property name="ElementShortName">WE3</obj_property>
-      <obj_property name="ObjectShortName">WE3</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/RegisterFile/A3" type="array">
-      <obj_property name="ElementShortName">A3[3:0]</obj_property>
-      <obj_property name="ObjectShortName">A3[3:0]</obj_property>
+   <wvobject fp_name="/TOP_tb/uut/Cache/Hit_0" type="logic">
+      <obj_property name="ElementShortName">Hit_0</obj_property>
+      <obj_property name="ObjectShortName">Hit_0</obj_property>
    </wvobject>
    <wvobject fp_name="/TOP_tb/uut/ARMcore/RegisterFile/RegBankCore" type="array">
       <obj_property name="ElementShortName">RegBankCore[0:14][31:0]</obj_property>
