@@ -44,7 +44,7 @@ module HazardUnit(
     input MCycleBusy,
     input MStart,
     input MS,
-    input Cache_Hit,
+    input Cache_ReadReady,
     input RW,
     input Mem_ReadReady,
     output reg [2:0] ForwardAE,
@@ -91,7 +91,7 @@ module HazardUnit(
     wire cachestall;
     assign Match_12D_E = (RA1D == WA3E) | (RA2D == WA3E);
     assign ldrstall = Match_12D_E & MemtoRegE & RegWriteE;
-    assign cachestall = dec_mem & ~Cache_Hit & ((MemtoRegM & RegWriteM) | MemWriteM);      // Stall pipline while reading from Cache but not hitting and memory is no ready
+    assign cachestall = dec_mem & ~Cache_ReadReady & (MemtoRegM & RegWriteM);      // Stall pipline while reading from Cache but not hitting and memory is no ready
     wire Match_123D_MCycleWA;
     assign Match_123D_MCycleWA = (RA1D == MCycleWA3) | (RA2D == MCycleWA3) | (WA3D == MCycleWA3) | (MStart & WA3D == WA3E);
     
@@ -100,7 +100,7 @@ module HazardUnit(
     assign StallE = cachestall;
     assign StallM = cachestall;
     assign FlushD = PCSrcE;
-    assign FlushE = (ldrstall & Cache_Hit) | PCSrcE;
+    assign FlushE = (ldrstall & Cache_ReadReady) | PCSrcE;      // add & ~FIFO_full ???
     
     assign MCycleHazard = Match_123D_MCycleWA | (MCycleBusy & MS);
 endmodule

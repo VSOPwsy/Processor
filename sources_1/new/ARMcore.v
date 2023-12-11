@@ -25,7 +25,7 @@ module ARMcore(
     output  [31:0]      Cache_Addr,
     output  [31:0]      Cache_WriteData,
     output              Cache_Valid,
-    input               Cache_Hit,
+    input               Cache_ReadReady,
     input   [31:0]      Cache_ReadData,
     
     input   [31:0]      Mem_ReadData,
@@ -56,7 +56,7 @@ module ARMcore(
     wire                HazardUnit_MCycleBusy;
     wire                HazardUnit_MStart;
     wire                HazardUnit_MS;
-    wire                HazardUnit_Cache_Hit;
+    wire                HazardUnit_Cache_ReadReady;
     wire                HazardUnit_RW;
     wire                HazardUnit_Mem_ReadReady;
     // Output
@@ -271,7 +271,7 @@ module ARMcore(
     assign  HazardUnit_MCycleBusy   =   MCycle_Busy;
     assign  HazardUnit_MStart       =   CondUnit_MStart;
     assign  HazardUnit_MS           =   ControlUnit_MS;
-    assign  HazardUnit_Cache_Hit  =     Cache_Hit;
+    assign  HazardUnit_Cache_ReadReady  =     Cache_ReadReady;
     assign  HazardUnit_RW           =   MemOrIO_m_we;
     assign  HazardUnit_Mem_ReadReady    =   Mem_ReadReady;
     
@@ -373,7 +373,7 @@ module ARMcore(
 
     assign  MemOrIO_we          =   EMReg_MemWriteM;
     assign  MemOrIO_addr_in     =   EMReg_ALUOutM;
-    assign  MemOrIO_m_rdata     =   Cache_Hit ? Cache_ReadData : Mem_ReadData;
+    assign  MemOrIO_m_rdata     =   Cache_ReadReady ? Cache_ReadData : Mem_ReadData;
     assign  MemOrIO_r_rdata     =   HazardUnit_ForwardM ? ResultW : EMReg_WriteDataM;
     assign  MemOrIO_io_rdata    =   IO_ReadData;
 
@@ -438,7 +438,7 @@ module ARMcore(
         .FlushD     (HazardUnit_FlushD  ),
         .FlushE     (HazardUnit_FlushE  ),
         .MS         (HazardUnit_MS          ),
-        .Cache_Hit(HazardUnit_Cache_Hit ),
+        .Cache_ReadReady(HazardUnit_Cache_ReadReady ),
         .RW         (HazardUnit_RW          ),
         .Mem_ReadReady  (HazardUnit_Mem_ReadReady   ));
     

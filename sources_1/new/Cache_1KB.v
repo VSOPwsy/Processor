@@ -22,12 +22,14 @@
 
 `include "config.v"
 
-`define     IDLE        1'b0
-`define     READING     1'b1
-`define     WRITING     1'b1    // For 2 different FSM
+`define     IDLE                2'b00
+`define     WAITING_TCAM        2'b01
+`define     READING_MAIN_MEM    2'b10
+`define     WAITING_FIFO        2'b11
 
 module Cache_1KB #(
-    parameter POLICY = `FIFO
+    parameter POLICY = `FIFO,
+    parameter SET_ID = 2'b00
 )(
 
     input CLK,
@@ -36,33 +38,41 @@ module Cache_1KB #(
     input rc_Valid,
     input [31:0] rc_Addr,
     input [31:0] rc_WriteData,
-    output rc_Hit,
     output reg [31:0] rc_ReadData,
+    output reg rc_ReadReady,
 
     output reg cm_ReadValid,
-    output reg cm_WriteValid,
-    output reg [31:0] cm_WriteData,
-    output reg [27:0] cm_WriteTag,
+    output reg [63:0] FIFO_wd,
+    output reg FIFO_we,
     input cm_ReadReady,
     input [31:0] cm_ReadData,
-    output reg [31:0] cm_ReadAddr
+    output reg [31:0] cm_ReadAddr,
+
+    input FIFO_full
     );
     
-    wire [7:0] Hit_Index;
+    reg RW_reg;
+    reg [31:0] Addr_reg;
+    reg [31:0] WriteData_reg;
+    wire [7:0] TCAM_hit_index;
     wire [7:0] RepPtr;
+    reg ptr_update;
+    reg tag_update;
     wire [27:0] replaced_Tag;
-    wire h;
+    wire found;
     reg V [0:255];
     reg D [0:255];
     reg [31:0] DATA [0:255];
     integer i;
 
     initial begin
+        RW_reg = 0;
+        Addr_reg = 0;
+        WriteData_reg = 0;
+        ptr_update = 0;
+        tag_update = 0;
         rc_ReadData = 0;
         cm_ReadValid = 0;
-        cm_WriteValid = 0;
-        cm_WriteData = 0;
-        cm_WriteTag = 0;
         cm_ReadAddr = 0;
     end
     
@@ -71,23 +81,22 @@ module Cache_1KB #(
         .POLICY     (POLICY     )
     )RepPolicy(
         .CLK        (CLK        ),
-        .Valid      (rc_Valid   ),
-        .Hit        (rc_Hit     ),
-        .Addr       (rc_Addr    ),
+        .update     (ptr_update ),
         .RepPtr     (RepPtr     ));
 
 
-    TCAM TCAM(
-        .CLK        (CLK        ),
-        .Addr       (rc_Addr    ),
-        .Valid      (rc_Valid   ),
-        .cm_ReadReady(cm_ReadReady),
-        .RepPtr     (RepPtr     ),
-        .h          (h          ),
-        .Hit_Index  (Hit_Index  ),
-        .replaced_Tag(replaced_Tag));
+    reg TCAM_valid;
 
-    assign rc_Hit = h & V[Hit_Index] & rc_Valid;
+    TCAM TCAM(
+        .CLK        (CLK                ),
+        .tag_in     (Addr_reg[31-:28]   ),
+        .tag_update (tag_update         ),
+        .valid      (TCAM_valid         ),
+        .ready      (TCAM_ready         ),
+        .RepPtr     (RepPtr             ),
+        .found      (found              ),
+        .hit_index  (TCAM_hit_index     ),
+        .replaced_Tag(replaced_Tag      ));
 
     initial begin
         for (i = 0; i < 256; i = i + 1) begin
@@ -98,103 +107,193 @@ module Cache_1KB #(
     end
 
     //////////////////////////////////////////////////////////////////
-    // Read FSM
+    ////// FSM
     //////////////////////////////////////////////////////////////////
-    reg r_current_state, r_next_state;
+    reg current_state, next_state;
 
-    always @(posedge CLK) begin
+    always @(posedge CLK, posedge Reset) begin
         if (Reset) begin
-            r_current_state <= `IDLE;
+            current_state <= `IDLE;
         end
         else begin
-            r_current_state <= r_next_state;
+            current_state <= next_state;
         end
     end
 
     always @(*) begin
-        case (r_current_state)
+        case (current_state)
             `IDLE: begin
-                if (rc_Valid & ~rc_Hit)
-                    r_next_state = `READING;
-                else
-                    r_next_state = `IDLE;
+                if (rc_Valid) begin
+                    next_state = `WAITING_TCAM;
+                end
+                else begin
+                    next_state = `IDLE;
+                end
             end
 
-            `READING: begin
-                if (cm_ReadReady)
-                    r_next_state = `IDLE;
-                else
-                    r_next_state = `READING;
+            `WAITING_TCAM: begin
+                if (TCAM_ready) begin
+                    if (found) begin
+                        if (~RW_reg) begin
+                            if (V[TCAM_hit_index]) begin
+                                next_state = `IDLE;
+                            end
+                            else begin
+                                next_state = `READING_MAIN_MEM;
+                            end
+                        end
+                        else begin
+                            next_state = `IDLE;
+                        end
+                    end
+                    else begin
+                        next_state = `READING_MAIN_MEM;
+                    end
+                end
+                else begin
+                    next_state = `WAITING_TCAM;
+                end
+            end
+
+            `READING_MAIN_MEM: begin
+                if (cm_ReadReady) begin
+                    if (D[RepPtr] & FIFO_full) begin
+                        next_state = `WAITING_FIFO;
+                    end
+                    else begin
+                        next_state = `IDLE;
+                    end
+                end
+                else begin
+                    next_state = `READING_MAIN_MEM;
+                end
+            end
+
+            `WAITING_FIFO: begin
+                if (FIFO_full) begin
+                    next_state = `WAITING_FIFO;
+                end
+                else begin
+                    next_state = `IDLE;
+                end
             end
         endcase
     end
 
-    always @(*) begin
-        if ((r_current_state == `IDLE & rc_Valid & ~rc_Hit) | r_current_state == `READING) begin
-            cm_ReadValid = 1;
-            cm_ReadAddr = rc_Addr;
+    always @(posedge CLK, posedge Reset) begin
+        if (Reset) begin
+            TCAM_valid <= 0;
+            RW_reg <= 0;
+            Addr_reg <= 0;
+            WriteData_reg <= 0;
+            cm_ReadAddr <= 0;
+            cm_ReadValid <= 0;
+            rc_ReadData <= 0;
+            rc_ReadReady <= 0;
+            FIFO_wd <= 0;
+            FIFO_we <= 0;
+            ptr_update <= 0;
+            tag_update <= 1;
+            for (i = 0; i < 256; i = i + 1) begin
+                V[i] = 0;
+                D[i] = 0;
+                DATA[i] = 0;
+            end
         end
         else begin
-            cm_ReadValid = 0;
-            cm_ReadAddr = 0;
+            if (current_state == `IDLE & next_state == `WAITING_TCAM) begin
+                TCAM_valid <= 1;
+                RW_reg <= rc_RW;
+                Addr_reg <= rc_Addr;
+                WriteData_reg <= rc_WriteData;
+            end
+            else begin
+                TCAM_valid <= 0;
+                RW_reg <= RW_reg;
+                Addr_reg <= Addr_reg;
+                WriteData_reg <= WriteData_reg;
+            end
+
+
+            if (current_state != `READING_MAIN_MEM & next_state == `READING_MAIN_MEM) begin
+                cm_ReadAddr <= Addr_reg;
+                cm_ReadValid <= 1;
+            end
+            else begin
+                cm_ReadAddr <= 0;
+                cm_ReadValid <= 0;
+            end
+
+
+            if (current_state == `WAITING_TCAM & next_state == `IDLE) begin
+                rc_ReadData <= DATA[TCAM_hit_index];
+                rc_ReadReady <= 1;
+            end
+            else if (current_state == `READING_MAIN_MEM & next_state == `IDLE & ~RW_reg) begin
+                rc_ReadData <= cm_ReadData;
+                rc_ReadReady <= 1;
+            end
+            else if (current_state == `WAITING_FIFO & next_state == `IDLE & ~RW_reg) begin
+                rc_ReadData <= cm_ReadData;
+                rc_ReadReady <= 1;
+            end
+            else begin
+                rc_ReadData <= 0;
+                rc_ReadReady <= 0;
+            end
+
+            
+            if (current_state == `READING_MAIN_MEM & next_state == `IDLE & D[RepPtr]) begin
+                FIFO_wd <= {DATA[RepPtr], replaced_Tag, SET_ID, 2'b0};
+                FIFO_we <= 1;
+            end
+            else if (current_state == `WAITING_FIFO & next_state == `IDLE) begin
+                FIFO_wd <= {DATA[RepPtr], replaced_Tag, SET_ID, 2'b0};
+                FIFO_we <= 1;
+            end
+            else begin
+                FIFO_wd <= 0;
+                FIFO_we <= 0;
+            end
+
+
+            if (current_state == `READING_MAIN_MEM & next_state != `READING_MAIN_MEM) begin
+                V[RepPtr] <= 1;
+            end
+
+
+            if (current_state == `READING_MAIN_MEM & next_state == `IDLE) begin
+                ptr_update <= 1;
+            end
+            else if (current_state == `WAITING_FIFO & next_state == `IDLE) begin
+                ptr_update <= 1;
+            end
+            else begin
+                ptr_update <= 0;
+            end
+
+
+            if (current_state == `WAITING_TCAM & next_state == `IDLE) begin
+                if (RW_reg) begin
+                    DATA[TCAM_hit_index] <= WriteData_reg;
+                    tag_update <= 1;
+                    D[TCAM_hit_index] <= 1;
+                end
+            end
+            else if (current_state == `READING_MAIN_MEM & next_state == `IDLE) begin
+                if (RW_reg) begin
+                    DATA[RepPtr] <= WriteData_reg;
+                    tag_update <= 1;
+                    D[RepPtr] <= 1;
+                end
+                else begin
+                    DATA[RepPtr] <= cm_ReadData;
+                    tag_update <= 1;
+                end
+            end
+            else begin
+                tag_update <= 0;
+            end
         end
     end
-
-
-    //////////////////////////////////////////////////////////////////
-    // Write to Memory
-    //////////////////////////////////////////////////////////////////
-    reg dirty_data_replace;
-
-    always @(*) begin
-        if (rc_Valid & ~rc_Hit)
-            dirty_data_replace = D[RepPtr];
-        else
-            dirty_data_replace = 0;
-    end
-
-
-    always @(*) begin
-        if (dirty_data_replace) begin
-            cm_WriteTag = replaced_Tag;
-            cm_WriteData = DATA[RepPtr];
-            cm_WriteValid = 1;
-        end
-        else begin
-            cm_WriteTag = 0;
-            cm_WriteData = 0;
-            cm_WriteValid = 0;
-        end
-    end
-
-
-    //////////////////////////////////////////////////////////////////
-    // Data Replace
-    //////////////////////////////////////////////////////////////////
-    always @(posedge CLK) begin
-        if (rc_RW & rc_Valid) begin
-            DATA[RepPtr] <= rc_WriteData;
-            D[RepPtr] <= 1;
-            V[RepPtr] <= 1;
-        end
-        else if (r_current_state == `READING & cm_ReadReady) begin
-            DATA[RepPtr] <= cm_ReadData;
-            V[RepPtr] <= 1;
-        end
-    end
-
-
-    //////////////////////////////////////////////////////////////////
-    // Data Readout
-    //////////////////////////////////////////////////////////////////
-    always @(*) begin
-        if (rc_Hit & ~rc_RW) begin
-            rc_ReadData = DATA[Hit_Index];
-        end
-        else begin
-            rc_ReadData = 0;
-        end
-    end
-    
-    
 endmodule

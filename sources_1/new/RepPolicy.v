@@ -4,9 +4,7 @@ module RepPolicy #(
     parameter POLICY = `FIFO
 )(
     input CLK,
-    input Valid,
-    input Hit,
-    input [31:0] Addr,
+    input update,
     output [7:0] RepPtr
     );
     
@@ -14,14 +12,7 @@ module RepPolicy #(
         if (POLICY == `FIFO)
             Rep_FIFO Rep_FIFO(
                 .CLK    (CLK    ),
-                .Valid  (Valid  ),
-                .Hit    (Hit    ),
-                .RepPtr (RepPtr ));
-
-        else if (POLICY == `RANDOM)
-            Rep_RANDOM Rep_RANDOM(
-                .CLK    (CLK    ),
-                .Valid  (Valid  ),
+                .update (update ),
                 .RepPtr (RepPtr ));
     endgenerate
 

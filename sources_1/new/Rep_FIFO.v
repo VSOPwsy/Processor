@@ -1,7 +1,6 @@
 module Rep_FIFO(
     input CLK,
-    input Valid,
-    input Hit,
+    input update,
     output reg [7:0] RepPtr
     );
 
@@ -10,7 +9,7 @@ module Rep_FIFO(
     end
 
     always @(posedge CLK) begin
-        if (Valid & ~Hit) begin
+        if (update) begin
             RepPtr <= RepPtr + 1;
         end
     end

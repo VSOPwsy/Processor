@@ -44,7 +44,7 @@ module TOP(
     wire Cache_cm_ReadReady;
     wire [31:0] Cache_cm_ReadData;
     wire [31:0] Cache_rc_ReadData;
-    wire Cache_rc_Hit;
+    wire Cache_rc_ReadReady;
     wire Cache_cm_ReadValid;
     wire Cache_cm_WriteValid;
     wire [31:0] Cache_cm_WriteAddr;
@@ -74,7 +74,7 @@ module TOP(
 
 
     assign  ARMcore_IO_ReadData     =   PeripheralConnector_RD;
-    assign  ARMcore_Cache_Hit       =   Cache_rc_Hit;
+    assign  ARMcore_Cache_ReadReady       =   Cache_rc_ReadReady;
     assign  ARMcore_Cache_ReadData  =   Cache_rc_ReadData;
     assign  ARMcore_Mem_ReadReady   =   DataMemory_ReadReady;
     assign  ARMcore_Mem_ReadData    =   DataMemory_ReadData;
@@ -110,7 +110,7 @@ module TOP(
         .Cache_Addr     (ARMcore_Cache_Addr     ),
         .Cache_WriteData(ARMcore_Cache_WriteData),
         .Cache_Valid    (ARMcore_Cache_Valid    ),
-        .Cache_Hit      (ARMcore_Cache_Hit      ),
+        .Cache_ReadReady(ARMcore_Cache_ReadReady),
         .Cache_ReadData (ARMcore_Cache_ReadData ),
         .Mem_ReadReady  (ARMcore_Mem_ReadReady  ),
         .Mem_ReadData   (ARMcore_Mem_ReadData   ));
@@ -124,18 +124,17 @@ module TOP(
         .rc_Valid       (Cache_rc_Valid     ),
         .rc_Addr        (Cache_rc_Addr      ),
         .rc_WriteData   (Cache_rc_WriteData ),
+        .rc_ReadData    (Cache_rc_ReadData  ),
+        .rc_ReadReady   (Cache_rc_ReadReady ),
 
-        .cm_ReadValid   (Cache_cm_ReadValid ),
         .cm_WriteValid  (Cache_cm_WriteValid),
-        .cm_ReadAddr    (Cache_cm_ReadAddr  ),
         .cm_WriteAddr   (Cache_cm_WriteAddr ),
         .cm_WriteData   (Cache_cm_WriteData ),
 
+        .cm_ReadAddr    (Cache_cm_ReadAddr  ),
+        .cm_ReadValid   (Cache_cm_ReadValid ),
         .cm_ReadReady   (Cache_cm_ReadReady ),
-        .cm_ReadData    (Cache_cm_ReadData  ),
-    
-        .rc_ReadData    (Cache_rc_ReadData  ),
-        .rc_Hit         (Cache_rc_Hit       ));
+        .cm_ReadData    (Cache_cm_ReadData  ));
 
 
 

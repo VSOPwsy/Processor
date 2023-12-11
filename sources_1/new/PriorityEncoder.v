@@ -1040,7 +1040,7 @@ module PriorityEncoder #(
 				endcase
 			end
 		end
-		else if (INPUT_NUM == 127) begin
+		else if (INPUT_NUM == 128) begin
 			always @(*) begin
 				if (in[0]) begin
 					out = 0;

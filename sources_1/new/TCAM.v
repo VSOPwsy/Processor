@@ -1,11 +1,12 @@
 module TCAM(
     input CLK,
-    input [31:0] Addr,
-    input Valid,
-    input cm_ReadReady,
+    input [27:0] tag_in,
+    input tag_update,
+    input valid,
+    input ready,
     input [7:0] RepPtr,
-    output h,
-    output [7:0] Hit_Index,
+    output found,
+    output [7:0] hit_index,
     output [27:0] replaced_Tag
     );
 
@@ -20,23 +21,18 @@ module TCAM(
     assign replaced_Tag = Tag[RepPtr];
 
     always @(posedge CLK) begin
-        if (Valid & cm_ReadReady) begin
-            Tag[RepPtr] <= Addr[31-:28];
+        if (tag_update) begin
+            Tag[RepPtr] <= tag_in;
         end
     end
 
-    wire [255:0] response;
-    genvar j;
-    generate
-        for (j = 0; j < 256; j = j + 1) begin
-            assign response[j] = Tag[j] == Addr[31-:28];
-        end
-    endgenerate
 
-    wire none;
+
     PriorityEncoder #(256) PriorityEncoder(
         .in(response),
-        .out(Hit_Index),
+        .out(hit_index),
         .none(none));
-    assign h = ~none;
+
+        
+    assign found = ~none;
 endmodule
