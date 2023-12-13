@@ -21,6 +21,9 @@ module ARMcore(
     output  [31:0]      IO_WriteData,
     output              IO_WE,
 
+    output  [31:0]      PC,
+    input   [31:0]      Instr,
+
     output              Cache_RW,
     output  [31:0]      Cache_Addr,
     output  [31:0]      Cache_WriteData,
@@ -283,7 +286,7 @@ module ARMcore(
     
     assign  FDReg_EN        =   ~HazardUnit_StallD;
     assign  FDReg_CLR       =   HazardUnit_FlushD;
-    assign  FDReg_InstrF    =   InstructionMemory_Instr;
+    assign  FDReg_InstrF    =   Instr;
     
     assign  ControlUnit_Instr       =   FDReg_InstrD;
     
@@ -391,8 +394,7 @@ module ARMcore(
     
     assign  ResultW  =  MWReg_MemtoRegW ? MWReg_ReadDataW : MWReg_ALUOutW;
     
-    
-
+    assign  PC  =   ProgramCounter_PC;
 
     assign  IO_Addr         =   MemOrIO_io_addr;
     assign  IO_WriteData    =   MemOrIO_io_wdata;
@@ -460,7 +462,7 @@ module ARMcore(
         .MS         (ControlUnit_MS         ),
         .MCycleOp   (ControlUnit_MCycleOp   ));
         
-    
+
     ProgramCounter ProgramCounter(
         .CLK        (CLK                        ),
         .Reset      (Reset                      ),
@@ -471,11 +473,6 @@ module ARMcore(
         .PCPlus4    (ProgramCounter_PCPlus4     ));
     
     
-    InstructionMemory InstructionMemory(
-        .PC     (InstructionMemory_PC       ),
-        .Instr  (InstructionMemory_Instr    ));
-    
-    
     FDReg FDReg(
         .CLK        (CLK            ),
         .Reset      (Reset          ),
@@ -483,7 +480,6 @@ module ARMcore(
         .CLR        (FDReg_CLR      ),
         .InstrF     (FDReg_InstrF   ),
         .InstrD     (FDReg_InstrD   ));
-    
     
     
     RegisterFile RegisterFile(

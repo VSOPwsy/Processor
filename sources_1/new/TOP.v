@@ -24,6 +24,8 @@ module TOP(
     output [6:0] SevenSegCat
 );
 
+    wire    [31:0]      PC;
+    wire    [31:0]      Instr;
     wire    [31:0]      ARMcore_IO_ReadData;
     wire                ARMcore_Cache_Hit;
     wire    [31:0]      ARMcore_Cache_ReadData;
@@ -102,6 +104,8 @@ module TOP(
     ARMcore ARMcore(
         .CLK            (CLK                    ),
         .Reset          (Reset                  ),
+        .PC             (PC                     ),
+        .Instr          (Instr                  ),
         .IO_ReadData    (ARMcore_IO_ReadData    ),
         .IO_Addr        (ARMcore_IO_Addr        ),
         .IO_WriteData   (ARMcore_IO_WriteData   ),
@@ -115,7 +119,11 @@ module TOP(
         .Mem_ReadReady  (ARMcore_Mem_ReadReady  ),
         .Mem_ReadData   (ARMcore_Mem_ReadData   ));
     
-    
+
+    InstructionMemory InstructionMemory(
+        .PC     (PC       ),
+        .Instr  (Instr    ));
+
 
     Cache Cache(
         .CLK            (CLK                ),
@@ -135,7 +143,6 @@ module TOP(
         .cm_ReadValid   (Cache_cm_ReadValid ),
         .cm_ReadReady   (Cache_cm_ReadReady ),
         .cm_ReadData    (Cache_cm_ReadData  ));
-
 
 
     DataMemory DataMemory(
