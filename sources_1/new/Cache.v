@@ -22,7 +22,7 @@
 
 `include "config.v"
 
-`define     IDLE                2'b00
+`define     CACHE_IDLE                2'b00
 `define     READING_MAIN_MEM    2'b01
 `define     WRITING_MAIN_MEM    2'b10
 
@@ -59,6 +59,7 @@ module Cache(
     reg [31:0] WriteData;
     wire [31:0] ReadData_0, ReadData_1, ReadData_2, ReadData_3;
     wire [21:0] rep_tag_0, rep_tag_1, rep_tag_2, rep_tag_3;
+    reg DirtyWrite = 0;
     Cache_1KB Way_0(
         .CLK(CLK),
         .Reset(Reset),
@@ -134,11 +135,11 @@ module Cache(
         end
     end
 
-    reg [1:0] current_state = `IDLE;
+    reg [1:0] current_state = `CACHE_IDLE;
     reg [1:0] next_state;
     always @(posedge CLK, posedge Reset) begin
         if (Reset) begin
-            current_state <= `IDLE;
+            current_state <= `CACHE_IDLE;
         end
         else begin
             current_state <= next_state;
@@ -146,71 +147,42 @@ module Cache(
     end
 
     always @(*) begin
+        next_state = `CACHE_IDLE;
         case (current_state)
-            `IDLE: begin
+            `CACHE_IDLE: begin
                 if (~Hit & rc_Valid) begin
                     if (~rc_RW) begin                  // read miss
-                        if (cm_ReadReady) begin
-                            next_state = `IDLE;
-                        end
-                        else begin
+                        if (~cm_ReadReady) begin
                             next_state = `READING_MAIN_MEM;
                         end
                     end
-                    else begin       // write miss
-                        next_state = `IDLE;
-                    end
-                end
-                else begin
-                    next_state = `IDLE;
                 end
             end
             
             `READING_MAIN_MEM: begin
-                if (cm_ReadReady) begin
-                    next_state = `IDLE;
-                end
-                else begin
+                if (~cm_ReadReady) begin
                     next_state = `READING_MAIN_MEM;
                 end
             end
+            
+            default: next_state = `CACHE_IDLE;
         endcase
     end
 
-    reg DirtyWrite = 0;
     assign cm_WriteAddr = {rep_tag, rc_Addr[9:2], rep_way};
 
-    reg [31:0] cm_ReadData_reg = 0;;
-    always @(posedge CLK, posedge Reset) begin
-        if (Reset) begin
-            cm_ReadData_reg <= 0;
-        end
-        else begin
-            if (current_state == `READING_MAIN_MEM & cm_ReadReady) begin
-                cm_ReadData_reg <= cm_ReadData;
-            end
-            else if (current_state == `IDLE & rc_Valid & ~rc_RW & ~Hit & cm_ReadReady) begin
-                cm_ReadData_reg <= cm_ReadData;
-            end
-            else begin
-                cm_ReadData_reg <= cm_ReadData_reg;
-            end
-        end
-    end
-
-
     always @(*) begin
-        if (current_state == `IDLE & rc_Valid & rc_RW) begin
+        if (current_state == `CACHE_IDLE && rc_Valid && rc_RW) begin
             WriteEnable = 1;
             WriteData = rc_WriteData;
             DirtyWrite = 1;
         end
-        else if (current_state == `READING_MAIN_MEM & next_state == `IDLE) begin
+        else if (current_state == `READING_MAIN_MEM && next_state == `CACHE_IDLE) begin
             WriteEnable = 1;
             WriteData = cm_ReadData;
             DirtyWrite = 0;
         end
-        else if (current_state == `IDLE & rc_Valid & ~rc_RW & ~Hit & cm_ReadReady) begin
+        else if (current_state == `CACHE_IDLE && rc_Valid && ~rc_RW && ~Hit && cm_ReadReady) begin
             WriteEnable = 1;
             WriteData = cm_ReadData;
             DirtyWrite = 0;
@@ -222,7 +194,7 @@ module Cache(
         end
 
 
-        if (current_state == `IDLE & rc_Valid & ~rc_RW & ~Hit) begin
+        if (current_state == `CACHE_IDLE && rc_Valid && ~rc_RW && ~Hit) begin
             cm_ReadValid = 1;
             cm_ReadAddr = rc_Addr;
         end
@@ -232,11 +204,11 @@ module Cache(
         end
 
 
-        if (current_state == `IDLE & rc_Valid & rc_RW & ~Hit & all_dirty) begin
+        if (current_state == `CACHE_IDLE && rc_Valid && rc_RW && ~Hit && all_dirty) begin
             cm_WriteValid = 1;
             cm_WriteData = rep_data;
         end
-        else if (current_state == `READING_MAIN_MEM & next_state == `IDLE & all_dirty) begin
+        else if (current_state == `READING_MAIN_MEM && next_state == `CACHE_IDLE && all_dirty) begin
             cm_WriteValid = 1;
             cm_WriteData = rep_data;
         end

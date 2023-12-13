@@ -100,7 +100,7 @@ module HazardUnit(
     assign StallE = cachestall;
     assign StallM = cachestall;
     assign FlushD = PCSrcE;
-    assign FlushE = (ldrstall & Cache_ReadReady) | PCSrcE;      // add & ~FIFO_full ???
+    assign FlushE = (ldrstall & Cache_ReadReady) | PCSrcE;
     
     assign MCycleHazard = Match_123D_MCycleWA | (MCycleBusy & MS);
 endmodule

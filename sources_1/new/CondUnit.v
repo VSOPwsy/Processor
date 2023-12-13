@@ -63,14 +63,16 @@ module CondUnit(
         else begin
             N <= FlagWrite[3] ? ALUFlags[3] : N;
             Z <= FlagWrite[2] ? ALUFlags[2] : Z;
-            if (FlagWrite[1])
+            if (FlagWrite[1]) begin
                 if (ALUControl == `AND || ALUControl == `EOR || ALUControl == `TST || ALUControl == `TEQ || 
                     ALUControl == `ORR || ALUControl == `MOV || ALUControl == `BIC || ALUControl == `MVN)
                     C <= ShifterCarry;
                 else
                     C <= ALUFlags[1];
-            else
+            end
+            else begin
                 C <= C;
+            end
             V <= FlagWrite[0] ? ALUFlags[0] : V;
         end
     end

@@ -27,6 +27,7 @@ module Extend(
             
             2'b10:
                 ExtImm = {{6{InstrImm[23]}}, InstrImm, 2'b0};
+            default: ExtImm = 0;
         endcase
     end
     

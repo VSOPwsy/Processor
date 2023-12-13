@@ -37,6 +37,7 @@ module ConditionCheck(
             4'b1100: CondEx = ~Z & ~(N ^ V);
             4'b1101: CondEx = Z | (N ^ V);
             4'b1110: CondEx = 1'b1;
+            default: CondEx = 1'b0;
         endcase
     end
 endmodule

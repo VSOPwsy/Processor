@@ -342,12 +342,14 @@ module ARMcore(
             2'b00:  SA = DEReg_RD1E;
             2'b01:  SA = ResultW;
             2'b10:  SA = EMReg_ALUOutM;
+            default: SA = DEReg_RD1E;
         endcase
     always @(*)
         case (HazardUnit_ForwardBE)
             2'b00:  SB =  DEReg_RD2E;
             2'b01:  SB =  ResultW;
             2'b10:  SB =  EMReg_ALUOutM;
+            default: SB =  DEReg_RD2E;
         endcase
         
     assign  ALU_SrcA        =   SA;

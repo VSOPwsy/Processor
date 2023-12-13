@@ -52,7 +52,7 @@ module MCycle #(
     
     always @(posedge CLK, posedge Reset) begin
         if (Reset)
-            MCycleOp_reg <= MCycleOp;
+            MCycleOp_reg <= 0;
         else
             MCycleOp_reg <= Start ? MCycleOp : MCycleOp_reg;
     end
