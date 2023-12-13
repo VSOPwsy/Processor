@@ -150,9 +150,14 @@ module Cache(
             `IDLE: begin
                 if (~Hit & rc_Valid) begin
                     if (~rc_RW) begin                  // read miss
-                        next_state = `READING_MAIN_MEM;
+                        if (cm_ReadReady) begin
+                            next_state = `IDLE;
+                        end
+                        else begin
+                            next_state = `READING_MAIN_MEM;
+                        end
                     end
-                    else if (all_dirty) begin       // write and all ways are dirty
+                    else begin       // write miss
                         next_state = `IDLE;
                     end
                 end
@@ -184,6 +189,9 @@ module Cache(
             if (current_state == `READING_MAIN_MEM & cm_ReadReady) begin
                 cm_ReadData_reg <= cm_ReadData;
             end
+            else if (current_state == `IDLE & rc_Valid & ~rc_RW & ~Hit & cm_ReadReady) begin
+                cm_ReadData_reg <= cm_ReadData;
+            end
             else begin
                 cm_ReadData_reg <= cm_ReadData_reg;
             end
@@ -192,24 +200,24 @@ module Cache(
 
 
     always @(*) begin
-        if (current_state == `IDLE & rc_Valid & rc_RW & ~Hit) begin
-            WriteEnable = 1;
-            WriteData = rc_WriteData;
-            DirtyWrite = 1;
-        end
-        else if (current_state == `IDLE & rc_Valid & rc_RW & Hit) begin
+        if (current_state == `IDLE & rc_Valid & rc_RW) begin
             WriteEnable = 1;
             WriteData = rc_WriteData;
             DirtyWrite = 1;
         end
         else if (current_state == `READING_MAIN_MEM & next_state == `IDLE) begin
-            WriteEnable <= 1;
-            WriteData <= cm_ReadData;
+            WriteEnable = 1;
+            WriteData = cm_ReadData;
+            DirtyWrite = 0;
+        end
+        else if (current_state == `IDLE & rc_Valid & ~rc_RW & ~Hit & cm_ReadReady) begin
+            WriteEnable = 1;
+            WriteData = cm_ReadData;
             DirtyWrite = 0;
         end
         else begin
-            WriteEnable <= 0;
-            WriteData <= 0;
+            WriteEnable = 0;
+            WriteData = 0;
             DirtyWrite = 0;
         end
 
@@ -225,16 +233,16 @@ module Cache(
 
 
         if (current_state == `IDLE & rc_Valid & rc_RW & ~Hit & all_dirty) begin
-            cm_WriteValid <= 1;
-            cm_WriteData <= rep_data;
+            cm_WriteValid = 1;
+            cm_WriteData = rep_data;
         end
         else if (current_state == `READING_MAIN_MEM & next_state == `IDLE & all_dirty) begin
-            cm_WriteValid <= 1;
-            cm_WriteData <= rep_data;
+            cm_WriteValid = 1;
+            cm_WriteData = rep_data;
         end
         else begin
-            cm_WriteValid <= 0;
-            cm_WriteData <= 0;
+            cm_WriteValid = 0;
+            cm_WriteData = 0;
         end
     end
 
@@ -245,9 +253,11 @@ module Cache(
             rc_ReadReady = 1;
         end
         else begin
-            rc_ReadReady <= 0;
+            rc_ReadReady = 0;
         end
     end
+
+
 
     always @(*) begin
         if (~v_0) begin

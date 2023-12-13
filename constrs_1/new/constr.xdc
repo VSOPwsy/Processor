@@ -2,6 +2,7 @@
 ##Bank = 35, Pin name = IO_L12P_T1_MRCC_35,					Sch name = CLK100MHZ
 set_property PACKAGE_PIN E3 [get_ports CLK]
 set_property IOSTANDARD LVCMOS33 [get_ports CLK]
+#create_clock -period 10.000 -name OSC_CLK -waveform {0.000 5.000} -add [get_ports CLK]
 
 ## Switches
 set_property PACKAGE_PIN J15 [get_ports {SW[0]}]
@@ -155,5 +156,4 @@ set_property IOSTANDARD LVCMOS33 [get_ports {SevenSegAn[7]}]
 #Bank = 14, Pin name = IO_L21P_T3_DQS_14,					Sch name = BTND
 set_property PACKAGE_PIN P18 [get_ports Reset]
 set_property IOSTANDARD LVCMOS33 [get_ports Reset]
-
-create_clock -period 10.000 -name OSC_CLK -waveform {0.000 5.000} -add [get_ports CLK]
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets Reset_IBUF]
