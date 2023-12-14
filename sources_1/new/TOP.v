@@ -27,7 +27,6 @@ module TOP(
     wire    [31:0]      PC;
     wire    [31:0]      Instr;
     wire    [31:0]      ARMcore_IO_ReadData;
-    wire                ARMcore_Cache_Hit;
     wire    [31:0]      ARMcore_Cache_ReadData;
     wire                ARMcore_Mem_ReadReady;
     wire    [31:0]      ARMcore_Mem_ReadData;

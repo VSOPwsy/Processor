@@ -56,6 +56,8 @@ module ControlUnit(
         ALUOp = 2'b00;
         MS = 1'b0;
         MCycleOp = 1'b0;
+        FPUOp = 1'b0;
+        FPUS = 1'b0;
         casex (Op)
             2'b00: begin: _DP
                 casex (Funct)
@@ -72,7 +74,7 @@ module ControlUnit(
                             MS = 1'b1;
                             MCycleOp = 1'b0;
                             FPUOp = 1'b0;
-                            FPUS  = 1'b0;
+                            FPUS = 1'b0;
                         end
                         else begin: _DP_reg
                             Branch = 1'b0;
@@ -86,7 +88,7 @@ module ControlUnit(
                             MS = 1'b0;
                             MCycleOp = 1'b0;
                             FPUOp = 1'b0;
-                            FPUS  = 1'b0;
+                            FPUS = 1'b0;
                         end
                     end
                     
@@ -102,7 +104,7 @@ module ControlUnit(
                         MS = 1'b0;
                         MCycleOp = 1'b0;
                         FPUOp = 1'b0;
-                        FPUS  = 1'b0;
+                        FPUS = 1'b0;
                     end
                 endcase
             end
@@ -121,7 +123,7 @@ module ControlUnit(
                         MS = 1'b0;
                         MCycleOp = 1'b0;
                         FPUOp = 1'b0;
-                        FPUS  = 1'b0;
+                        FPUS = 1'b0;
                     end
                     
                     6'bXXXXX1: begin
@@ -137,7 +139,7 @@ module ControlUnit(
                             MS = 1'b1;
                             MCycleOp = 1'b1;
                             FPUOp = 1'b0;
-                            FPUS  = 1'b0;
+                            FPUS = 1'b0;
                         end
                         else begin: _LDR
                             Branch = 1'b0;
@@ -151,7 +153,7 @@ module ControlUnit(
                             MS = 1'b0;
                             MCycleOp = 1'b0;
                             FPUOp = 1'b0;
-                            FPUS  = 1'b0;
+                            FPUS = 1'b0;
                         end
                     end
                 endcase
@@ -171,7 +173,7 @@ module ControlUnit(
                         MS = 1'b0;
                         MCycleOp = 1'b0;
                         FPUOp = 1'b0;
-                        FPUS  = 1'b0;
+                        FPUS = 1'b0;
                     end
                 endcase
             end
@@ -190,7 +192,7 @@ module ControlUnit(
                         MS = 1'b0;
                         MCycleOp = 1'b0;
                         FPUOp = 1'b0;
-                        FPUS  = 1'b1;
+                        FPUS = 1'b1;
                     end
                 endcase
             end

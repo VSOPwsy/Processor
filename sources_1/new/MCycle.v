@@ -65,7 +65,7 @@ module MCycle #(
     adder adder(
         .cin(MCycleOp_reg),
         .a(a),
-        .b(MCycleOp_reg? ~b : b),
+        .b(MCycleOp_reg ? ~b : b),
         .s(s),
         .cout(cout)
     );

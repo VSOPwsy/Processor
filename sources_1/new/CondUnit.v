@@ -23,11 +23,13 @@ module CondUnit(
     input ShifterCarry,
     input NoWrite,
     input MS,
+    input FPUS,
     output PCSrc,
     output RegWrite,
     output MemWrite,
     output CFlag,
-    output MStart
+    output MStart,
+    output FPUStart
     );
     
     wire CondEx;
@@ -46,6 +48,7 @@ module CondUnit(
     assign MemWrite = MemW & CondEx;
     assign FlagWrite = FlagW & {4{CondEx}};
     assign MStart = MS & CondEx;
+    assign FPUStart = FPUS & CondEx;
 
     always @(posedge CLK, posedge Reset) begin
         if (Reset)
