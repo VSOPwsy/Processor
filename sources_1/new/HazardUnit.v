@@ -1,21 +1,11 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 2023/11/23 20:24:27
-// Design Name: 
+// Company: SUSTech
+// Engineer: Suyu Wang
 // Module Name: HazardUnit
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
+// Project Name: Processor
+// Tool Versions: Vivado 2021.2
 // Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -91,7 +81,7 @@ module HazardUnit(
     wire cachestall;
     assign Match_12D_E = (RA1D == WA3E) | (RA2D == WA3E);
     assign ldrstall = Match_12D_E & MemtoRegE & RegWriteE;
-    assign cachestall = dec_mem & ~Cache_ReadReady & (MemtoRegM & RegWriteM);      // Stall pipline while reading from Cache but not hitting and memory is no ready
+    assign cachestall = dec_mem & ~Cache_ReadReady & (MemtoRegM & RegWriteM);
     wire Match_123D_MCycleWA;
     assign Match_123D_MCycleWA = (RA1D == MCycleWA3) | (RA2D == MCycleWA3) | (WA3D == MCycleWA3) | (MStart & WA3D == WA3E);
     

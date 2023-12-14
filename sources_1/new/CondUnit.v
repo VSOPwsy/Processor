@@ -1,21 +1,11 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 2023/11/23 17:17:44
-// Design Name: 
+// Company: SUSTech
+// Engineer: Suyu Wang
 // Module Name: CondUnit
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
+// Project Name: Processor
+// Tool Versions: Vivado 2021.2
 // Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
