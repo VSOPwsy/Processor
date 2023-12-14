@@ -70,6 +70,7 @@ module ControlUnit(
                             ALUOp = 2'b11;
                             MS = 1'b1;
                             MCycleOp = 1'b0;
+                            FPUOp = 1'b0;
                         end
                         else begin: _DP_reg
                             Branch = 1'b0;
@@ -82,6 +83,7 @@ module ControlUnit(
                             ALUOp = 2'b11;
                             MS = 1'b0;
                             MCycleOp = 1'b0;
+                            FPUOp = 1'b0;
                         end
                     end
                     
@@ -96,6 +98,7 @@ module ControlUnit(
                         ALUOp = 2'b11;
                         MS = 1'b0;
                         MCycleOp = 1'b0;
+                        FPUOp = 1'b0;
                     end
                 endcase
             end
@@ -113,6 +116,7 @@ module ControlUnit(
                         ALUOp = 2'b01;
                         MS = 1'b0;
                         MCycleOp = 1'b0;
+                        FPUOp = 1'b0;
                     end
                     
                     6'bXXXXX1: begin
@@ -127,6 +131,7 @@ module ControlUnit(
                             ALUOp = 2'b11;
                             MS = 1'b1;
                             MCycleOp = 1'b1;
+                            FPUOp = 1'b0;
                         end
                         else begin: _LDR
                             Branch = 1'b0;
@@ -139,6 +144,7 @@ module ControlUnit(
                             ALUOp = 2'b01;
                             MS = 1'b0;
                             MCycleOp = 1'b0;
+                            FPUOp = 1'b0;
                         end
                     end
                 endcase
@@ -157,6 +163,7 @@ module ControlUnit(
                         ALUOp = 2'b00;
                         MS = 1'b0;
                         MCycleOp = 1'b0;
+                        FPUOp = 1'b0;
                     end
                 endcase
             end
