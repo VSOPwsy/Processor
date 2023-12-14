@@ -26,7 +26,6 @@ module ControlUnit(
     output reg [3:0] ALUControl,
     output reg MS,
     output reg MCycleOp,
-    output reg FPUS,
     output reg FPUOp
     );
     
@@ -165,7 +164,17 @@ module ControlUnit(
             2'b11: begin: _Float
                 casex (Funct)
                     6'b100X11: begin: _FADDS
-                        
+                        Branch = 1'b0;
+                        MemtoReg = 1'b0;
+                        MemW = 1'b0;
+                        ALUSrc = 1'b0;
+                        ImmSrc = 2'b10;
+                        RegW = 1'b0;
+                        RegSrc = 3'b000;
+                        ALUOp = 2'b00;
+                        MS = 1'b0;
+                        MCycleOp = 1'b0;
+                        FPUOp = 1'b0;
                     end
                 endcase
             end

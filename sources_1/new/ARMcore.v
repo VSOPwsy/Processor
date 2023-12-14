@@ -155,6 +155,7 @@ module ARMcore(
     wire                DEReg_MSE;
     wire                DEReg_MCycleOpE;
     wire                DEreg_MCycleHazardE;
+    wire                DEReg_FPUOp;
 
     wire    [1:0]       Shifter_Sh;
     wire    [4:0]       Shifter_Shamt5;
@@ -322,6 +323,8 @@ module ARMcore(
     assign  DEReg_MSD           =   ControlUnit_MS;
     assign  DEReg_MCycleOpD     =   ControlUnit_MCycleOp;
     assign  DEReg_MCycleHazardD =   HazardUnit_MCycleHazard;
+    assign  DEReg_FPUOp         =   
+
     
     assign  Shifter_Sh      =   DEReg_ShE;
     assign  Shifter_Shamt5  =   DEReg_Shamt5E;
@@ -460,6 +463,7 @@ module ARMcore(
         .ALUControl (ControlUnit_ALUControl ),
         .NoWrite    (ControlUnit_NoWrite    ),
         .MS         (ControlUnit_MS         ),
+        .FPUOp      (FPUOp                  ),
         .MCycleOp   (ControlUnit_MCycleOp   ));
         
 
