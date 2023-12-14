@@ -15,17 +15,12 @@ module FMUL (
     reg [7:0]   exponent_2;
     reg [7:0]   exponent_Ans;
 
-    reg         inf_1;
-    reg         inf_2;
-    reg         nan_1;
-    reg         nan_2;
-
     wire        sign;
     assign sign      = src1[31]^src2[31];
 
     wire CA;
     wire [47:0]MResult;
-    assign CA=((exponent_1 != 8'd255)&&(exponent_2 != 8'd255)&&(src1!=0)&&(src2!=0)&&(exponent_1+exponent_2-7'd127>0)&&(exponent_1+exponent_2-7'd127<8'd254));
+    assign CA=((exponent_1 != 8'd255)&&(exponent_2 != 8'd255)&&(src1!=0)&&(src2!=0)&&({0,exponent_1}+{0,exponent_2}>7'd127)&&({0,exponent_1}+{0,exponent_2}-7'd127<8'd254));
 
     wire Done;
 
@@ -36,10 +31,6 @@ module FMUL (
             fraction_2  = {9'd0,src2[22:0]};	
             exponent_1  = src1[30:23];
             exponent_2  = src2[30:23];
-            inf_1       = 1'b0;
-            nan_1       = 1'b0;
-            inf_2       = 1'b0;
-            nan_2       = 1'b0;
         end    
         //preprocessing
         begin
@@ -63,12 +54,12 @@ module FMUL (
             end
             else if (exponent_1 == 8'hff) begin
                 if (fraction_1 == 0) begin
-                    inf_1 = 1'b1;		// 对inf的处理
+                    // 对inf的处理
                     exponent_Ans = 8'hff;
                     fraction_Ans = 0;
                 end
                 else begin
-                    nan_1 = 1'b1;      // 对NaN的处理
+                    // 对NaN的处理
                     exponent_Ans = 8'hff;
                     fraction_Ans = 1;
                 end
@@ -82,12 +73,12 @@ module FMUL (
             end  
             else if (exponent_2 == 8'hff) begin
                 if (fraction_2 == 0) begin
-                    inf_2 = 1'b1;		// 对inf的处理
+                    // 对inf的处理
                     exponent_Ans = 8'hff;
                     fraction_Ans = 0;
                 end
                 else begin
-                    nan_2 = 1'b1;      // 对NaN的处理
+                    // 对NaN的处理
                     exponent_Ans = 8'hff;
                     fraction_Ans = 1;
                 end
@@ -95,27 +86,27 @@ module FMUL (
         end  
 
         begin
-            if (exponent_1+exponent_2-7'd127>8'd254) begin
+            if ({0,exponent_1}+{0,exponent_2}>8'd254+7'd127) begin
                 exponent_Ans=8'b1111_1111;
                 fraction_Ans = 0;
             end
-            else if(exponent_1+exponent_2-7'd127<0) begin
+            else if({0,exponent_1}+{0,exponent_2}<7'd127) begin
                 exponent_Ans=0;
                 fraction_Ans = 0;
             end
-            else if (!CA&&src1!=0&&src2!=0)begin
-                exponent_Ans=exponent_1+exponent_2-7'd127;
+            else if ((!CA&&src1!=0&&src2!=0)&&(exponent_1 != 8'd255)&&(exponent_2 != 8'd255))begin
+                exponent_Ans={0,exponent_1}+{0,exponent_2}-7'd127;
             end
         end
 
         begin
             if (CA&&Done&&MResult!=0) begin
                 if (MResult[47]) begin
-                    exponent_Ans=exponent_1+exponent_2-7'd127+1'b1;
+                    exponent_Ans={0,exponent_1}+{0,exponent_2}-7'd127+1'b1;
                     fraction_Ans=MResult[46:15];
                 end
                 else begin
-                    exponent_Ans=exponent_1+exponent_2-7'd127;
+                    exponent_Ans={0,exponent_1}+{0,exponent_2}-7'd127;
                     fraction_Ans=MResult[45:14];
                 end
             end
