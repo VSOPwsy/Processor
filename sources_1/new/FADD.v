@@ -19,16 +19,30 @@ module FADD (
     output reg  [31:0]  Result,
     output Busy,
     output Done,
-    output [3:0] FADDWA3
+    output reg [3:0] FADDWA3
     );
-
-    reg state = 0;
-    wire next_state;
+    reg [31:0] Operand1_reg, Operand2_reg;
+    initial begin
+        FADDWA3 = 0;
+        Operand1_reg = 0;
+        Operand2_reg = 0;
+    end
+    reg [1:0] state = 0;
+    wire [1:0] next_state;
     always @(posedge CLK, posedge Reset) state <= Reset ? 0 : next_state;
-    assign next_state = state ? 0 : Start ? 1 : 0;
-    assign Busy = (~state & Start) | state;
-    assign Done = state;
-
+    assign next_state = state == 2'b00 ? (Start ? 2'b01 : 2'b00) :
+                        state == 2'b01 ? 2'b10 :
+                        state == 2'b10 ? 2'b00 : 2'b00;
+    assign Busy = state == 2'b00 ? Start : 
+                  state == 2'b01 ? 1 :
+                  state == 2'b10 ? 0 : 0;
+    assign Done = state == 2'b01;
+    always @(posedge CLK, posedge Reset) begin
+        FADDWA3 <= Reset ? 0 : state == 2'b00 & Start ? WA3 : FADDWA3;
+        Operand1_reg <= Reset ? 0 : state == 2'b00 & Start ? Operand1 : Operand1_reg;
+        Operand2_reg <= Reset ? 0 : state == 2'b00 & Start ? Operand2 : Operand2_reg;
+    end
+    
     reg [66:0]  fraction_1;
     reg [66:0]  fraction_2;
     
@@ -57,12 +71,12 @@ module FADD (
     always@(*) begin 
         //loading
         begin
-            fraction_1  = {2'd0,Operand1[22:0],42'd0};	// 对尾数扩展。前2bit第一位为进位位，第二位为隐藏的1，
-            fraction_2  = {2'd0,Operand2[22:0],42'd0};	// 此处不赋值2'b01是留在special case中处理指数全0的情况。后42bit保障精度，可适当减少
-            exponent_1  = Operand1[30:23];
-            exponent_2  = Operand2[30:23];
-            sign_1      = Operand1[31];
-            sign_2      = Operand2[31]; 
+            fraction_1  = {2'd0,Operand1_reg[22:0],42'd0};	// 对尾数扩展。前2bit第一位为进位位，第二位为隐藏的1，
+            fraction_2  = {2'd0,Operand2_reg[22:0],42'd0};	// 此处不赋值2'b01是留在special case中处理指数全0的情况。后42bit保障精度，可适当减少
+            exponent_1  = Operand1_reg[30:23];
+            exponent_2  = Operand2_reg[30:23];
+            sign_1      = Operand1_reg[31];
+            sign_2      = Operand2_reg[31]; 
             inf_1       = 1'b0;
             nan_1       = 1'b0;
             inf_2       = 1'b0;
@@ -86,7 +100,7 @@ module FADD (
 
         //special case
         begin
-            if((exponent_1 == 0) && (fraction_1 == 0)) begin //if Operand1 is zero, then return Operand2
+            if((exponent_1 == 0) && (fraction_1 == 0)) begin //if Operand1_reg is zero, then return Operand2_reg
                 sign_Ans     = sign_2;
                 exponent_Ans = exponent_2;
                 fraction_Ans = fraction_2;
@@ -98,7 +112,7 @@ module FADD (
             else begin
             end
 
-            if((exponent_2 == 0) && (fraction_2 == 0)) begin // if Operand2 is zero, then return Operand1
+            if((exponent_2 == 0) && (fraction_2 == 0)) begin // if Operand2_reg is zero, then return Operand1_reg
                 sign_Ans     = sign_1;
                 exponent_Ans = exponent_1;
                 fraction_Ans = fraction_1;

@@ -38,7 +38,10 @@ module DataMemory(
         DATA_CONST_MEM[0] = 32'h00000C00; 
         DATA_CONST_MEM[1] = 32'h00000C04; 
         DATA_CONST_MEM[2] = 32'h00000C18; 
-        for(i = 3; i < 128; i = i+1) begin 
+        DATA_CONST_MEM[3] = 32'h00000000; 
+        DATA_CONST_MEM[4] = 32'h3FC00111; 
+//        DATA_CONST_MEM[4] = 32'h00012345; 
+        for(i = 5; i < 128; i = i+1) begin 
             DATA_CONST_MEM[i] = 32'h0; 
         end
     end

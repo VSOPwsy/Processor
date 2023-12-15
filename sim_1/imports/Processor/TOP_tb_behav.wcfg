@@ -11,17 +11,16 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="0.000000 us"></ZoomStartTime>
-      <ZoomEndTime time="2,000.000000 us"></ZoomEndTime>
-      <Cursor1Time time="883.227176 us"></Cursor1Time>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="957.001 ns"></ZoomEndTime>
+      <Cursor1Time time="515.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="216"></NameColumnWidth>
+      <NameColumnWidth column_width="201"></NameColumnWidth>
       <ValueColumnWidth column_width="90"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="8" />
+   <WVObjectSize size="20" />
    <wave_markers>
-      <marker time="535000" label="" />
       <marker time="5041600" label="" />
    </wave_markers>
    <wvobject fp_name="/TOP_tb/CLK" type="logic">
@@ -52,8 +51,57 @@
       <obj_property name="ElementShortName">InstrD[31:0]</obj_property>
       <obj_property name="ObjectShortName">InstrD[31:0]</obj_property>
    </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/CondUnit/PCSrc" type="logic">
+      <obj_property name="ElementShortName">PCSrc</obj_property>
+      <obj_property name="ObjectShortName">PCSrc</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/HazardUnit/StallF" type="logic">
+      <obj_property name="ElementShortName">StallF</obj_property>
+      <obj_property name="ObjectShortName">StallF</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/HazardUnit/StallD" type="logic">
+      <obj_property name="ElementShortName">StallD</obj_property>
+      <obj_property name="ObjectShortName">StallD</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/HazardUnit/StallE" type="logic">
+      <obj_property name="ElementShortName">StallE</obj_property>
+      <obj_property name="ObjectShortName">StallE</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/HazardUnit/FlushD" type="logic">
+      <obj_property name="ElementShortName">FlushD</obj_property>
+      <obj_property name="ObjectShortName">FlushD</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/HazardUnit/FlushE" type="logic">
+      <obj_property name="ElementShortName">FlushE</obj_property>
+      <obj_property name="ObjectShortName">FlushE</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/Busy" type="logic">
+      <obj_property name="ElementShortName">Busy</obj_property>
+      <obj_property name="ObjectShortName">Busy</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/Done" type="logic">
+      <obj_property name="ElementShortName">Done</obj_property>
+      <obj_property name="ObjectShortName">Done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/MPushIn" type="logic">
+      <obj_property name="ElementShortName">MPushIn</obj_property>
+      <obj_property name="ObjectShortName">MPushIn</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/FPU/Busy" type="logic">
+      <obj_property name="ElementShortName">Busy</obj_property>
+      <obj_property name="ObjectShortName">Busy</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/FPU/Done" type="logic">
+      <obj_property name="ElementShortName">Done</obj_property>
+      <obj_property name="ObjectShortName">Done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/FPU/FPUPushIn" type="logic">
+      <obj_property name="ElementShortName">FPUPushIn</obj_property>
+      <obj_property name="ObjectShortName">FPUPushIn</obj_property>
+   </wvobject>
    <wvobject fp_name="/TOP_tb/uut/ARMcore/RegisterFile/RegBankCore" type="array">
       <obj_property name="ElementShortName">RegBankCore[0:14][31:0]</obj_property>
       <obj_property name="ObjectShortName">RegBankCore[0:14][31:0]</obj_property>
+      <obj_property name="isExpanded"></obj_property>
    </wvobject>
 </wave_config>

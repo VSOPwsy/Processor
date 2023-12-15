@@ -13,6 +13,7 @@ module FPU(
     output reg FPUPushIn
     );
 
+    initial FPUPushIn = 0;
 
     wire ADD_Start, MUL_Start;
     wire [31:0] ADD_Result, MUL_Result;
@@ -69,6 +70,7 @@ module FPU(
     );
 
     // assign FPUWA3 = FMULWA3;
-    assign FPUWA3 = 0;
-    always @(posedge CLK, posedge Reset) FPUPushIn <= Reset ? 0 : MUL_Done;
+    assign FPUWA3 = Op_reg ? FMULWA3 : FADDWA3;
+    always @(posedge CLK, posedge Reset) FPUPushIn <= Reset  ? 0 : 
+                                                      Op_reg ? MUL_Done : ADD_Done;
 endmodule
