@@ -75,6 +75,7 @@ module ARMcore(
     wire                HazardUnit_StallD;
     wire                HazardUnit_StallE;
     wire                HazardUnit_StallM;
+    wire                HazardUnit_StallW;
     wire                HazardUnit_FlushD;
     wire                HazardUnit_FlushE;
     wire                HazardUnit_MCycleHazard;
@@ -262,6 +263,7 @@ module ARMcore(
     wire    [31:0]      DataMemory_WD;
     wire    [31:0]      DataMemory_RD;
 
+    wire                MWReg_EN;
     wire                MWReg_RegWriteM;
     wire                MWReg_MemtoRegM;
     wire    [31:0]      MWReg_ReadDataM;
@@ -436,6 +438,7 @@ module ARMcore(
     assign  DataMemory_WD   =   MemOrIO_m_wdata;
 
 
+    assign  MWReg_EN            =   ~HazardUnit_StallW;
     assign  MWReg_RegWriteM     =   EMReg_RegWriteM;
     assign  MWReg_MemtoRegM     =   EMReg_MemtoRegM;
     assign  MWReg_ReadDataM     =   MemOrIO_r_wdata;
@@ -498,6 +501,7 @@ module ARMcore(
         .StallD     (HazardUnit_StallD  ),
         .StallE     (HazardUnit_StallE  ),
         .StallM     (HazardUnit_StallM  ),
+        .StallW     (HazardUnit_StallW  ),
         .FlushD     (HazardUnit_FlushD  ),
         .FlushE     (HazardUnit_FlushE  ),
         .MCycleHazard(HazardUnit_MCycleHazard),
@@ -725,6 +729,7 @@ module ARMcore(
     MWReg MWReg(
         .CLK        (CLK                ),
         .Reset      (Reset              ),
+        .EN         (MWReg_EN           ),
         .RegWriteM  (MWReg_RegWriteM    ),
         .MemtoRegM  (MWReg_MemtoRegM    ),
         .ReadDataM  (MWReg_ReadDataM    ),

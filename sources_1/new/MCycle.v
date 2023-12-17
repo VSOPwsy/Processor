@@ -62,7 +62,7 @@ module MCycle #(
         .Done(Done)
     );
     
-    adder adder(
+    adder #(width) adder(
         .cin(MCycleOp_reg),
         .a(a),
         .b(MCycleOp_reg ? ~b : b),

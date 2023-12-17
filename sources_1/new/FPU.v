@@ -20,13 +20,13 @@ module FPU(
     wire ADD_Busy, MUL_Busy;
     wire ADD_Done, MUL_Done;
     wire [3:0] FADDWA3, FMULWA3;
+    reg Op_reg = 0;
     assign ADD_Start = Start & ~FPUOp;
     assign MUL_Start = Start & FPUOp;
     assign Result = Op_reg ? MUL_Result : ADD_Result;
     assign Busy = ADD_Busy | MUL_Busy;
     assign Done = ADD_Done | MUL_Done;
 
-    reg Op_reg = 0;
     always @(posedge CLK, posedge Reset) begin
         if (Reset) begin
             Op_reg <= 0;

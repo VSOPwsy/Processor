@@ -12,7 +12,9 @@
 
 `include "config.v"
 
-module TOP(
+module TOP #(
+    parameter TEST = 0
+)(
     input CLK,
     input Reset,
 
@@ -119,7 +121,7 @@ module TOP(
         .Mem_ReadData   (ARMcore_Mem_ReadData   ));
     
 
-    InstructionMemory InstructionMemory(
+    InstructionMemory #(TEST) InstructionMemory(
         .PC     (PC       ),
         .Instr  (Instr    ));
 
@@ -144,7 +146,7 @@ module TOP(
         .cm_ReadData    (Cache_cm_ReadData  ));
 
 
-    DataMemory DataMemory(
+    DataMemory #(TEST) DataMemory(
         .CLK        (CLK                    ),
         .ReadAddr   (DataMemory_ReadAddr    ),
         .WriteAddr  (DataMemory_WriteAddr   ),

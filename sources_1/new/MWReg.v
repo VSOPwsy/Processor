@@ -13,6 +13,7 @@
 module MWReg(
     input           CLK,
     input           Reset,
+    input           EN,
     input           RegWriteM,
     input           MemtoRegM,
     input   [31:0]  ReadDataM,
@@ -43,11 +44,20 @@ module MWReg(
             WA3W <= 0;
         end
         else begin
-            RegWriteW <= RegWriteM;
-            MemtoRegW <= MemtoRegM;
-            ReadDataW <= ReadDataM;
-            ALUOutW <= ALUOutM;
-            WA3W <= WA3M;
+            if (EN) begin
+                RegWriteW <= RegWriteM;
+                MemtoRegW <= MemtoRegM;
+                ReadDataW <= ReadDataM;
+                ALUOutW <= ALUOutM;
+                WA3W <= WA3M;
+            end
+            else begin
+                RegWriteW <= RegWriteW;
+                MemtoRegW <= MemtoRegW;
+                ReadDataW <= ReadDataW;
+                ALUOutW <= ALUOutW;
+                WA3W <= WA3W;
+            end
         end
     end
     

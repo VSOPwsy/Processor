@@ -26,8 +26,6 @@ module FMUL (
     wire [47:0]MResult;
     assign CA=((exponent_1 != 8'd255)&&(exponent_2 != 8'd255)&&(Operand1!=0)&&(Operand2!=0)&&({0,exponent_1}+{0,exponent_2}>7'd127)&&({0,exponent_1}+{0,exponent_2}-7'd127<8'd254));
 
-    wire Done;
-
     always @(*) begin
         //loading
         begin
@@ -126,7 +124,7 @@ module FMUL (
     end
 
 
-MCycle  #(.width(48))u_MCycle(
+MCycle  #(.width(48)) MCycle(
 	.CLK      	( CLK       ),
 	.Reset    	( Reset     ),
 	.Start    	( Start&CA),
@@ -137,7 +135,8 @@ MCycle  #(.width(48))u_MCycle(
 	.Result  	( MResult   ),
     .Done(Done),
 	.Busy     	( Busy      ),
-    .MCycleWA3(FMULWA3)
+    .MCycleWA3(FMULWA3),
+    .MPushIn()
 );
 
 

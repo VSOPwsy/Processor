@@ -49,6 +49,7 @@ module HazardUnit(
     output StallD,
     output StallE,
     output StallM,
+    output StallW,
     output FlushD,
     output FlushE,
     output MCycleHazard,
@@ -98,6 +99,7 @@ module HazardUnit(
     assign StallD = ldrstall | (MCycleDone & ~PCSrcE) | (FPUDone & ~PCSrcE) | (Match_123D_MCycleWA & MCycleBusy) | (Match_123D_FPUWA & FPUBusy) | cachestall;
     assign StallE = cachestall;
     assign StallM = cachestall;
+    assign StallW = cachestall;
     assign FlushD = PCSrcE;
     assign FlushE = ldrstall | PCSrcE;
     
