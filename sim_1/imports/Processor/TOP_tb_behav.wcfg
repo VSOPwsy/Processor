@@ -11,15 +11,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="957.001 ns"></ZoomEndTime>
-      <Cursor1Time time="515.000 ns"></Cursor1Time>
+      <ZoomStartTime time="675.620 ns"></ZoomStartTime>
+      <ZoomEndTime time="771.921 ns"></ZoomEndTime>
+      <Cursor1Time time="732.520 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="201"></NameColumnWidth>
+      <NameColumnWidth column_width="195"></NameColumnWidth>
       <ValueColumnWidth column_width="90"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="20" />
+   <WVObjectSize size="9" />
    <wave_markers>
       <marker time="5041600" label="" />
    </wave_markers>
@@ -31,18 +31,6 @@
       <obj_property name="ElementShortName">Reset</obj_property>
       <obj_property name="ObjectShortName">Reset</obj_property>
    </wvobject>
-   <wvobject fp_name="/TOP_tb/SW" type="array">
-      <obj_property name="ElementShortName">SW[15:0]</obj_property>
-      <obj_property name="ObjectShortName">SW[15:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/LED" type="array">
-      <obj_property name="ElementShortName">LED[15:0]</obj_property>
-      <obj_property name="ObjectShortName">LED[15:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/SEG" type="array">
-      <obj_property name="ElementShortName">SEG[31:0]</obj_property>
-      <obj_property name="ObjectShortName">SEG[31:0]</obj_property>
-   </wvobject>
    <wvobject fp_name="/TOP_tb/uut/ARMcore/ProgramCounter/PC" type="array">
       <obj_property name="ElementShortName">PC[31:0]</obj_property>
       <obj_property name="ObjectShortName">PC[31:0]</obj_property>
@@ -51,53 +39,21 @@
       <obj_property name="ElementShortName">InstrD[31:0]</obj_property>
       <obj_property name="ObjectShortName">InstrD[31:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/CondUnit/PCSrc" type="logic">
-      <obj_property name="ElementShortName">PCSrc</obj_property>
-      <obj_property name="ObjectShortName">PCSrc</obj_property>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/CondUnit/N" type="logic">
+      <obj_property name="ElementShortName">N</obj_property>
+      <obj_property name="ObjectShortName">N</obj_property>
    </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/HazardUnit/StallF" type="logic">
-      <obj_property name="ElementShortName">StallF</obj_property>
-      <obj_property name="ObjectShortName">StallF</obj_property>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/CondUnit/Z" type="logic">
+      <obj_property name="ElementShortName">Z</obj_property>
+      <obj_property name="ObjectShortName">Z</obj_property>
    </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/HazardUnit/StallD" type="logic">
-      <obj_property name="ElementShortName">StallD</obj_property>
-      <obj_property name="ObjectShortName">StallD</obj_property>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/CondUnit/C" type="logic">
+      <obj_property name="ElementShortName">C</obj_property>
+      <obj_property name="ObjectShortName">C</obj_property>
    </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/HazardUnit/StallE" type="logic">
-      <obj_property name="ElementShortName">StallE</obj_property>
-      <obj_property name="ObjectShortName">StallE</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/HazardUnit/FlushD" type="logic">
-      <obj_property name="ElementShortName">FlushD</obj_property>
-      <obj_property name="ObjectShortName">FlushD</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/HazardUnit/FlushE" type="logic">
-      <obj_property name="ElementShortName">FlushE</obj_property>
-      <obj_property name="ObjectShortName">FlushE</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/Busy" type="logic">
-      <obj_property name="ElementShortName">Busy</obj_property>
-      <obj_property name="ObjectShortName">Busy</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/Done" type="logic">
-      <obj_property name="ElementShortName">Done</obj_property>
-      <obj_property name="ObjectShortName">Done</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/MPushIn" type="logic">
-      <obj_property name="ElementShortName">MPushIn</obj_property>
-      <obj_property name="ObjectShortName">MPushIn</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/FPU/Busy" type="logic">
-      <obj_property name="ElementShortName">Busy</obj_property>
-      <obj_property name="ObjectShortName">Busy</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/FPU/Done" type="logic">
-      <obj_property name="ElementShortName">Done</obj_property>
-      <obj_property name="ObjectShortName">Done</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/FPU/FPUPushIn" type="logic">
-      <obj_property name="ElementShortName">FPUPushIn</obj_property>
-      <obj_property name="ObjectShortName">FPUPushIn</obj_property>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/CondUnit/V" type="logic">
+      <obj_property name="ElementShortName">V</obj_property>
+      <obj_property name="ObjectShortName">V</obj_property>
    </wvobject>
    <wvobject fp_name="/TOP_tb/uut/ARMcore/RegisterFile/RegBankCore" type="array">
       <obj_property name="ElementShortName">RegBankCore[0:14][31:0]</obj_property>

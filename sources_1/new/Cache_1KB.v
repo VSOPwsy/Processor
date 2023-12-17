@@ -112,7 +112,7 @@ module Cache_1KB (
     always @(posedge CLK) begin
         if (WriteEnable) begin
             DATA[index] <= WriteData;
-            TAG[index] <= Addr[31:20];
+            TAG[index] <= Addr[31:10];
         end
     end
 

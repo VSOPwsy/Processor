@@ -29,14 +29,62 @@ module InstructionMemory #(
             INSTR_MEM[4] = 32'hE59F41EC;
             INSTR_MEM[5] = 32'hE59FC1EC;
             
-            INSTR_MEM[6] = 32'hE0815003; 
+            INSTR_MEM[6] = 32'hE0815003;
             INSTR_MEM[7] = 32'hE5835004;
-            INSTR_MEM[8] = 32'hE0815005; 
-            INSTR_MEM[9] = 32'hE5845000; 
-            INSTR_MEM[10] = 32'hE5934004; 
-            INSTR_MEM[11] = 32'hE0456003; 
+            INSTR_MEM[8] = 32'hE0815005;
+            INSTR_MEM[9] = 32'hE5845000;
+            INSTR_MEM[10] = 32'hE5934004;
+            INSTR_MEM[11] = 32'hE0456003;
             
-			for(i = 12; i < 128; i = i+1) begin 
+            INSTR_MEM[12] = 32'hE0066004;
+            INSTR_MEM[13] = 32'hE1816004;
+            INSTR_MEM[14] = 32'hE0646006;
+            INSTR_MEM[15] = 32'hE0886008;
+            INSTR_MEM[16] = 32'hE0C56004;
+            INSTR_MEM[17] = 32'hE0E46005;
+            INSTR_MEM[18] = 32'hE1160001;
+            INSTR_MEM[19] = 32'hE1360001;
+            
+            INSTR_MEM[20] = 32'hE1560003;
+            INSTR_MEM[21] = 32'hE1760003;
+            INSTR_MEM[22] = 32'hE0266001;
+            INSTR_MEM[23] = 32'hE1E06001;
+            INSTR_MEM[24] = 32'hE1C66008;
+            
+            INSTR_MEM[25] = 32'hE3A06009;
+            
+            INSTR_MEM[26] = 32'hE0070196;
+            INSTR_MEM[27] = 32'hE59F31D4;
+            INSTR_MEM[28] = 32'hE2933000;
+            INSTR_MEM[29] = 32'h000A0791;
+            INSTR_MEM[30] = 32'hE7FC0CFA;
+            INSTR_MEM[31] = 32'h07FB06FC;
+            
+            INSTR_MEM[32] = 32'hEE79BA88;
+            INSTR_MEM[33] = 32'hEE7BBAA9;
+
+            INSTR_MEM[34] = 32'hEA000004;
+            INSTR_MEM[35] = 32'hE0577007;
+            INSTR_MEM[36] = 32'hE0577006;
+
+            INSTR_MEM[37] = 32'h52933001;
+
+            INSTR_MEM[38] = 32'hE3A0C009;
+            INSTR_MEM[39] = 32'hE01C6608;
+
+            INSTR_MEM[40] = 32'hE01C6628;
+
+            INSTR_MEM[41] = 32'hE01C6C18;
+
+            INSTR_MEM[42] = 32'hE3A0C020;
+            INSTR_MEM[43] = 32'hE01C6C11;
+
+            INSTR_MEM[44] = 32'hE3A0C009;
+            INSTR_MEM[45] = 32'hE01C6C38;
+
+            
+            
+			for(i = 46; i < 128; i = i+1) begin 
 				INSTR_MEM[i] = 32'h0; 
 			end
         end
