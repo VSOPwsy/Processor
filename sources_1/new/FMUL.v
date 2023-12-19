@@ -1,12 +1,16 @@
 module FMUL (
     input CLK,   // Connect to CPU clock
-    input RESET, // Connect to the reset of the ARM processor.
+    input Reset, // Connect to the reset of the ARM processor.
     input Start, // Multi-cycle Enable. The control unit should assert this when MUL or DIV instruction is detected.
-    input   [31:0]  src1,
-    input   [31:0]  src2,
-    output reg  [31:0]  out,
-    output  FBusy
+    input   [31:0]  Operand1,
+    input   [31:0]  Operand2,
+    input [3:0]     WA3,
+    output reg  [31:0]  Result,
+    output  Busy,
+    output Done,
+    output [3:0] FMULWA3
     );
+
     reg [31:0]  fraction_1;
     reg [31:0]  fraction_2;
     reg [31:0]  fraction_Ans;
@@ -16,21 +20,19 @@ module FMUL (
     reg [7:0]   exponent_Ans;
 
     wire        sign;
-    assign sign      = src1[31]^src2[31];
+    assign sign      = Operand1[31]^Operand2[31];
 
     wire CA;
     wire [47:0]MResult;
-    assign CA=((exponent_1 != 8'd255)&&(exponent_2 != 8'd255)&&(src1!=0)&&(src2!=0)&&({0,exponent_1}+{0,exponent_2}>7'd127)&&({0,exponent_1}+{0,exponent_2}-7'd127<8'd254));
-
-    wire Done;
+    assign CA=((exponent_1 != 8'd255)&&(exponent_2 != 8'd255)&&(Operand1!=0)&&(Operand2!=0)&&({0,exponent_1}+{0,exponent_2}>7'd127)&&({0,exponent_1}+{0,exponent_2}-7'd127<8'd254));
 
     always @(*) begin
         //loading
         begin
-            fraction_1  = {9'd0,src1[22:0]};
-            fraction_2  = {9'd0,src2[22:0]};	
-            exponent_1  = src1[30:23];
-            exponent_2  = src2[30:23];
+            fraction_1  = {9'd0,Operand1[22:0]};
+            fraction_2  = {9'd0,Operand2[22:0]};	
+            exponent_1  = Operand1[30:23];
+            exponent_2  = Operand2[30:23];
         end    
         //preprocessing
         begin
@@ -48,7 +50,7 @@ module FMUL (
 
         //special case
         begin
-            if((exponent_1 == 0) && (fraction_1 == 0)) begin //if src1 is zero, then return 0
+            if((exponent_1 == 0) && (fraction_1 == 0)) begin //if Operand1 is zero, then return 0
                 exponent_Ans = 0;
                 fraction_Ans = 0;
             end
@@ -67,7 +69,7 @@ module FMUL (
             else begin
             end
 
-            if((exponent_2 == 0) && (fraction_2 == 0)) begin // if src2 is zero, then return 0
+            if((exponent_2 == 0) && (fraction_2 == 0)) begin // if Operand2 is zero, then return 0
                 exponent_Ans = 0;
                 fraction_Ans = 0;
             end  
@@ -94,7 +96,7 @@ module FMUL (
                 exponent_Ans=0;
                 fraction_Ans = 0;
             end
-            else if ((!CA&&src1!=0&&src2!=0)&&(exponent_1 != 8'd255)&&(exponent_2 != 8'd255))begin
+            else if ((!CA&&Operand1!=0&&Operand2!=0)&&(exponent_1 != 8'd255)&&(exponent_2 != 8'd255))begin
                 exponent_Ans={0,exponent_1}+{0,exponent_2}-7'd127;
             end
         end
@@ -115,30 +117,26 @@ module FMUL (
         end
 
         begin
-            out[22:0]  = fraction_Ans[31:9];
-            out[30:23] = exponent_Ans[7:0];
-            out[31]    = sign;             
+            Result[22:0]  = fraction_Ans[31:9];
+            Result[30:23] = exponent_Ans[7:0];
+            Result[31]    = sign;             
         end
     end
-reg [31:0] last_src1=0;
-reg [31:0] last_src2=0;
 
-always @(*) begin
-    if (Done) begin
-        last_src1=src1;
-        last_src2=src2;
-    end
-end
-MCycle  #(.width(48))u_MCycle(
+
+MCycle  #(.width(48)) MCycle(
 	.CLK      	( CLK       ),
-	.RESET    	( RESET     ),
-	.Start    	( (Start&&CA&&((last_src1!=src1)||(last_src2!=src2)))?1'b1:1'b0),
-	.MCycleOp 	( 0 ),
+	.Reset    	( Reset     ),
+	.Start    	( Start&CA),
+    .WA3        (WA3),
+	.MCycleOp 	( 1'b0 ),
 	.Operand1 	( {16'b0,fraction_1}  ),
 	.Operand2 	( {16'b0,fraction_2}  ),
-	.MResult  	( MResult   ),
+	.Result  	( MResult   ),
     .Done(Done),
-	.Busy     	( FBusy      )
+	.Busy     	( Busy      ),
+    .MCycleWA3(FMULWA3),
+    .MPushIn()
 );
 
 

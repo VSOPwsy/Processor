@@ -59,6 +59,11 @@ module ARMcore(
     wire                HazardUnit_MCycleBusy;
     wire                HazardUnit_MStart;
     wire                HazardUnit_MS;
+    wire    [3:0]       HazardUnit_FPUWA3;
+    wire                HazardUnit_FPUDone;
+    wire                HazardUnit_FPUBusy;
+    wire                HazardUnit_FPUStart;
+    wire                HazardUnit_FPUS;
     wire                HazardUnit_Cache_ReadReady;
     wire                HazardUnit_RW;
     wire                HazardUnit_Mem_ReadReady;
@@ -68,9 +73,13 @@ module ARMcore(
     wire                HazardUnit_ForwardM;
     wire                HazardUnit_StallF;
     wire                HazardUnit_StallD;
+    wire                HazardUnit_StallE;
+    wire                HazardUnit_StallM;
+    wire                HazardUnit_StallW;
     wire                HazardUnit_FlushD;
     wire                HazardUnit_FlushE;
     wire                HazardUnit_MCycleHazard;
+    wire                HazardUnit_FPUHazard;
 
     wire                ProgramCounter_EN;
     wire                ProgramCounter_PCSrc;
@@ -78,8 +87,6 @@ module ARMcore(
     wire    [31:0]      ProgramCounter_PC;
     wire    [31:0]      ProgramCounter_PCPlus4;
 
-    wire    [31:0]      InstructionMemory_PC;
-    wire    [31:0]      InstructionMemory_Instr;
 
     wire                FDReg_EN;
     wire                FDReg_CLR;
@@ -99,6 +106,8 @@ module ARMcore(
     wire                ControlUnit_NoWrite;
     wire                ControlUnit_MS;
     wire                ControlUnit_MCycleOp;
+    wire                ControlUnit_FPUS;
+    wire                ControlUnit_FPUOp;
 
     wire                RegisterFile_WE3;
     wire    [3:0]       RegisterFile_A1;
@@ -134,7 +143,10 @@ module ARMcore(
     wire                DEReg_NoWriteD;
     wire                DEReg_MSD;
     wire                DEReg_MCycleOpD;
-    wire                DEreg_MCycleHazardD;
+    wire                DEReg_MCycleHazardD;
+    wire                DEReg_FPUSD;
+    wire                DEReg_FPUOpD;
+    wire                DEReg_FPUHazardD;
     wire    [3:0]       DEReg_CondE;
     wire    [3:0]       DEReg_FlagWE;
     wire                DEReg_PCSE;
@@ -154,8 +166,10 @@ module ARMcore(
     wire                DEReg_NoWriteE;
     wire                DEReg_MSE;
     wire                DEReg_MCycleOpE;
-    wire                DEreg_MCycleHazardE;
-    wire                DEReg_FPUOp;
+    wire                DEReg_MCycleHazardE;
+    wire                DEReg_FPUSE;
+    wire                DEReg_FPUOpE;
+    wire                DEReg_FPUHazardE;
 
     wire    [1:0]       Shifter_Sh;
     wire    [4:0]       Shifter_Shamt5;
@@ -174,11 +188,13 @@ module ARMcore(
     wire                CondUnit_ShifterCarry;
     wire                CondUnit_NoWrite;
     wire                CondUnit_MS;
+    wire                CondUnit_FPUS;
     wire                CondUnit_PCSrc;
     wire                CondUnit_RegWrite;
     wire                CondUnit_MemWrite;
     wire                CondUnit_CFlag;
     wire                CondUnit_MStart;
+    wire                CondUnit_FPUStart;
 
     reg     [31:0]      SA;
     reg     [31:0]      SB;
@@ -195,12 +211,22 @@ module ARMcore(
     wire    [31:0]      MCycle_Operand1;
     wire    [31:0]      MCycle_Operand2;
     wire    [3:0]       MCycle_WA3;
-    wire                MCycle_MCycleHazard;
     wire    [31:0]      MCycle_Result;
     wire                MCycle_Busy;
     wire                MCycle_Done;
     wire    [3:0]       MCycle_MCycleWA3;
     wire                MCycle_MPushIn;
+
+    wire                FPU_Start;
+    wire                FPU_FPUOp;
+    wire    [31:0]      FPU_Operand1;
+    wire    [31:0]      FPU_Operand2;
+    wire    [3:0]       FPU_WA3;
+    wire    [31:0]      FPU_Result;
+    wire                FPU_Busy;
+    wire                FPU_Done;
+    wire    [3:0]       FPU_FPUWA3;
+    wire                FPU_FPUPushIn;
 
     wire                EMReg_EN;
     wire                EMReg_RegWriteE;
@@ -237,6 +263,7 @@ module ARMcore(
     wire    [31:0]      DataMemory_WD;
     wire    [31:0]      DataMemory_RD;
 
+    wire                MWReg_EN;
     wire                MWReg_RegWriteM;
     wire                MWReg_MemtoRegM;
     wire    [31:0]      MWReg_ReadDataM;
@@ -275,6 +302,11 @@ module ARMcore(
     assign  HazardUnit_MCycleBusy   =   MCycle_Busy;
     assign  HazardUnit_MStart       =   CondUnit_MStart;
     assign  HazardUnit_MS           =   ControlUnit_MS;
+    assign  HazardUnit_FPUWA3       =   FPU_FPUWA3;
+    assign  HazardUnit_FPUDone      =   FPU_Done;
+    assign  HazardUnit_FPUBusy      =   FPU_Busy;
+    assign  HazardUnit_FPUStart     =   CondUnit_FPUStart;
+    assign  HazardUnit_FPUS         =   ControlUnit_FPUS;
     assign  HazardUnit_Cache_ReadReady  =     Cache_ReadReady;
     assign  HazardUnit_RW           =   MemOrIO_m_we;
     assign  HazardUnit_Mem_ReadReady    =   Mem_ReadReady;
@@ -323,7 +355,9 @@ module ARMcore(
     assign  DEReg_MSD           =   ControlUnit_MS;
     assign  DEReg_MCycleOpD     =   ControlUnit_MCycleOp;
     assign  DEReg_MCycleHazardD =   HazardUnit_MCycleHazard;
-    assign  DEReg_FPUOp         =   
+    assign  DEReg_FPUHazardD    =   HazardUnit_FPUHazard;
+    assign  DEReg_FPUSD         =   ControlUnit_FPUS;
+    assign  DEReg_FPUOpD        =   ControlUnit_FPUOp;
 
     
     assign  Shifter_Sh      =   DEReg_ShE;
@@ -341,6 +375,7 @@ module ARMcore(
     assign  CondUnit_ShifterCarry   =   Shifter_Carry;
     assign  CondUnit_NoWrite    =   DEReg_NoWriteE;
     assign  CondUnit_MS         =   DEReg_MSE;
+    assign  CondUnit_FPUS       =   DEReg_FPUSE;
     
     
     always @(*) 
@@ -363,21 +398,33 @@ module ARMcore(
     assign  ALU_ALUControl  =   DEReg_ALUControlE;
     assign  ALU_CFlag       =   CondUnit_CFlag;
     
+
     assign  MCycle_Start        =   CondUnit_MStart;
     assign  MCycle_MCycleOp     =   DEReg_MCycleOpE;
     assign  MCycle_Operand1     =   SA;
     assign  MCycle_Operand2     =   SB;
     assign  MCycle_WA3          =   DEReg_WA3E;
-    assign  MCycle_MCycleHazard =   HazardUnit_MCycleHazard;
+
+
+    assign  FPU_Start           =   CondUnit_FPUStart;
+    assign  FPU_FPUOp           =   DEReg_FPUOpE;
+    assign  FPU_Operand1        =   SA;
+    assign  FPU_Operand2        =   SB;
+    assign  FPU_WA3             =   DEReg_WA3E;
+
 
     assign  EMReg_EN            =   ~HazardUnit_StallM;
-    assign  EMReg_RegWriteE     =   MCycle_MPushIn | (~(MCycle_Busy & DEReg_MCycleHazardE) & CondUnit_RegWrite);
+    assign  EMReg_RegWriteE     =   MCycle_MPushIn | FPU_FPUPushIn | (~(MCycle_Busy & DEReg_MCycleHazardE) & CondUnit_RegWrite) | (~(FPU_Busy & DEReg_FPUHazardE) & CondUnit_RegWrite);
     assign  EMReg_MemWriteE     =   CondUnit_MemWrite;
     assign  EMReg_MemtoRegE     =   DEReg_MemtoRegE;
-    assign  EMReg_ALUResultE    =   MCycle_MPushIn ? MCycle_Result : ALU_ALUResult;
+    assign  EMReg_ALUResultE    =   CondUnit_FPUStart & ~DEReg_FPUOpE ? FPU_Result : 
+                                    FPU_FPUPushIn ? FPU_Result : 
+                                    MCycle_MPushIn ? MCycle_Result : ALU_ALUResult;
     assign  EMReg_WriteDataE    =   SB;
-    assign  EMReg_WA3E          =   MCycle_MPushIn ? MCycle_MCycleWA3 : DEReg_WA3E;
+    assign  EMReg_WA3E          =   MCycle_MPushIn ? MCycle_MCycleWA3 : 
+                                    FPU_FPUPushIn ? FPU_FPUWA3 : DEReg_WA3E;
     assign  EMReg_RA2E          =   DEReg_RA2E;
+
 
     assign  MemOrIO_we          =   EMReg_MemWriteM;
     assign  MemOrIO_addr_in     =   EMReg_ALUOutM;
@@ -385,23 +432,30 @@ module ARMcore(
     assign  MemOrIO_r_rdata     =   HazardUnit_ForwardM ? ResultW : EMReg_WriteDataM;
     assign  MemOrIO_io_rdata    =   IO_ReadData;
 
+
     assign  DataMemory_WE   =   MemOrIO_m_we;
     assign  DataMemory_A    =   MemOrIO_m_addr;
     assign  DataMemory_WD   =   MemOrIO_m_wdata;
 
+
+    assign  MWReg_EN            =   ~HazardUnit_StallW;
     assign  MWReg_RegWriteM     =   EMReg_RegWriteM;
     assign  MWReg_MemtoRegM     =   EMReg_MemtoRegM;
     assign  MWReg_ReadDataM     =   MemOrIO_r_wdata;
     assign  MWReg_ALUOutM       =   EMReg_ALUOutM;
     assign  MWReg_WA3M          =   EMReg_WA3M;
     
+
     assign  ResultW  =  MWReg_MemtoRegW ? MWReg_ReadDataW : MWReg_ALUOutW;
     
+
     assign  PC  =   ProgramCounter_PC;
+
 
     assign  IO_Addr         =   MemOrIO_io_addr;
     assign  IO_WriteData    =   MemOrIO_io_wdata;
     assign  IO_WE           =   MemOrIO_io_we;
+
 
     assign  Cache_RW        =   MemOrIO_m_we;
     assign  Cache_Addr      =   MemOrIO_m_addr;
@@ -433,18 +487,25 @@ module ARMcore(
         .MCycleWA3  (HazardUnit_MCycleWA3   ),
         .MCycleDone (HazardUnit_MCycleDone  ),
         .MCycleBusy (HazardUnit_MCycleBusy  ),
+        .MS         (HazardUnit_MS          ),
         .MStart     (HazardUnit_MStart      ),
+        .FPUWA3     (HazardUnit_FPUWA3      ),
+        .FPUDone    (HazardUnit_FPUDone     ),
+        .FPUBusy    (HazardUnit_FPUBusy     ),
+        .FPUS       (HazardUnit_FPUS        ),
+        .FPUStart   (HazardUnit_FPUStart    ),
         .ForwardAE  (HazardUnit_ForwardAE   ),
         .ForwardBE  (HazardUnit_ForwardBE   ),
         .ForwardM   (HazardUnit_ForwardM    ),
-        .MCycleHazard(HazardUnit_MCycleHazard),
         .StallF     (HazardUnit_StallF  ),
         .StallD     (HazardUnit_StallD  ),
         .StallE     (HazardUnit_StallE  ),
         .StallM     (HazardUnit_StallM  ),
+        .StallW     (HazardUnit_StallW  ),
         .FlushD     (HazardUnit_FlushD  ),
         .FlushE     (HazardUnit_FlushE  ),
-        .MS         (HazardUnit_MS          ),
+        .MCycleHazard(HazardUnit_MCycleHazard),
+        .FPUHazard  (HazardUnit_FPUHazard),
         .Cache_ReadReady(HazardUnit_Cache_ReadReady ),
         .RW         (HazardUnit_RW          ),
         .Mem_ReadReady  (HazardUnit_Mem_ReadReady   ));
@@ -463,8 +524,9 @@ module ARMcore(
         .ALUControl (ControlUnit_ALUControl ),
         .NoWrite    (ControlUnit_NoWrite    ),
         .MS         (ControlUnit_MS         ),
-        .FPUOp      (FPUOp                  ),
-        .MCycleOp   (ControlUnit_MCycleOp   ));
+        .MCycleOp   (ControlUnit_MCycleOp   ),
+        .FPUS       (ControlUnit_FPUS       ),
+        .FPUOp      (ControlUnit_FPUOp      ));
         
 
     ProgramCounter ProgramCounter(
@@ -539,6 +601,9 @@ module ARMcore(
         .MSD            (DEReg_MSD          ),
         .MCycleOpD      (DEReg_MCycleOpD    ),
         .MCycleHazardD  (DEReg_MCycleHazardD),
+        .FPUSD          (DEReg_FPUSD        ),
+        .FPUOpD         (DEReg_FPUOpD       ),
+        .FPUHazardD     (DEReg_FPUHazardD   ),
         
         .CondE          (DEReg_CondE        ),
         .FlagWE         (DEReg_FlagWE       ),
@@ -559,7 +624,10 @@ module ARMcore(
         .NoWriteE       (DEReg_NoWriteE     ),
         .MSE            (DEReg_MSE          ),
         .MCycleOpE      (DEReg_MCycleOpE    ),
-        .MCycleHazardE  (DEReg_MCycleHazardE));
+        .MCycleHazardE  (DEReg_MCycleHazardE),
+        .FPUSE          (DEReg_FPUSE        ),
+        .FPUOpE         (DEReg_FPUOpE       ),
+        .FPUHazardE     (DEReg_FPUHazardE   ));
         
     
     CondUnit CondUnit(
@@ -579,7 +647,9 @@ module ARMcore(
         .NoWrite    (CondUnit_NoWrite   ),
         .CFlag      (CondUnit_CFlag     ),
         .MS         (CondUnit_MS        ),
-        .MStart     (CondUnit_MStart    ));
+        .MStart     (CondUnit_MStart    ),
+        .FPUS       (CondUnit_FPUS      ),
+        .FPUStart   (CondUnit_FPUStart  ));
     
     
     ALU ALU(
@@ -605,6 +675,20 @@ module ARMcore(
         .MCycleWA3  (MCycle_MCycleWA3   ),
         .MPushIn    (MCycle_MPushIn     ));
         
+    FPU FPU(
+        .CLK        (CLK                ),
+        .Reset      (Reset              ),
+        .Start      (FPU_Start          ),
+        .FPUOp      (FPU_FPUOp          ),
+        .Operand1   (FPU_Operand1       ),
+        .Operand2   (FPU_Operand2       ),
+        .WA3        (FPU_WA3            ),
+        .Result     (FPU_Result         ),
+        .Busy       (FPU_Busy           ),
+        .Done       (FPU_Done           ),
+        .FPUWA3     (FPU_FPUWA3         ),
+        .FPUPushIn  (FPU_FPUPushIn      ));
+
         
     EMReg EMReg(
         .CLK        (CLK                ),
@@ -645,6 +729,7 @@ module ARMcore(
     MWReg MWReg(
         .CLK        (CLK                ),
         .Reset      (Reset              ),
+        .EN         (MWReg_EN           ),
         .RegWriteM  (MWReg_RegWriteM    ),
         .MemtoRegM  (MWReg_MemtoRegM    ),
         .ReadDataM  (MWReg_ReadDataM    ),
