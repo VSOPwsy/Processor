@@ -1,259 +1,411 @@
-/* 对于数据格式的说明：
-signed  exp       man
-31      30...23   22...0
-情况：
-  exponent  fraction  value
-  0         zero      0
-  0         non-zero  +-2^(-126)*0.(man(10)(小数化十进制数))
-  1~254     any       +-2^(exp-127)*1.(man(10)(小数化十进制数))
-  255       zero      +-inf
-  255       non-zero  NaN
-*/
+//操作数不合法：使用了一些不合法的操作数：NaN数、无穷大数
+//上溢：当结果比最大浮点数还大时，处理上溢的方法有终止计算和饱和运算（用最大值作为结果）等
+//下溢：当结果比最小浮点数还小时，处理下溢的方法有将最小浮点数设为0或用一个小于2^Emin的非规格化数表示最小浮点数等方式处理。
 module FADD (
-    input       [31:0]  src1,
-    input       [31:0]  src2,
-    output reg  [31:0]  out
-    );
-    reg [66:0]  fraction_1;
-    reg [66:0]  fraction_2;
-    
-    reg [66:0]  fraction_Ans;
-
-    reg [7:0]   exponent_1;
-    reg [7:0]   exponent_2;
-    reg [7:0]   exponent_Ans;
-
-    reg [4:0]   norm_count;
-    reg         norm_vld;
-
-    reg         sign_1;
-    reg         sign_2;
-    reg         sign_Ans;
-
-    reg         guard_bit;
-    reg         round_bit;
-    reg         sticky_bit;
-
-    reg         inf_1;
-    reg         inf_2;
-    reg         nan_1;
-    reg         nan_2;
-// FP ADDER ///
-    always@(*) begin 
-        //loading
-        begin
-            fraction_1  = {2'd0,src1[22:0],42'd0};	// 对尾数扩展。前2bit第一位为进位位，第二位为隐藏的1，
-            fraction_2  = {2'd0,src2[22:0],42'd0};	// 此处不赋值2'b01是留在special case中处理指数全0的情况。后42bit保障精度，可适当减少
-            exponent_1  = src1[30:23];
-            exponent_2  = src2[30:23];
-            sign_1      = src1[31];
-            sign_2      = src2[31]; 
-            inf_1       = 1'b0;
-            nan_1       = 1'b0;
-            inf_2       = 1'b0;
-            nan_2       = 1'b0;
-        end    
-        //preprocessing
-        begin
-            if(exponent_1 == 0) begin //when exponent is zero but fraction is non-zero,set it to 1
-                exponent_1 = 1;
-                fraction_1[65] = 0;    //make 0.(Frac) //参考代码开头对于特殊情况的说明
-            end
-            else
-                fraction_1[65] = 1;            
-            if(exponent_2 == 0) begin
-                exponent_2 = 1;
-                fraction_2[65] = 0;
-            end
-            else
-                fraction_2[65] = 1;   //make 1.(Frac)
+    input clk,
+    input rst,
+    input [31:0] x,y,
+    input [1:0] round,
+    output reg [31:0] z,
+    output reg [2:0] error,
+    output reg [1:0] overflow
+);
+    parameter START = 3'b000, EQUALEXP = 3'b001, ADDM = 3'b010, NORMAL = 3'b011, ROUND = 3'b100, WAIT = 3'b101;
+    reg [24:0] m_x,m_y,m_z;
+    reg [24:0] m_z_temp;
+    reg [7:0] exponent_x,exponent_y,exponent_z;
+    reg sign_z;
+    wire sign_x,sign_y;
+    reg [23:0] out_z,mid_z,out_z_temp;
+    reg [1:0] bigger;
+    reg [4:0] first_one_bit;
+    reg [2:0] next, state;
+    reg [1:0] zero;
+    reg signed [8:0] delta_e;
+    reg [1:0] big_delta_e;
+    wire [4:0] bit4,bit3,bit2,bit1;
+    wire [48:0] temp;
+    reg [31:0] z_temp;
+    reg input_change,flag,flag_;
+    wire new;
+    // reg try;
+ 
+//============================状态跳转触发器逻辑====================================
+    always@(posedge clk or posedge rst) begin
+        if(rst) begin state <= WAIT;end
+        else begin state <= next;end
+    end
+ 
+//============================产生1个新数据导入的flag信号====================================
+    always@(x,y,round,rst) begin
+        if(rst) begin
+            input_change = 0;
         end
-
-        //special case
-        begin
-            if((exponent_1 == 0) && (fraction_1 == 0)) begin //if src1 is zero, then return src2
-                sign_Ans     = sign_2;
-                exponent_Ans = exponent_2;
-                fraction_Ans = fraction_2;
-            end
-            else if (exponent_1 == 8'hff) begin
-                if (fraction_1 == 23'h0) inf_1 = 1'b1;		// 补充原代码缺失的对inf与NaN的处理
-                else nan_1 = 1'b1;
-            end 
-            else begin
-            end
-
-            if((exponent_2 == 0) && (fraction_2 == 0)) begin // if src2 is zero, then return src1
-                sign_Ans     = sign_1;
-                exponent_Ans = exponent_1;
-                fraction_Ans = fraction_1;
-            end  
-            else if (exponent_2 == 8'hff) begin
-                if (fraction_2 == 23'h0) inf_2 = 1'b1;
-                else nan_2 = 1'b1;
-            end 
-            else begin
-            end
-
-        end    
-
-        //align
-        begin
-            if(exponent_1 > exponent_2) begin
-                fraction_2 = fraction_2 >> (exponent_1 - exponent_2);
-                exponent_Ans = exponent_1;
-                
-                
-            end
-            else if(exponent_1 < exponent_2) begin
-                fraction_1 = fraction_1 >> (exponent_2 - exponent_1);
-                exponent_Ans = exponent_2;
-               
-                
-            end
-            else if(exponent_1 == exponent_2)begin
-                exponent_Ans = exponent_1;  
-                
-            end
+        else begin
+        input_change = ~input_change;
         end
-
-        //add significands
-        begin
-            if(sign_1 == sign_2) begin
-                fraction_Ans = fraction_1 + fraction_2;
-                sign_Ans = sign_1;
-            end
-            else begin
-                if(fraction_1 >= fraction_2) begin
-                    fraction_Ans = fraction_1 - fraction_2;
-                    sign_Ans = sign_1;
+    end
+ 
+    always@(posedge clk or posedge rst) begin
+        if(rst) begin
+            flag <= 0;
+            flag_ <= 0;
+        end
+        else begin
+            flag <= input_change;
+            flag_ <= flag;
+        end
+    end
+ 
+    assign new = flag ^ flag_;
+ 
+//============================ADDM状态下的尾数加组合逻辑====================================
+    always@(*)begin//ADDM
+        {m_z_temp,out_z_temp} = 0;
+        if(state == ADDM) begin
+            if(sign_x ^ sign_y)begin//异号情况
+                if(bigger == 2'b01)begin//x指数大于y
+                    {m_z_temp,out_z_temp} = {m_x,24'd0} - {m_y,out_z};
                 end
-                else begin
-                    fraction_Ans = fraction_2 - fraction_1;
-                    sign_Ans = sign_2;
+                else if(bigger == 2'b10)begin//y指数大于x
+                    {m_z_temp,out_z_temp} = {m_y,24'd0} - {m_x,out_z};
+                end
+                else if(bigger == 2'b00)begin
+                    m_z_temp = (m_x > m_y)?(m_x - m_y):(m_y - m_x);
                 end
             end
-        end
-
-        
-        //overflow
-        begin
-            if(fraction_Ans[66]) begin
-                fraction_Ans = fraction_Ans >> 1;
-                exponent_Ans = exponent_Ans + 1;
-            end
-        end   
-        ///////////////////////////////////////////////////////////////////////////////// 
-        //normalization
-        begin
-            if(fraction_Ans == 67'b0) begin
-                fraction_Ans = 67'b0;
-                exponent_Ans = 8'b0;
-            end
             else begin
-                if(fraction_Ans[65] == 0)begin
-                    PENC32({11'b0, fraction_Ans[64:42]}, norm_count, norm_vld);	// 用优先编码器计算最高位1所在bit
-                    fraction_Ans = fraction_Ans << (5'd23 - norm_count);		// 左移完成规格化
-                    if ((exponent_Ans + norm_count)>=5'd23) begin
-                        exponent_Ans = exponent_Ans + norm_count - 5'd23;      		// 对应更新阶数
-                    end
-                    else begin 
-                        exponent_Ans =8'h00;//下溢
-                        fraction_Ans =0;
-                    end
-                end    
-                else if(fraction_Ans[65]) begin
-                end
-            end
-        end
-
-        //round
-        begin
-            guard_bit = fraction_Ans[41]; 
-            round_bit = fraction_Ans[40];
-            if(fraction_Ans[39:0] > 0)
-                sticky_bit = 1;  
-            else
-                sticky_bit = 0;                         
-            if(guard_bit && (fraction_Ans[42] | round_bit | sticky_bit)) begin	// 对照进位的条件
-                fraction_Ans = fraction_Ans + 67'b0;
-            end
-        end
-        //convert:
-        begin
-            out[22:0]  = fraction_Ans[64:42];
-            out[30:23] = exponent_Ans[7:0];
-            out[31]    = sign_Ans; 
-            //special case
-            if(fraction_Ans == 0) //when fraction is 23'd0
-                out = 0;
-            if(nan_1 || nan_2 || (inf_1 && inf_2 && (sign_1 ^ sign_2))) begin // return NaN
-                exponent_Ans = 8'hff;
-                fraction_Ans = 23'h1;
-                out=32'h7f800001;
-            end
-            else if(inf_1 || inf_2 || (exponent_Ans == 8'b11111111)) begin // return inf
-                fraction_Ans = 0;
-                out[22:0]  = 23'h0;
+                m_z_temp = m_x + m_y;
             end
         end
     end
-
-
-
-
-
-
-
-
-
-
-// PENC TASK // 用4个PENC8拼接实现32bit优先编码
-    task PENC8;
-        //port declaration
-        input   [7:0] D;
-        output  [2:0] Q;
-        output        vld;
-        //internal node signals declaration
-        begin
-            vld  = D[7]|D[6]|D[5]|D[4]|D[3]|D[2]|D[1]|D[0];
-            Q[2] = D[7]|D[6]|D[5]|D[4];
-            Q[1] = (D[7]|D[6]|D[5]|D[4]) ? (D[7]|D[6]) : (D[3]|D[2]);
-            Q[0] = (D[7]|D[6]|D[5]|D[4]) ? (D[7]|((~D[6])&D[5])) : (D[3]|((~D[2])&D[1]));
+//============================ROUND状态下的输出值舍入组合逻辑====================================
+    always@(*)begin//ROUND
+        z_temp = 0;
+        if(state == ROUND) begin
+            //------输入有0情况------
+            if(zero) begin
+                if(zero == 2'b10)begin
+                    z_temp = {sign_y,exponent_y[7:0],m_y[22:0]};
+                end
+                else if(zero == 2'b01)begin
+                    z_temp = {sign_x,exponent_x[7:0],m_x[22:0]};
+                end
+            end
+            //------指数差距较大情况------
+            else if(big_delta_e) begin
+                if(big_delta_e == 2'b01) begin//y远大于x
+                    case(round)
+                        2'b00:begin//向0舍入
+                            if(sign_y ^ sign_x==1)begin//异号
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]-23'b1};
+                            end
+                            else begin//同号
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]};
+                            end
+                        end
+                        2'b01:begin//向最近的数舍入（向偶数舍入）
+                            z_temp = {sign_z,exponent_z[7:0],m_z[22:0]};
+                        end
+                        2'b10:begin//向正无穷大舍入
+                            if(sign_x)begin//x为负
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]};
+                            end
+                            else if(sign_z)begin
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]-23'b1};
+                            end
+                            else begin
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]+23'b1};
+                            end
+                        end
+                        2'b11:begin//向负无穷大舍入
+                            if(!sign_x)begin//x为正
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]};
+                            end
+                            else if(sign_z)begin
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]+23'b1};
+                            end
+                            else begin
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]-23'b1};
+                            end
+                        end
+                    endcase
+                end
+                else if(big_delta_e == 2'b10)begin//x远大于y
+                    case(round)
+                        2'b00:begin//向0舍入
+                            if(sign_y ^ sign_x==1)begin//异号
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]-23'b1};
+                            end
+                            else begin//同号
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]};
+                            end
+                        end
+                        2'b01:begin//向最近的数舍入（向偶数舍入）
+                            z_temp = {sign_z,exponent_z[7:0],m_z[22:0]};
+                        end
+                        2'b10:begin//向正无穷大舍入
+                            if(sign_y)begin//y为负
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]};
+                            end
+                            else if(sign_z)begin
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]-23'b1};
+                            end
+                            else begin
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]+23'b1};
+                            end
+                        end
+                        2'b11:begin//向负无穷大舍入
+                            if(!sign_y)begin//y为正
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]};
+                            end
+                            else if(sign_z)begin
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]+23'b1};
+                            end
+                            else begin
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]-23'b1};
+                            end
+                        end
+                    endcase
+                end
+            end
+            //------常规情况------
+            else if((error == 0) && (overflow == 0)) begin
+                if(out_z)begin//要考虑舍入
+                    case(round)
+                        2'b00:begin//向0舍入
+                            z_temp = {sign_z,exponent_z[7:0],m_z[22:0]};
+                        end
+                        2'b01:begin//向最近的数舍入（向偶数舍入）
+                            if(out_z > mid_z)begin
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]+23'b1};
+                            end
+                            else if(out_z < mid_z)begin
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]};
+                            end
+                            else if(m_z[0] == 0)begin
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]};
+                            end
+                            else begin
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]+23'b1};
+                            end
+                        end
+                        2'b10:begin//向正无穷大舍入
+                            if(sign_z)begin
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]};
+                            end
+                            else begin
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]+23'b1};
+                            end
+                        end
+                        2'b11:begin//向负无穷大舍入
+                            if(sign_z)begin
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]+23'b1};
+                            end
+                            else begin
+                                z_temp = {sign_z,exponent_z[7:0],m_z[22:0]};
+                            end
+                        end
+                    endcase
+                end
+                else begin
+                    z_temp = {sign_z,exponent_z[7:0],m_z[22:0]};
+                end
+            end
         end
-    endtask
-
-    task PENC16;
-        //port declaration
-        input   [15:0] D;
-        output  [3:0]  Q;
-        output         vld;
-        //internal node signals declaration
-        reg [2:0] Q1_h, Q1_l;
-        reg       vld1_h, vld1_l;
-        begin
-            PENC8( D[15:8],  Q1_h,   vld1_h);
-            PENC8( D[7:0],   Q1_l,   vld1_l);
-            Q[3]    = vld1_h;
-            Q[2:0]  = vld1_h ? Q1_h : Q1_l;
-            vld     = vld1_h | vld1_l;
+    end
+//============================符号位赋值及最高有效位判断等组合逻辑====================================
+    assign sign_x = x[31];
+    assign sign_y = y[31];
+    assign bit4 = m_z_temp[23]?23:m_z_temp[22]?22:m_z_temp[21]?21:m_z_temp[20]?20:m_z_temp[19]?19:m_z_temp[18]?18:0;
+    assign bit3 = m_z_temp[17]?17:m_z_temp[16]?16:m_z_temp[15]?15:m_z_temp[14]?14:m_z_temp[13]?13:m_z_temp[12]?12:0;
+    assign bit2 = m_z_temp[11]?11:m_z_temp[10]?10:m_z_temp[9]?9:m_z_temp[8]?8:m_z_temp[7]?7:m_z_temp[6]?6:0;
+    assign bit1 = m_z_temp[5]?5:m_z_temp[4]?4:m_z_temp[3]?3:m_z_temp[2]?2:m_z_temp[1]?1:m_z_temp[0]?0:0;
+    assign temp = {m_z,out_z};
+//============================状态转移判断组合逻辑====================================
+    always@(*) begin
+        case(state)
+            START:begin
+                if((x[30:23]==8'd255)||(y[30:23]==8'd255))begin//出现了NaN，无穷大
+                    next = ROUND;
+                end
+                else if(x[30:23]==8'd0)begin
+                    if(x[22:0]==0)begin//x=0
+                        next = ROUND;
+                    end
+                    else begin//非归约数
+                        next = ROUND;
+                    end
+                end
+                else if(y[30:23]==8'd0)begin//y=0
+                    if(y[22:0]==0)begin//y=0
+                        next = ROUND;
+                    end
+                    else begin//非归约数
+                        next = ROUND;
+                    end
+                end
+                else begin
+                    next = EQUALEXP;
+                end
+            end
+            EQUALEXP:begin
+                if ((delta_e <= -25) || (delta_e >= 25)) begin
+                    next = ROUND;
+                end
+                else begin
+                next = ADDM;
+                end
+            end
+            ADDM:begin next = NORMAL;end
+            NORMAL:begin next = ROUND;end
+            ROUND:begin next = new?START:WAIT;end
+            WAIT:begin next = new?START:WAIT;end
+            default:begin next = START;end
+        endcase
+    end
+//============================状态相关运算时序逻辑====================================
+    always@(posedge clk or posedge rst) begin
+        if(rst) begin 
+            error <= 3'b000;
+            zero <= 0;
+            overflow <= 0;
+            
         end
-    endtask
-
-    task PENC32;
-        //port declaration
-        input   [31:0] D;
-        output  [4:0]  Q;
-        output         vld;
-        //internal node signals declaration
-        reg [3:0] Q2_h, Q2_l;
-        reg       vld2_h, vld2_l;
-        begin
-            PENC16( D[31:16],   Q2_h,   vld2_h);
-            PENC16( D[15:0],    Q2_l,   vld2_l);
-            Q[4]    = vld2_h;
-            Q[3:0]  = vld2_h ? Q2_h : Q2_l;
-            vld     = vld2_h | vld2_l;
+        else begin
+            case(state)
+                START:begin
+                    //分离指数和尾数
+                    exponent_x <= x[30:23];
+                    exponent_y <= y[30:23];
+                    m_x <= {1'b0,1'b1,x[22:0]};//最高位来控制溢出 1.F
+                    m_y <= {1'b0,1'b1,y[22:0]};
+                    out_z <= 24'b0;
+                    mid_z <= {1'b1,23'b0};
+                    zero <= 0;
+                    error <= 3'b000;
+                    delta_e <= x[30:23] - y[30:23];
+                    //只有阶码[1,254]和实数0是规格化数字
+                    if((x[30:23]==8'd255)||(y[30:23]==8'd255))begin//出现了NaN，无穷大
+                        error <= 3'b001;
+                    end
+                    else if(x[30:23]==8'd0)begin
+                        if(x[22:0]==0)begin//x=0
+                            zero <= 2'b10;
+                        end
+                        else begin//非归约数
+                            error <= 3'b001;
+                        end
+                    end
+                    else if(y[30:23]==8'd0)begin//y=0
+                        if(y[22:0]==0)begin//y=0
+                            zero <= 2'b01;
+                        end
+                        else begin//非归约数
+                            error <= 3'b001;
+                        end
+                    end
+                end
+                EQUALEXP:begin//对阶处理  
+                    big_delta_e <= 0;
+                    if (delta_e <= -25)begin //y远大于x
+                        big_delta_e <= 1;
+                        sign_z <= sign_y;
+                        exponent_z <= exponent_y;
+                        m_z <= m_y;
+                    end
+                    else if(delta_e >= 25)begin//x远大于y,24刚好移出
+                        big_delta_e <= 2;
+                        sign_z <= sign_x;
+                        exponent_z <= exponent_x;
+                        m_z <= m_x;
+                    end
+                    else if (delta_e > 0) begin//x指数大于y，y尾数需要右移?
+                        {m_y,out_z} <= {m_y,out_z} >> delta_e;
+                        exponent_y <= exponent_x;
+                        bigger <= 2'b01;
+                    end
+                    else if (delta_e < 0) begin//y指数大于x，x尾数需要右移?
+                        {m_x,out_z} <= {m_x,out_z} >> (-delta_e);
+                        exponent_x <= exponent_y;
+                        bigger <= 2'b10;
+                    end
+                    else begin
+                        bigger <= 2'b00;
+                    end
+                end
+ 
+                ADDM:begin
+                    exponent_z <= exponent_x;
+                    m_z <= m_z_temp;
+                    out_z <= out_z_temp;
+                    if(sign_x ^ sign_y)begin//异号情况
+                        if(bigger == 2'b01)begin//x指数大于y
+                            sign_z <= sign_x;
+                        end
+                        else if(bigger == 2'b10)begin//y指数大于x
+                            sign_z <= sign_y;
+                        end
+                        else if(bigger == 2'b00)begin                            
+                            sign_z <= (m_x > m_y)?sign_x:sign_y;
+                        end
+                    end
+                    else begin                        
+                        sign_z <= sign_x;
+                    end
+                    first_one_bit <= bit4?bit4:bit3?bit3:bit2?bit2:bit1?bit1:0;//m_z中第1个出现1的bit位
+                end
+                NORMAL:begin
+                    error <= 3'b000;
+                    overflow <= 2'b00;
+                    if(m_z[24])begin
+                        if(exponent_z == 254) begin
+                            if(m_z[23:1])begin//NaN,上溢
+                                error <= 3'b100;
+                                overflow <= 2'b01;
+                            end
+                            else begin//无穷大，上溢
+                                error <= 3'b011;
+                                overflow <= 2'b01;
+                            end
+                        end
+                        else begin
+                            m_z <= m_z >> 1;
+                            exponent_z <= exponent_z + 1;
+                        end
+                    end
+                    else begin
+                        if((exponent_z < (23 - first_one_bit)) || 
+                        (exponent_z == (23 - first_one_bit) && (temp[(first_one_bit+1) +: 23] != 0)))begin//下溢
+                            error <= 3'b010;
+                            overflow <= 2'b10;
+                        end
+                        else begin
+                            {m_z,out_z} <= {m_z,out_z} << (23 - first_one_bit);
+                            exponent_z <= exponent_z - (23 - first_one_bit);
+                        end
+                    end
+                end
+                ROUND:begin
+                    if(z_temp[30:23]==8'd255)begin//出现了NaN，无穷大
+                        if(z_temp[22:0])begin//NaN
+                            error <= 3'b100;
+                            overflow <= 2'b01;
+                        end
+                        else begin//无穷大?
+                            error <= 3'b011;
+                            overflow <= 2'b01;
+                        end
+                    end
+                    else if(z_temp[30:23]==8'd0)begin//
+                        if(z_temp[22:0])begin//非归约数,下溢
+                            error <= 3'b010;
+                            overflow <= 2'b10;
+                        end
+                    end
+                    z <= z_temp;
+                end
+            endcase
         end
-    endtask      
+    end
 endmodule

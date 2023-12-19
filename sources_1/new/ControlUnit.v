@@ -192,6 +192,20 @@ module ControlUnit(
                         FPUOp = 1'b0;
                         FPUS  = 1'b1;
                     end
+                    6'b000000: begin: _FMUL
+                        Branch = 1'b0;
+                        MemtoReg = 1'b0;
+                        MemW = 1'b0;
+                        ALUSrc = 1'b0;
+                        ImmSrc = 2'b10;
+                        RegW = 1'b0;
+                        RegSrc = 3'b000;
+                        ALUOp = 2'b00;
+                        MS = 1'b0;
+                        MCycleOp = 1'b0;
+                        FPUOp = 1'b1;
+                        FPUS  = 1'b1;
+                    end
                 endcase
             end
         endcase
