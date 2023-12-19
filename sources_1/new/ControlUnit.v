@@ -205,133 +205,146 @@ module ControlUnit(
         ALUControl = `ADD;
         FlagW = 4'b0000;
         NoWrite = 1'b0;
-        case (ALUOp)
-            2'b11: begin
-                case (Funct[4:1])
-                    `AND: begin
-                        ALUControl = `AND;
-                        FlagW = Funct[0] ? 4'b1110 : 4'b0000;
-                        NoWrite = 1'b0;
-                    end
-                    
-                    `EOR: begin
-                        ALUControl = `EOR;
-                        FlagW = Funct[0] ? 4'b1110 : 4'b0000;
-                        NoWrite = 1'b0;
-                    end
-                    
-                    `SUB: begin
-                        ALUControl = `SUB;
-                        FlagW = Funct[0] ? 4'b1111 : 4'b0000;
-                        NoWrite = 1'b0;
-                    end
-                    
-                    `RSB: begin
-                        ALUControl = `RSB;
-                        FlagW = Funct[0] ? 4'b1111 : 4'b0000;
-                        NoWrite = 1'b0;
-                    end
-                    
-                    `ADD: begin
-                        ALUControl = `ADD;
-                        FlagW = Funct[0] ? 4'b1111 : 4'b0000;
-                        NoWrite = 1'b0;
-                    end
-                    
-                    `ADC: begin
-                        ALUControl = `ADC;
-                        FlagW = Funct[0] ? 4'b1111 : 4'b0000;
-                        NoWrite = 1'b0;
-                    end
-                    
-                    `SBC: begin
-                        ALUControl = `SBC;
-                        FlagW = Funct[0] ? 4'b1111 : 4'b0000;
-                        NoWrite = 1'b0;
-                    end
-                    
-                    `RSC: begin
-                        ALUControl = `RSC;
-                        FlagW = Funct[0] ? 4'b1111 : 4'b0000;
-                        NoWrite = 1'b0;
-                    end
-                    
-                    `TST: begin
-                        if (Funct[0])   // TST with S bit clear is not a DP instruction
-                            ALUControl = `TST;
+
+        if (MS) begin
+            ALUControl = `ADD;
+            FlagW = 4'b0000;
+            NoWrite = 1'b0;
+        end
+        else if (FPUS) begin
+            ALUControl = `ADD;
+            FlagW = 4'b0000;
+            NoWrite = 1'b0;
+        end
+        else begin
+            case (ALUOp)
+                2'b11: begin
+                    case (Funct[4:1])
+                        `AND: begin
+                            ALUControl = `AND;
+                            FlagW = Funct[0] ? 4'b1110 : 4'b0000;
+                            NoWrite = 1'b0;
+                        end
+                        
+                        `EOR: begin
+                            ALUControl = `EOR;
+                            FlagW = Funct[0] ? 4'b1110 : 4'b0000;
+                            NoWrite = 1'b0;
+                        end
+                        
+                        `SUB: begin
+                            ALUControl = `SUB;
+                            FlagW = Funct[0] ? 4'b1111 : 4'b0000;
+                            NoWrite = 1'b0;
+                        end
+                        
+                        `RSB: begin
+                            ALUControl = `RSB;
+                            FlagW = Funct[0] ? 4'b1111 : 4'b0000;
+                            NoWrite = 1'b0;
+                        end
+                        
+                        `ADD: begin
+                            ALUControl = `ADD;
+                            FlagW = Funct[0] ? 4'b1111 : 4'b0000;
+                            NoWrite = 1'b0;
+                        end
+                        
+                        `ADC: begin
+                            ALUControl = `ADC;
+                            FlagW = Funct[0] ? 4'b1111 : 4'b0000;
+                            NoWrite = 1'b0;
+                        end
+                        
+                        `SBC: begin
+                            ALUControl = `SBC;
+                            FlagW = Funct[0] ? 4'b1111 : 4'b0000;
+                            NoWrite = 1'b0;
+                        end
+                        
+                        `RSC: begin
+                            ALUControl = `RSC;
+                            FlagW = Funct[0] ? 4'b1111 : 4'b0000;
+                            NoWrite = 1'b0;
+                        end
+                        
+                        `TST: begin
+                            if (Funct[0])   // TST with S bit clear is not a DP instruction
+                                ALUControl = `TST;
+                                FlagW = Funct[0] ? 4'b1110 : 4'b0000;
+                                NoWrite = 1'b1;
+                        end
+                        
+                        `TEQ: begin
+                            if (Funct[0])   // TEQ with S bit clear is not a DP instruction
+                                ALUControl = `TEQ;
                             FlagW = Funct[0] ? 4'b1110 : 4'b0000;
                             NoWrite = 1'b1;
-                    end
-                    
-                    `TEQ: begin
-                        if (Funct[0])   // TEQ with S bit clear is not a DP instruction
-                            ALUControl = `TEQ;
-                        FlagW = Funct[0] ? 4'b1110 : 4'b0000;
-                        NoWrite = 1'b1;
-                    end
-                    
-                    `CMP: begin
-                        if (Funct[0])   // CMP with S bit clear is not a DP instruction
-                            ALUControl = `CMP;
-                        FlagW = Funct[0] ? 4'b1111 : 4'b0000;
-                        NoWrite = 1'b1;
-                    end
-                    
-                    `CMN: begin
-                        if (Funct[0])   // CMN with S bit clear is not a DP instruction
-                            ALUControl = `CMN;
-                        FlagW = Funct[0] ? 4'b1111 : 4'b0000;
-                        NoWrite = 1'b1;
-                    end
-                    
-                    `ORR: begin
-                        ALUControl = `ORR;
-                        FlagW = Funct[0] ? 4'b1110 : 4'b0000;
-                        NoWrite = 1'b0;
-                    end
-                    
-                    `MOV: begin
-                        ALUControl = `MOV;
-                        FlagW = Funct[0] ? 4'b1110 : 4'b0000;
-                        NoWrite = 1'b0;
-                    end
-                    
-                    `BIC: begin
-                        ALUControl = `BIC;
-                        FlagW = Funct[0] ? 4'b1110 : 4'b0000;
-                        NoWrite = 1'b0;
-                    end
-                    
-                    `MVN: begin
-                        ALUControl = `MVN;
-                        FlagW = Funct[0] ? 4'b1110 : 4'b0000;
-                        NoWrite = 1'b0;
-                    end
-                endcase
-            end
-            
-            2'b01: begin: _Mem_offset
-                casex (Funct[4:1])
-                    4'bX1XX: begin
-                        ALUControl = `ADD;
-                        FlagW = 4'b0000;
-                        NoWrite = 1'b0;
-                    end
-                    
-                    4'bX0XX: begin
-                        ALUControl = `SUB;
-                        FlagW = 4'b0000;
-                        NoWrite = 1'b0;
-                    end
-                endcase
-            end
-            
-            2'b00: begin: _Branch_
-                ALUControl = `ADD;
-                FlagW = 4'b0000;
-                NoWrite = 1'b0;
-            end
-        endcase
+                        end
+                        
+                        `CMP: begin
+                            if (Funct[0])   // CMP with S bit clear is not a DP instruction
+                                ALUControl = `CMP;
+                            FlagW = Funct[0] ? 4'b1111 : 4'b0000;
+                            NoWrite = 1'b1;
+                        end
+                        
+                        `CMN: begin
+                            if (Funct[0])   // CMN with S bit clear is not a DP instruction
+                                ALUControl = `CMN;
+                            FlagW = Funct[0] ? 4'b1111 : 4'b0000;
+                            NoWrite = 1'b1;
+                        end
+                        
+                        `ORR: begin
+                            ALUControl = `ORR;
+                            FlagW = Funct[0] ? 4'b1110 : 4'b0000;
+                            NoWrite = 1'b0;
+                        end
+                        
+                        `MOV: begin
+                            ALUControl = `MOV;
+                            FlagW = Funct[0] ? 4'b1110 : 4'b0000;
+                            NoWrite = 1'b0;
+                        end
+                        
+                        `BIC: begin
+                            ALUControl = `BIC;
+                            FlagW = Funct[0] ? 4'b1110 : 4'b0000;
+                            NoWrite = 1'b0;
+                        end
+                        
+                        `MVN: begin
+                            ALUControl = `MVN;
+                            FlagW = Funct[0] ? 4'b1110 : 4'b0000;
+                            NoWrite = 1'b0;
+                        end
+                    endcase
+                end
+                
+                2'b01: begin: _Mem_offset
+                    casex (Funct[4:1])
+                        4'bX1XX: begin
+                            ALUControl = `ADD;
+                            FlagW = 4'b0000;
+                            NoWrite = 1'b0;
+                        end
+                        
+                        4'bX0XX: begin
+                            ALUControl = `SUB;
+                            FlagW = 4'b0000;
+                            NoWrite = 1'b0;
+                        end
+                    endcase
+                end
+                
+                2'b00: begin: _Branch_
+                    ALUControl = `ADD;
+                    FlagW = 4'b0000;
+                    NoWrite = 1'b0;
+                end
+            endcase
+        end
     end
     
     assign PCS = ((Rd == 4'd15) & RegW) | Branch;

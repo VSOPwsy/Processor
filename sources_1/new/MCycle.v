@@ -40,13 +40,6 @@ module MCycle #(
         MCycleOp_reg = 0;
     end
     
-    always @(posedge CLK, posedge Reset) begin
-        if (Reset)
-            MCycleOp_reg <= 0;
-        else
-            MCycleOp_reg <= Start ? MCycleOp : MCycleOp_reg;
-    end
-    
     ControlTest #(
         .width(width)
     )ControlTest(
@@ -78,11 +71,13 @@ module MCycle #(
             temp_sum <= 0;
             shifted_op1 <= 0;
             MCycleWA3 <= 0;
+            MCycleOp_reg <= 0;
         end
         else if (Init) begin
             temp_sum <= {{width{1'b0}}, (Start ? MCycleOp : MCycleOp_reg) ? Operand1 : Operand2};
             shifted_op1 <= (Start ? MCycleOp : MCycleOp_reg) ? Operand2 : Operand1;
             MCycleWA3 <= WA3;
+            MCycleOp_reg <= MCycleOp;
         end
         else if (Shift) begin
             if(~MCycleOp_reg) begin

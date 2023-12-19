@@ -11,17 +11,19 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="675.620 ns"></ZoomStartTime>
-      <ZoomEndTime time="771.921 ns"></ZoomEndTime>
-      <Cursor1Time time="732.520 ns"></Cursor1Time>
+      <ZoomStartTime time="960.925 ns"></ZoomStartTime>
+      <ZoomEndTime time="1,947.926 ns"></ZoomEndTime>
+      <Cursor1Time time="1,638.925 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="195"></NameColumnWidth>
+      <NameColumnWidth column_width="171"></NameColumnWidth>
       <ValueColumnWidth column_width="90"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="9" />
+   <WVObjectSize size="44" />
    <wave_markers>
       <marker time="5041600" label="" />
+      <marker time="1745000" label="" />
+      <marker time="1415825" label="" />
    </wave_markers>
    <wvobject fp_name="/TOP_tb/CLK" type="logic">
       <obj_property name="ElementShortName">CLK</obj_property>
@@ -38,6 +40,26 @@
    <wvobject fp_name="/TOP_tb/uut/ARMcore/FDReg/InstrD" type="array">
       <obj_property name="ElementShortName">InstrD[31:0]</obj_property>
       <obj_property name="ObjectShortName">InstrD[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/ControlUnit/Instr" type="array">
+      <obj_property name="ElementShortName">Instr[31:0]</obj_property>
+      <obj_property name="ObjectShortName">Instr[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/ControlUnit/MS" type="logic">
+      <obj_property name="ElementShortName">MS</obj_property>
+      <obj_property name="ObjectShortName">MS</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/ControlUnit/FlagW" type="array">
+      <obj_property name="ElementShortName">FlagW[3:0]</obj_property>
+      <obj_property name="ObjectShortName">FlagW[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/DEReg_FlagWD" type="array">
+      <obj_property name="ElementShortName">DEReg_FlagWD[3:0]</obj_property>
+      <obj_property name="ObjectShortName">DEReg_FlagWD[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/CondUnit/FlagW" type="array">
+      <obj_property name="ElementShortName">FlagW[3:0]</obj_property>
+      <obj_property name="ObjectShortName">FlagW[3:0]</obj_property>
    </wvobject>
    <wvobject fp_name="/TOP_tb/uut/ARMcore/CondUnit/N" type="logic">
       <obj_property name="ElementShortName">N</obj_property>
@@ -59,5 +81,125 @@
       <obj_property name="ElementShortName">RegBankCore[0:14][31:0]</obj_property>
       <obj_property name="ObjectShortName">RegBankCore[0:14][31:0]</obj_property>
       <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/CLK" type="logic">
+      <obj_property name="ElementShortName">CLK</obj_property>
+      <obj_property name="ObjectShortName">CLK</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/Reset" type="logic">
+      <obj_property name="ElementShortName">Reset</obj_property>
+      <obj_property name="ObjectShortName">Reset</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/Start" type="logic">
+      <obj_property name="ElementShortName">Start</obj_property>
+      <obj_property name="ObjectShortName">Start</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/MCycleOp" type="logic">
+      <obj_property name="ElementShortName">MCycleOp</obj_property>
+      <obj_property name="ObjectShortName">MCycleOp</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/Operand1" type="array">
+      <obj_property name="ElementShortName">Operand1[31:0]</obj_property>
+      <obj_property name="ObjectShortName">Operand1[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/Operand2" type="array">
+      <obj_property name="ElementShortName">Operand2[31:0]</obj_property>
+      <obj_property name="ObjectShortName">Operand2[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/WA3" type="array">
+      <obj_property name="ElementShortName">WA3[3:0]</obj_property>
+      <obj_property name="ObjectShortName">WA3[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/HazardUnit/WA3D" type="array">
+      <obj_property name="ElementShortName">WA3D[3:0]</obj_property>
+      <obj_property name="ObjectShortName">WA3D[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/HazardUnit/Match_123D_MCycleWA" type="logic">
+      <obj_property name="ElementShortName">Match_123D_MCycleWA</obj_property>
+      <obj_property name="ObjectShortName">Match_123D_MCycleWA</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/HazardUnit/StallF" type="logic">
+      <obj_property name="ElementShortName">StallF</obj_property>
+      <obj_property name="ObjectShortName">StallF</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/HazardUnit/StallD" type="logic">
+      <obj_property name="ElementShortName">StallD</obj_property>
+      <obj_property name="ObjectShortName">StallD</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/HazardUnit/StallE" type="logic">
+      <obj_property name="ElementShortName">StallE</obj_property>
+      <obj_property name="ObjectShortName">StallE</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/HazardUnit/StallM" type="logic">
+      <obj_property name="ElementShortName">StallM</obj_property>
+      <obj_property name="ObjectShortName">StallM</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/HazardUnit/StallW" type="logic">
+      <obj_property name="ElementShortName">StallW</obj_property>
+      <obj_property name="ObjectShortName">StallW</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/Result" type="array">
+      <obj_property name="ElementShortName">Result[31:0]</obj_property>
+      <obj_property name="ObjectShortName">Result[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/Busy" type="logic">
+      <obj_property name="ElementShortName">Busy</obj_property>
+      <obj_property name="ObjectShortName">Busy</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/Done" type="logic">
+      <obj_property name="ElementShortName">Done</obj_property>
+      <obj_property name="ObjectShortName">Done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/MCycleWA3" type="array">
+      <obj_property name="ElementShortName">MCycleWA3[3:0]</obj_property>
+      <obj_property name="ObjectShortName">MCycleWA3[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/MPushIn" type="logic">
+      <obj_property name="ElementShortName">MPushIn</obj_property>
+      <obj_property name="ObjectShortName">MPushIn</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/MCycleOp_reg" type="logic">
+      <obj_property name="ElementShortName">MCycleOp_reg</obj_property>
+      <obj_property name="ObjectShortName">MCycleOp_reg</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/a" type="array">
+      <obj_property name="ElementShortName">a[31:0]</obj_property>
+      <obj_property name="ObjectShortName">a[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/b" type="array">
+      <obj_property name="ElementShortName">b[31:0]</obj_property>
+      <obj_property name="ObjectShortName">b[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/s" type="array">
+      <obj_property name="ElementShortName">s[31:0]</obj_property>
+      <obj_property name="ObjectShortName">s[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/cout" type="logic">
+      <obj_property name="ElementShortName">cout</obj_property>
+      <obj_property name="ObjectShortName">cout</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/Init" type="logic">
+      <obj_property name="ElementShortName">Init</obj_property>
+      <obj_property name="ObjectShortName">Init</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/temp_sum" type="array">
+      <obj_property name="ElementShortName">temp_sum[63:0]</obj_property>
+      <obj_property name="ObjectShortName">temp_sum[63:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/shifted_op1" type="array">
+      <obj_property name="ElementShortName">shifted_op1[31:0]</obj_property>
+      <obj_property name="ObjectShortName">shifted_op1[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/Shift" type="logic">
+      <obj_property name="ElementShortName">Shift</obj_property>
+      <obj_property name="ObjectShortName">Shift</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/Write" type="logic">
+      <obj_property name="ElementShortName">Write</obj_property>
+      <obj_property name="ObjectShortName">Write</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/MCycle/width" type="array">
+      <obj_property name="ElementShortName">width[31:0]</obj_property>
+      <obj_property name="ObjectShortName">width[31:0]</obj_property>
    </wvobject>
 </wave_config>

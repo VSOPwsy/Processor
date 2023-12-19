@@ -95,8 +95,8 @@ module HazardUnit(
     assign Match_123D_MCycleWA = (RA1D == MCycleWA3) | (RA2D == MCycleWA3) | (WA3D == MCycleWA3) | (MStart & WA3D == WA3E);
     assign Match_123D_FPUWA = (RA1D == FPUWA3) | (RA2D == FPUWA3) | (WA3D == FPUWA3) | (FPUStart & WA3D == WA3E);
     
-    assign StallF = ldrstall | (MCycleDone & ~PCSrcE) | (FPUDone & ~PCSrcE) | (Match_123D_MCycleWA & MCycleBusy) | (Match_123D_FPUWA & FPUBusy) | cachestall;
-    assign StallD = ldrstall | (MCycleDone & ~PCSrcE) | (FPUDone & ~PCSrcE) | (Match_123D_MCycleWA & MCycleBusy) | (Match_123D_FPUWA & FPUBusy) | cachestall;
+    assign StallF = ldrstall | (MCycleDone & ~PCSrcE) | (FPUDone & ~PCSrcE) | (Match_123D_MCycleWA & MCycleBusy) | (MCycleBusy & MS) | (Match_123D_FPUWA & FPUBusy) | (FPUBusy & FPUS) | cachestall;
+    assign StallD = ldrstall | (MCycleDone & ~PCSrcE) | (FPUDone & ~PCSrcE) | (Match_123D_MCycleWA & MCycleBusy) | (MCycleBusy & MS) | (Match_123D_FPUWA & FPUBusy) | (FPUBusy & FPUS) | cachestall;
     assign StallE = cachestall;
     assign StallM = cachestall;
     assign StallW = cachestall;

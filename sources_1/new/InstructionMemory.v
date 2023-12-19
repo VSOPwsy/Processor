@@ -29,17 +29,17 @@ module InstructionMemory #(
             INSTR_MEM[4] = 32'hE59F41EC;
             INSTR_MEM[5] = 32'hE59FC1EC;
             
-            INSTR_MEM[6] = 32'hE0815003;
+            INSTR_MEM[6] = 32'hE0815003; 
             INSTR_MEM[7] = 32'hE5835004;
-            INSTR_MEM[8] = 32'hE0815005;
-            INSTR_MEM[9] = 32'hE5845000;
+            INSTR_MEM[8] = 32'hE0815005; 
+            INSTR_MEM[9] = 32'hE5845000; 
             INSTR_MEM[10] = 32'hE5934004;
             INSTR_MEM[11] = 32'hE0456003;
             
             INSTR_MEM[12] = 32'hE0066004;
             INSTR_MEM[13] = 32'hE1816004;
             INSTR_MEM[14] = 32'hE0646006;
-            INSTR_MEM[15] = 32'hE0886008;
+            INSTR_MEM[15] = 32'hE0986008;
             INSTR_MEM[16] = 32'hE0C56004;
             INSTR_MEM[17] = 32'hE0E46005;
             INSTR_MEM[18] = 32'hE1160001;
