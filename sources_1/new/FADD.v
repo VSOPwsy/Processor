@@ -270,7 +270,20 @@ module FADD (
             error <= 3'b000;
             zero <= 0;
             overflow <= 0;
-            
+            exponent_x<=0;
+            exponent_y<=0;
+            m_x<=0;
+            m_y<=0;
+            out_z<=0;
+            mid_z<=0;
+            delta_e<=0;
+            big_delta_e<=0;
+            sign_z<=0;
+            exponent_z<=0;
+            m_z<=0;
+            bigger<=0;
+            first_one_bit<=0;
+            z<=0;     
         end
         else begin
             case(state)
