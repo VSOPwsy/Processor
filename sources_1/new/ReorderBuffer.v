@@ -1,13 +1,14 @@
 `include "config.v"
 
-module ReorderBuffer (
+module ReorderBuffer(
     input CLK,
     input Reset,
     input append,
     output full,
     output [2:0] ROBTail,
-    input [143:0] CDB,
+    input [147:0] CDB,
     input [3:0] DestReg,
+    input WriteBack,
 
     output reg [3:0] WA,
     output reg WE,
@@ -28,10 +29,12 @@ module ReorderBuffer (
     reg [7:0] STATE; // 0 for issue or execute, 1 for write back
     reg [3:0] DESTINATION [0:7];
     reg [31:0] VALUE [0:7];
+    reg [7:0] WRITEBACK;
 
     initial begin
         BUSY = 0;
         STATE = 0;
+        WRITEBACK = 0;
     end
 
     assign full = head == {~tail[3], tail[2:0]};
@@ -62,6 +65,7 @@ module ReorderBuffer (
         if (CDB_DP[3] & BUSY[CDB_DP[2:0]]) begin
             STATE[CDB_DP[2:0]] <= 1;
             VALUE[CDB_DP[2:0]] <= CDB_DP[35:4];
+            WRITEBACK[CDB_DP[2:0]] <= WriteBack;////////////////////////////////////////////////////////////////////////
         end
         if (CDB_MEM[3] & BUSY[CDB_MEM[2:0]]) begin
             STATE[CDB_MEM[2:0]] <= 1;
@@ -88,7 +92,7 @@ module ReorderBuffer (
             if (BUSY[head] & STATE[head] & ~empty) begin
                 head <= head + 1;
                 WA <= DESTINATION[head];
-                WE <= 1;
+                WE <= WRITEBACK[head];
                 WD <= VALUE[head];
             end
             else begin

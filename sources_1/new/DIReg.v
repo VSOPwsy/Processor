@@ -10,6 +10,9 @@ module DIReg(
     input ALUSrcD,
     input [31:0] ExtImmD,
     input [3:0] CondD,
+    input [3:0] FlagWD,
+    input RegWD,
+    input NoWriteD,
     input [4:0] Shamt5D,
     input [1:0] ShD,
     input MemWD,
@@ -24,6 +27,9 @@ module DIReg(
     output reg ALUSrcI,
     output reg [31:0] ExtImmI,
     output reg [3:0] CondI,
+    output reg [3:0] FlagWI,
+    output reg RegWI,
+    output reg NoWriteI,
     output reg [4:0] Shamt5I,
     output reg [1:0] ShI,
     output reg MemWI,
@@ -41,6 +47,9 @@ module DIReg(
         ALUSrcI = 0;
         ExtImmI = 0;
         CondI = 0;
+        FlagWI = 0;
+        RegWI = 0;
+        NoWriteI = 0;
         MemWI = 0;
         MemtoRegI = 0;
         MULSI = 0;
@@ -59,6 +68,9 @@ module DIReg(
             ALUSrcI <= 0;
             ExtImmI <= 0;
             CondI <= 0;
+            FlagWI <= 0;
+            RegWI <= 0;
+            NoWriteI <= 0;
             MemWI <= 0;
             MemtoRegI <= 0;
             MULSI <= 0;
@@ -76,6 +88,9 @@ module DIReg(
                 ALUSrcI <= ALUSrcD;
                 ExtImmI <= ExtImmD;
                 CondI <= CondD;
+                FlagWI <= FlagWD;
+                RegWI <= RegWD;
+                NoWriteI <= NoWriteD;
                 MemWI <= MemWD;
                 MemtoRegI <= MemtoRegD;
                 MULSI <= MULSD;
@@ -92,6 +107,9 @@ module DIReg(
                 ALUSrcI <= ALUSrcI;
                 ExtImmI <= ExtImmI;
                 CondI <= CondI;
+                FlagWI <= FlagWI;
+                RegWI <= RegWI;
+                NoWriteI <= NoWriteI;
                 MemWI <= MemWI;
                 MemtoRegI <= MemtoRegI;
                 MULSI <= MULSI;

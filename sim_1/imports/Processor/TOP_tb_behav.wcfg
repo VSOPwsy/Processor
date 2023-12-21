@@ -12,14 +12,14 @@
    </db_ref_list>
    <zoom_setting>
       <ZoomStartTime time="0.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="299.848 ns"></ZoomEndTime>
-      <Cursor1Time time="0.000 ns"></Cursor1Time>
+      <ZoomEndTime time="500.001 ns"></ZoomEndTime>
+      <Cursor1Time time="105.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="205"></NameColumnWidth>
-      <ValueColumnWidth column_width="91"></ValueColumnWidth>
+      <NameColumnWidth column_width="200"></NameColumnWidth>
+      <ValueColumnWidth column_width="90"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="40" />
+   <WVObjectSize size="14" />
    <wave_markers>
       <marker time="5041600" label="" />
       <marker time="1745000" label="" />
@@ -48,142 +48,37 @@
    <wvobject fp_name="/TOP_tb/uut/ARMcore/RegisterFile/RegBankCore" type="array">
       <obj_property name="ElementShortName">RegBankCore[0:14][31:0]</obj_property>
       <obj_property name="ObjectShortName">RegBankCore[0:14][31:0]</obj_property>
-      <obj_property name="isExpanded"></obj_property>
    </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ControlUnit/Operation" type="array">
-      <obj_property name="ElementShortName">Operation[4:0]</obj_property>
-      <obj_property name="ObjectShortName">Operation[4:0]</obj_property>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Station/F" type="array">
+      <obj_property name="ElementShortName">F[15:0]</obj_property>
+      <obj_property name="ObjectShortName">F[15:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/DIReg/OpI" type="array">
-      <obj_property name="ElementShortName">OpI[4:0]</obj_property>
-      <obj_property name="ObjectShortName">OpI[4:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/DIReg/IssueD" type="logic">
-      <obj_property name="ElementShortName">IssueD</obj_property>
-      <obj_property name="ObjectShortName">IssueD</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/DIReg/IssueI" type="logic">
-      <obj_property name="ElementShortName">IssueI</obj_property>
-      <obj_property name="ObjectShortName">IssueI</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Station/append" type="logic">
-      <obj_property name="ElementShortName">append</obj_property>
-      <obj_property name="ObjectShortName">append</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Station/Op" type="array">
-      <obj_property name="ElementShortName">Op[4:0]</obj_property>
-      <obj_property name="ObjectShortName">Op[4:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Station/BUSY0" type="logic">
-      <obj_property name="ElementShortName">BUSY0</obj_property>
-      <obj_property name="ObjectShortName">BUSY0</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Op" type="array">
-      <obj_property name="ElementShortName">DP_Op[4:0]</obj_property>
-      <obj_property name="ObjectShortName">DP_Op[4:0]</obj_property>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Station/CDB" type="array">
+      <obj_property name="ElementShortName">CDB[147:0]</obj_property>
+      <obj_property name="ObjectShortName">CDB[147:0]</obj_property>
    </wvobject>
    <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Exec" type="logic">
       <obj_property name="ElementShortName">DP_Exec</obj_property>
       <obj_property name="ObjectShortName">DP_Exec</obj_property>
    </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Station/WAIT0" type="logic">
-      <obj_property name="ElementShortName">WAIT0</obj_property>
-      <obj_property name="ObjectShortName">WAIT0</obj_property>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/DP_CondUnit/NoWrite" type="logic">
+      <obj_property name="ElementShortName">NoWrite</obj_property>
+      <obj_property name="ObjectShortName">NoWrite</obj_property>
    </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Station/WAIT1" type="logic">
-      <obj_property name="ElementShortName">WAIT1</obj_property>
-      <obj_property name="ObjectShortName">WAIT1</obj_property>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/DP_CondUnit/RegWrite" type="logic">
+      <obj_property name="ElementShortName">RegWrite</obj_property>
+      <obj_property name="ObjectShortName">RegWrite</obj_property>
    </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Station/BUSY1" type="logic">
-      <obj_property name="ElementShortName">BUSY1</obj_property>
-      <obj_property name="ObjectShortName">BUSY1</obj_property>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReorderBuffer/WE" type="logic">
+      <obj_property name="ElementShortName">WE</obj_property>
+      <obj_property name="ObjectShortName">WE</obj_property>
    </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ControlUnit/Instr" type="array">
-      <obj_property name="ElementShortName">Instr[31:0]</obj_property>
-      <obj_property name="ObjectShortName">Instr[31:0]</obj_property>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReorderBuffer/WA" type="array">
+      <obj_property name="ElementShortName">WA[3:0]</obj_property>
+      <obj_property name="ObjectShortName">WA[3:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ControlUnit/ALUSrc" type="logic">
-      <obj_property name="ElementShortName">ALUSrc</obj_property>
-      <obj_property name="ObjectShortName">ALUSrc</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ControlUnit/Operation" type="array">
-      <obj_property name="ElementShortName">Operation[4:0]</obj_property>
-      <obj_property name="ObjectShortName">Operation[4:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/DIReg/OpI" type="array">
-      <obj_property name="ElementShortName">OpI[4:0]</obj_property>
-      <obj_property name="ObjectShortName">OpI[4:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/Op" type="array">
-      <obj_property name="ElementShortName">Op[4:0]</obj_property>
-      <obj_property name="ObjectShortName">Op[4:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ALU/SrcA" type="array">
-      <obj_property name="ElementShortName">SrcA[31:0]</obj_property>
-      <obj_property name="ObjectShortName">SrcA[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ALU/SrcB" type="array">
-      <obj_property name="ElementShortName">SrcB[31:0]</obj_property>
-      <obj_property name="ObjectShortName">SrcB[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ALU/CFlag" type="logic">
-      <obj_property name="ElementShortName">CFlag</obj_property>
-      <obj_property name="ObjectShortName">CFlag</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ALU/Op" type="array">
-      <obj_property name="ElementShortName">Op[4:0]</obj_property>
-      <obj_property name="ObjectShortName">Op[4:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ALU/ALUResult" type="array">
-      <obj_property name="ElementShortName">ALUResult[31:0]</obj_property>
-      <obj_property name="ObjectShortName">ALUResult[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ALU/ALUFlags" type="array">
-      <obj_property name="ElementShortName">ALUFlags[3:0]</obj_property>
-      <obj_property name="ObjectShortName">ALUFlags[3:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ALU/N" type="logic">
-      <obj_property name="ElementShortName">N</obj_property>
-      <obj_property name="ObjectShortName">N</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ALU/Z" type="logic">
-      <obj_property name="ElementShortName">Z</obj_property>
-      <obj_property name="ObjectShortName">Z</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ALU/C" type="logic">
-      <obj_property name="ElementShortName">C</obj_property>
-      <obj_property name="ObjectShortName">C</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ALU/V" type="logic">
-      <obj_property name="ElementShortName">V</obj_property>
-      <obj_property name="ObjectShortName">V</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ALU/a" type="array">
-      <obj_property name="ElementShortName">a[31:0]</obj_property>
-      <obj_property name="ObjectShortName">a[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ALU/b" type="array">
-      <obj_property name="ElementShortName">b[31:0]</obj_property>
-      <obj_property name="ObjectShortName">b[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ALU/cin" type="logic">
-      <obj_property name="ElementShortName">cin</obj_property>
-      <obj_property name="ObjectShortName">cin</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ALU/adder_en" type="logic">
-      <obj_property name="ElementShortName">adder_en</obj_property>
-      <obj_property name="ObjectShortName">adder_en</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ALU/adder_op" type="logic">
-      <obj_property name="ElementShortName">adder_op</obj_property>
-      <obj_property name="ObjectShortName">adder_op</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ALU/cout" type="logic">
-      <obj_property name="ElementShortName">cout</obj_property>
-      <obj_property name="ObjectShortName">cout</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ALU/s" type="array">
-      <obj_property name="ElementShortName">s[31:0]</obj_property>
-      <obj_property name="ObjectShortName">s[31:0]</obj_property>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReorderBuffer/WD" type="array">
+      <obj_property name="ElementShortName">WD[31:0]</obj_property>
+      <obj_property name="ObjectShortName">WD[31:0]</obj_property>
    </wvobject>
 </wave_config>

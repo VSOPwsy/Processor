@@ -36,7 +36,7 @@ module ARMcore(
     );
     
 
-    wire    [143:0]     CDB;
+    wire    [147:0]     CDB;
 
     wire                ProgramCounter_EN;
     wire                ProgramCounter_PCSrc;
@@ -79,6 +79,7 @@ module ARMcore(
     wire                ReorderBuffer_full;
     wire    [2:0]       ReorderBuffer_ROBTail;
     wire    [3:0]       ReorderBuffer_DestReg;
+    wire                ReorderBuffer_WriteBack;
     wire    [3:0]       ReorderBuffer_WA;
     wire                ReorderBuffer_WE;
     wire    [31:0]      ReorderBuffer_WD;
@@ -105,6 +106,8 @@ module ARMcore(
     wire                DIReg_ALUSrcD;
     wire    [31:0]      DIReg_ExtImmD;
     wire    [3:0]       DIReg_CondD;
+    wire    [3:0]       DIReg_FlagWD;
+    wire                DIReg_NoWriteD;
     wire    [4:0]       DIReg_Shamt5D;
     wire    [1:0]       DIReg_ShD;
     wire                DIReg_MemWD;
@@ -119,6 +122,9 @@ module ARMcore(
     wire                DIReg_ALUSrcI;
     wire    [31:0]      DIReg_ExtImmI;
     wire    [3:0]       DIReg_CondI;
+    wire    [3:0]       DIReg_FlagWI;
+    wire                DIReg_RegWI;
+    wire                DIReg_NoWriteI;
     wire    [4:0]       DIReg_Shamt5I;
     wire    [1:0]       DIReg_ShI;
     wire                DIReg_MemWI;
@@ -137,9 +143,13 @@ module ARMcore(
     wire    [7:0]       ReservationStations_rrs_query;
     wire    [1:0]       ReservationStations_rrs_result_busy;
     wire    [5:0]       ReservationStations_rrs_index;
+    wire                ReservationStations_fs_flagready;
+    wire    [2:0]       ReservationStations_fs_index;
     wire                ReservationStations_ALUSrc;
     wire    [31:0]      ReservationStations_ExtImm;
     wire    [3:0]       ReservationStations_Cond;
+    wire    [3:0]       ReservationStations_FlagW;
+    wire                ReservationStations_NoWrite;
     wire    [4:0]       ReservationStations_Shamt5;
     wire    [1:0]       ReservationStations_Sh;
     wire    [3:0]       ReservationStations_RA1;
@@ -150,6 +160,9 @@ module ARMcore(
     wire    [2:0]       ReservationStations_ROBTail;
     wire                ReservationStations_DP_Exec;
     wire    [3:0]       ReservationStations_DP_Cond;
+    wire    [3:0]       ReservationStations_DP_FlagW;
+    wire                ReservationStations_DP_RegW;
+    wire                ReservationStations_DP_NoWrite;
     wire    [2:0]       ReservationStations_DP_WIndex;
     wire    [4:0]       ReservationStations_DP_Op;
     wire    [4:0]       ReservationStations_DP_Shamt5;
@@ -157,16 +170,31 @@ module ARMcore(
     wire    [31:0]      ReservationStations_DP_SrcA;
     wire    [31:0]      ReservationStations_DP_SrcB;
     wire                ReservationStations_DP_ALUSrc;
+    wire                ReservationStations_MEM_Exec;
+    wire    [3:0]       ReservationStations_MEM_Cond;
+    wire    [2:0]       ReservationStations_MEM_WIndex;
+    wire    [4:0]       ReservationStations_MEM_Op;
+    wire    [4:0]       ReservationStations_MEM_Shamt5;
+    wire    [1:0]       ReservationStations_MEM_Sh;
+    wire    [31:0]      ReservationStations_MEM_SrcA;
+    wire    [31:0]      ReservationStations_MEM_SrcB;
 
 
 
     wire    [7:0]       RegisterResultStatus_query;
     wire    [3:0]       RegisterResultStatus_WA;
+    wire                RegisterResultStatus_NoWrite;
     wire    [31:0]      RegisterResultStatus_append;
     wire    [2:0]       RegisterResultStatus_ROBTail;
     wire    [1:0]       RegisterResultStatus_result_busy;
     wire    [5:0]       RegisterResultStatus_index;
 
+
+    wire                FlagStatus_append;
+    wire                FlagStatus_S;
+    wire    [2:0]       FlagStatus_ROBTail;
+    wire                FlagStatus_FlagReady;
+    wire    [2:0]       FlagStatus_index;
 
 
     wire                DP_IEReg_EN;
@@ -174,6 +202,7 @@ module ARMcore(
     wire                DP_IEReg_ExecI;
     wire    [3:0]       DP_IEReg_CondI;
     wire    [3:0]       DP_IEReg_FlagWI;
+    wire                DP_IEReg_RegWI;
     wire    [2:0]       DP_IEReg_WIndexI;
     wire    [31:0]      DP_IEReg_SrcAI;
     wire    [31:0]      DP_IEReg_SrcBI;
@@ -185,6 +214,7 @@ module ARMcore(
     wire                DP_IEReg_ExecE;
     wire    [3:0]       DP_IEReg_CondE;
     wire    [3:0]       DP_IEReg_FlagWE;
+    wire                DP_IEReg_RegWE;
     wire    [2:0]       DP_IEReg_WIndexE;
     wire    [31:0]      DP_IEReg_SrcAE;
     wire    [31:0]      DP_IEReg_SrcBE;
@@ -198,9 +228,11 @@ module ARMcore(
     wire    [3:0]       DP_CondUnit_Cond;
     wire    [3:0]       DP_CondUnit_Op;
     wire    [3:0]       DP_CondUnit_FlagW;
+    wire                DP_CondUnit_RegW;
     wire    [3:0]       DP_CondUnit_ALUFlags;
     wire                DP_CondUnit_ShifterCarry;
     wire                DP_CondUnit_NoWrite;
+    wire                DP_CondUnit_RegWrite;
     wire                DP_CondUnit_CFlag;
 
 
@@ -226,6 +258,32 @@ module ARMcore(
     wire    [2:0]       DP_EWReg_WIndexW;
 
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////  Memory Pipline
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    wire                MEM_IEReg_EN;
+    wire                MEM_IEReg_CLR;
+    wire                MEM_IEReg_ExecI;
+    wire    [3:0]       MEM_IEReg_CondI;
+    wire    [2:0]       MEM_IEReg_WIndexI;
+    wire    [4:0]       MEM_IEReg_OpI;
+    wire    [31:0]      MEM_IEReg_SrcAI;
+    wire    [31:0]      MEM_IEReg_SrcBI;
+    wire    [1:0]       MEM_IEReg_ShI;
+    wire    [4:0]       MEM_IEReg_Shamt5I;
+    wire                MEM_IEReg_ExecE;
+    wire    [3:0]       MEM_IEReg_CondE;
+    wire    [2:0]       MEM_IEReg_WIndexE;
+    wire    [4:0]       MEM_IEReg_OpE;
+    wire    [31:0]      MEM_IEReg_SrcAE;
+    wire    [31:0]      MEM_IEReg_SrcBE;
+    wire    [1:0]       MEM_IEReg_ShE;
+    wire    [4:0]       MEM_IEReg_Shamt5E;
+
+
+
+
     
     assign  PC  =   ProgramCounter_PC;
 
@@ -241,6 +299,7 @@ module ARMcore(
 
     assign  ReorderBuffer_append    =   ReservationStations_Issue;
     assign  ReorderBuffer_DestReg   =   DIReg_WA3I;
+    assign  ReorderBuffer_WriteBack =   DP_CondUnit_RegWrite;
 
     assign  RegisterFile_WE3    =   ReorderBuffer_WE;
     assign  RegisterFile_WD3    =   ReorderBuffer_WD;
@@ -253,12 +312,15 @@ module ARMcore(
     assign  DIReg_EN    =   ~(ReorderBuffer_full | ReservationStations_full);
     assign  DIReg_IssueD=   ControlUnit_Issue;
     assign  DIReg_OpD   =   ControlUnit_Operation;
-    assign  DIReg_RA1D  =   ControlUnit_RegSrc[2] ? FDReg_InstrD[11:8] : ControlUnit_RegSrc[0] ? 4'd15 : FDReg_InstrD[19:16];;
-    assign  DIReg_RA2D  =   ControlUnit_RegSrc[2] ? FDReg_InstrD[3:0] : ControlUnit_RegSrc[1] ? FDReg_InstrD[15:12] : FDReg_InstrD[3:0];;
+    assign  DIReg_RA1D  =   ControlUnit_RegSrc[2] ? FDReg_InstrD[11:8] : ControlUnit_RegSrc[0] ? 4'd15 : FDReg_InstrD[19:16];
+    assign  DIReg_RA2D  =   ControlUnit_RegSrc[2] ? FDReg_InstrD[3:0] : ControlUnit_RegSrc[1] ? FDReg_InstrD[15:12] : FDReg_InstrD[3:0];
     assign  DIReg_WA3D  =   ControlUnit_RegSrc[2] ? FDReg_InstrD[19:16] : FDReg_InstrD[15:12];
     assign  DIReg_ALUSrcD    =   ControlUnit_ALUSrc;
     assign  DIReg_ExtImmD   =   Extend_ExtImm;
     assign  DIReg_CondD =   FDReg_InstrD[31:28];
+    assign  DIReg_FlagWD =  ControlUnit_FlagW;
+    assign  DIReg_RegWD =   ControlUnit_RegW;
+    assign  DIReg_NoWriteD  =   ControlUnit_NoWrite;
     assign  DIReg_Shamt5D   =   FDReg_InstrD[11:7];
     assign  DIReg_ShD   =   FDReg_InstrD[6:5];
     assign  DIReg_MemWD =   ControlUnit_MemW;
@@ -274,9 +336,14 @@ module ARMcore(
     assign  ReservationStations_FPS     =   DIReg_FPSI;
     assign  ReservationStations_rrs_result_busy =   RegisterResultStatus_result_busy;
     assign  ReservationStations_rrs_index   =   RegisterResultStatus_index;
+    assign  ReservationStations_fs_flagready=   FlagStatus_FlagReady;
+    assign  ReservationStations_fs_index    =   FlagStatus_index;
     assign  ReservationStations_ALUSrc       =   DIReg_ALUSrcI;
     assign  ReservationStations_ExtImm  =   DIReg_ExtImmI;
     assign  ReservationStations_Cond    =   DIReg_CondI;
+    assign  ReservationStations_FlagW   =   DIReg_FlagWI;
+    assign  ReservationStations_RegW    =   DIReg_RegWI;
+    assign  ReservationStations_NoWrite =   DIReg_NoWriteI;
     assign  ReservationStations_Shamt5  =   DIReg_Shamt5I;
     assign  ReservationStations_Sh      =   DIReg_ShI;
     assign  ReservationStations_RA1     =   DIReg_RA1I;
@@ -289,17 +356,26 @@ module ARMcore(
 
     assign  RegisterResultStatus_query  =   ReservationStations_rrs_query;
     assign  RegisterResultStatus_WA     =   DIReg_WA3I;
+    assign  RegisterResultStatus_NoWrite=   DIReg_NoWriteI;
     assign  RegisterResultStatus_append =   ReservationStations_Issue;
     assign  RegisterResultStatus_ROBTail=   ReorderBuffer_ROBTail;
 
+    assign  FlagStatus_append   =   ReservationStations_Issue;
+    assign  FlagStatus_S        =   |DIReg_FlagWI;
+    assign  FlagStatus_ROBTail  =   ReorderBuffer_ROBTail;
 
 
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////  Data Processing Pipline
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     assign  DP_IEReg_EN            =   ReservationStations_DP_Exec;
     assign  DP_IEReg_CLR           =   1'b0;
-    assign  DP_IEReg_ExecI          =   ReservationStations_DP_Exec;
-    assign  DP_IEReg_CondI         =   ReservationStations_Cond;
-    assign  DP_IEReg_FlagWI        =   ControlUnit_FlagW;
+    assign  DP_IEReg_ExecI         =   ReservationStations_DP_Exec;
+    assign  DP_IEReg_CondI         =   ReservationStations_DP_Cond;
+    assign  DP_IEReg_FlagWI        =   ReservationStations_DP_FlagW;
+    assign  DP_IEReg_RegWI         =   ReservationStations_DP_RegW;
     assign  DP_IEReg_WIndexI       =   ReservationStations_DP_WIndex;
     assign  DP_IEReg_SrcAI         =   ReservationStations_DP_SrcA;
     assign  DP_IEReg_SrcBI         =   ReservationStations_DP_SrcB;
@@ -307,7 +383,7 @@ module ARMcore(
     assign  DP_IEReg_Shamt5I       =   ReservationStations_DP_Shamt5;
     assign  DP_IEReg_ALUSrcI       =   ReservationStations_DP_ALUSrc;
     assign  DP_IEReg_OpI           =   ReservationStations_DP_Op;
-    assign  DP_IEReg_NoWriteI      =   ControlUnit_NoWrite;
+    assign  DP_IEReg_NoWriteI      =   ReservationStations_DP_NoWrite;
 
 
     
@@ -315,6 +391,16 @@ module ARMcore(
     assign  DP_Shifter_Shamt5  =   DP_IEReg_Shamt5E;
     assign  DP_Shifter_ShIn    =   DP_IEReg_SrcBE;
     assign  DP_Shifter_CFlag   =   DP_CondUnit_CFlag;
+
+
+
+    assign  DP_CondUnit_Cond    =   DP_IEReg_CondE;
+    assign  DP_CondUnit_Op      =   DP_IEReg_OpE;
+    assign  DP_CondUnit_FlagW   =   DP_IEReg_FlagWE;
+    assign  DP_CondUnit_RegW    =   DP_IEReg_RegWE;
+    assign  DP_CondUnit_ALUFlags=   ALU_ALUFlags;
+    assign  DP_CondUnit_ShifterCarry=DP_Shifter_Carry;
+    assign  DP_CondUnit_NoWrite =   DP_IEReg_NoWriteE;
 
 
     assign  ALU_SrcA        =   DP_IEReg_SrcAE;
@@ -326,6 +412,31 @@ module ARMcore(
     assign  DP_EWReg_ExecE         =   DP_IEReg_ExecE;
     assign  DP_EWReg_ALUResultE    =   ALU_ALUResult;
     assign  DP_EWReg_WIndexE       =   DP_IEReg_WIndexE;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////  Memory Pipline
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    assign  MEM_IEReg_EN            =   ReservationStations_MEM_Exec;
+    assign  MEM_IEReg_CLR           =   1'b0;
+    assign  MEM_IEReg_CondI         =   ReservationStations_MEM_Cond;
+    assign  MEM_IEReg_ExecI         =   ReservationStations_MEM_Exec;
+    assign  MEM_IEReg_WIndexI       =   ReservationStations_MEM_WIndex;
+    assign  MEM_IEReg_OpI           =   ReservationStations_MEM_Op;
+    assign  MEM_IEReg_SrcAI         =   ReservationStations_MEM_SrcA;
+    assign  MEM_IEReg_SrcBI         =   ReservationStations_MEM_SrcB;
+    assign  MEM_IEReg_ShI           =   ReservationStations_MEM_Sh;
+    assign  MEM_IEReg_Shamt5I       =   ReservationStations_MEM_Shamt5;
+
+
+
+
+
 
 
 
@@ -335,7 +446,7 @@ module ARMcore(
 
     assign  CDB[35:0] = {ALU_ALUResult, DP_IEReg_ExecE, DP_IEReg_WIndexE};
 
-
+    assign  CDB[147:144] = {|DP_IEReg_FlagWE, DP_IEReg_WIndexE};
 
 
 
@@ -350,7 +461,6 @@ module ARMcore(
         .PC         (ProgramCounter_PC          ),
         .PCPlus4    (ProgramCounter_PCPlus4     ));
 
-
     FDReg FDReg(
         .CLK(CLK),
         .Reset(Reset),
@@ -359,8 +469,6 @@ module ARMcore(
         .InstrF(FDReg_InstrF),
         .InstrD(FDReg_InstrD)
     );
-
-
 
     ControlUnit ControlUnit(
         .Instr      (ControlUnit_Instr      ),
@@ -395,6 +503,7 @@ module ARMcore(
         .ROBTail(ReorderBuffer_ROBTail),
         .CDB(CDB),
         .DestReg(ReorderBuffer_DestReg),
+        .WriteBack(ReorderBuffer_WriteBack),
         .WA(ReorderBuffer_WA),
         .WE(ReorderBuffer_WE),
         .WD(ReorderBuffer_WD)
@@ -413,6 +522,9 @@ module ARMcore(
         .ALUSrcD     (DIReg_ALUSrcD),
         .ExtImmD(DIReg_ExtImmD),
         .CondD(DIReg_CondD),
+        .FlagWD(DIReg_FlagWD),
+        .RegWD(DIReg_RegWD),
+        .NoWriteD(DIReg_NoWriteD),
         .Shamt5D(DIReg_Shamt5D),
         .ShD(DIReg_ShD),
         .MemWD  (DIReg_MemWD),
@@ -427,6 +539,9 @@ module ARMcore(
         .ALUSrcI     (DIReg_ALUSrcI),
         .ExtImmI(DIReg_ExtImmI),
         .CondI(DIReg_CondI),
+        .FlagWI(DIReg_FlagWI),
+        .RegWI(DIReg_RegWI),
+        .NoWriteI(DIReg_NoWriteI),
         .MemWI  (DIReg_MemWI),
         .MemtoRegI  (DIReg_MemtoRegI),
         .MULSI  (DIReg_MULSI),
@@ -465,9 +580,14 @@ module ARMcore(
         .rrs_query(ReservationStations_rrs_query),
         .rrs_result_busy(ReservationStations_rrs_result_busy),
         .rrs_index(ReservationStations_rrs_index),
+        .fs_flagready(ReservationStations_fs_flagready),
+        .fs_index(ReservationStations_fs_index),
         .ALUSrc(ReservationStations_ALUSrc),
         .ExtImm(ReservationStations_ExtImm),
         .Cond(ReservationStations_Cond),
+        .FlagW(ReservationStations_FlagW),
+        .RegW(ReservationStations_RegW),
+        .NoWrite(ReservationStations_NoWrite),
         .Shamt5(ReservationStations_Shamt5),
         .Sh(ReservationStations_Sh),
         .RA1(ReservationStations_RA1),
@@ -476,15 +596,26 @@ module ARMcore(
         .RD2(ReservationStations_RD2),
         .Op(ReservationStations_Op),
         .ROBTail(ReservationStations_ROBTail),
-        .DP_Exec(ReservationStations_DP_Exec),
-        .DP_Cond(ReservationStations_DP_Cond),
-        .DP_WIndex(ReservationStations_DP_WIndex),
-        .DP_Op(ReservationStations_DP_Op),
-        .DP_Shamt5(ReservationStations_DP_Shamt5),
-        .DP_Sh(ReservationStations_DP_Sh),
-        .DP_SrcA(ReservationStations_DP_SrcA),
-        .DP_SrcB(ReservationStations_DP_SrcB),
-        .DP_ALUSrc(ReservationStations_DP_ALUSrc)
+        .DP_Exec    (ReservationStations_DP_Exec),
+        .DP_Cond    (ReservationStations_DP_Cond),
+        .DP_FlagW   (ReservationStations_DP_FlagW),
+        .DP_RegW    (ReservationStations_DP_RegW),
+        .DP_NoWrite (ReservationStations_DP_NoWrite),
+        .DP_WIndex  (ReservationStations_DP_WIndex),
+        .DP_Op      (ReservationStations_DP_Op),
+        .DP_Shamt5  (ReservationStations_DP_Shamt5),
+        .DP_Sh      (ReservationStations_DP_Sh),
+        .DP_SrcA    (ReservationStations_DP_SrcA),
+        .DP_SrcB    (ReservationStations_DP_SrcB),
+        .DP_ALUSrc  (ReservationStations_DP_ALUSrc),
+        .MEM_Exec    (ReservationStations_MEM_Exec),
+        .MEM_Cond    (ReservationStations_MEM_Cond),
+        .MEM_WIndex  (ReservationStations_MEM_WIndex),
+        .MEM_Op      (ReservationStations_MEM_Op),
+        .MEM_Shamt5  (ReservationStations_MEM_Shamt5),
+        .MEM_Sh      (ReservationStations_MEM_Sh),
+        .MEM_SrcA    (ReservationStations_MEM_SrcA),
+        .MEM_SrcB    (ReservationStations_MEM_SrcB)
     );
         
 
@@ -495,6 +626,7 @@ module ARMcore(
         .CDB(CDB),
         .query(RegisterResultStatus_query),
         .WA(RegisterResultStatus_WA),
+        .NoWrite(RegisterResultStatus_NoWrite),
         .append(RegisterResultStatus_append),
         .ROBTail(RegisterResultStatus_ROBTail),
         .result_busy(RegisterResultStatus_result_busy),
@@ -502,7 +634,21 @@ module ARMcore(
     );
 
 
+    FlagStatus FlagStatus(
+        .CLK(CLK),
+        .Reset(Reset),
+        .CDB(CDB),
+        .append(FlagStatus_append),
+        .S(FlagStatus_S),
+        .ROBTail(FlagStatus_ROBTail),
+        .FlagReady(FlagStatus_FlagReady),
+        .index(FlagStatus_index)
+    );
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////  Data Processing Pipline
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     DP_IEReg DP_IEReg(
         .CLK            (CLK                ),
         .Reset          (Reset              ),
@@ -511,6 +657,7 @@ module ARMcore(
         .ExecI          (DP_IEReg_ExecI        ),
         .CondI          (DP_IEReg_CondI        ),
         .FlagWI         (DP_IEReg_FlagWI       ),
+        .RegWI          (DP_IEReg_RegWI        ),
         .WIndexI        (DP_IEReg_WIndexI      ),
         .SrcAI          (DP_IEReg_SrcAI        ),
         .SrcBI          (DP_IEReg_SrcBI        ),
@@ -523,6 +670,7 @@ module ARMcore(
         .ExecE          (DP_IEReg_ExecE        ),
         .CondE          (DP_IEReg_CondE        ),
         .FlagWE         (DP_IEReg_FlagWE       ),
+        .RegWE          (DP_IEReg_RegWE        ),
         .WIndexE        (DP_IEReg_WIndexE      ),
         .SrcAE          (DP_IEReg_SrcAE        ),
         .SrcBE          (DP_IEReg_SrcBE        ),
@@ -539,9 +687,11 @@ module ARMcore(
         .Cond       (DP_CondUnit_Cond      ),
         .Op (DP_CondUnit_Op),
         .FlagW      (DP_CondUnit_FlagW     ),
+        .RegW       (DP_CondUnit_RegW),
         .ALUFlags   (DP_CondUnit_ALUFlags  ),
         .ShifterCarry(DP_CondUnit_ShifterCarry),
         .NoWrite    (DP_CondUnit_NoWrite   ),
+        .RegWrite   (DP_CondUnit_RegWrite),
         .CFlag      (DP_CondUnit_CFlag     ));
 
 
@@ -575,6 +725,36 @@ module ARMcore(
         .ALUResultW(DP_EWReg_ALUResultW),
         .WIndexW(DP_EWReg_WIndexW)
     );
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////  Memory Pipline
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    MEM_IEReg MEM_IEReg(
+        .CLK            (CLK                ),
+        .Reset          (Reset              ),
+        .EN             (MEM_IEReg_EN           ),
+        .CLR            (MEM_IEReg_CLR          ),
+        .ExecI          (MEM_IEReg_ExecI        ),
+        .CondI          (MEM_IEReg_CondI        ),
+        .WIndexI        (MEM_IEReg_WIndexI      ),
+        .OpI            (MEM_IEReg_OpI          ),
+        .SrcAI          (MEM_IEReg_SrcAI        ),
+        .SrcBI          (MEM_IEReg_SrcBI        ),
+        .ShI            (MEM_IEReg_ShI          ),
+        .Shamt5I        (MEM_IEReg_Shamt5I      ),
+        
+        .ExecE          (MEM_IEReg_ExecE        ),
+        .CondE          (MEM_IEReg_CondE        ),
+        .WIndexE        (MEM_IEReg_WIndexE      ),
+        .OpE            (MEM_IEReg_OpE          ),
+        .SrcAE          (MEM_IEReg_SrcAE        ),
+        .SrcBE          (MEM_IEReg_SrcBE        ),
+        .ShE            (MEM_IEReg_ShE          ),
+        .Shamt5E        (MEM_IEReg_Shamt5E      ));
 
 endmodule

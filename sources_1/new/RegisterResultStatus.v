@@ -4,6 +4,7 @@ module RegisterResultStatus(
     input [143:0] CDB,
     input [7:0] query,
     input [3:0] WA,
+    input NoWrite,
     input append,
     input [2:0] ROBTail,
     output reg [1:0] result_busy,
@@ -24,7 +25,7 @@ module RegisterResultStatus(
             BUSY = 0;
         end
         else begin
-            if (append) begin
+            if (append & ~NoWrite) begin
                 BUSY[WA] <= 1;
                 INDEX[WA] <= ROBTail;
             end
