@@ -14,6 +14,7 @@
 
 module ControlUnit(
     input [31:0] Instr,
+    output reg Issue,
     output reg [3:0] FlagW,
     output PCS,
     output reg RegW,
@@ -23,11 +24,11 @@ module ControlUnit(
     output reg ALUSrc,
     output reg [1:0] ImmSrc,
     output reg [3:0] RegSrc,
-    output reg [3:0] ALUControl,
+    output reg [4:0] Operation,
     output reg MS,
     output reg MCycleOp,
-    output reg FPUOp,
-    output reg FPUS
+    output reg FPOp,
+    output reg FPS
     );
     
     reg Branch;
@@ -56,8 +57,9 @@ module ControlUnit(
         ALUOp = 2'b00;
         MS = 1'b0;
         MCycleOp = 1'b0;
-        FPUOp = 1'b0;
-        FPUS = 1'b0;
+        FPOp = 1'b0;
+        FPS = 1'b0;
+        Issue = |Instr;
         casex (Op)
             2'b00: begin: _DP
                 casex (Funct)
@@ -66,29 +68,29 @@ module ControlUnit(
                             Branch = 1'b0;
                             MemtoReg = 1'b0;
                             MemW = 1'b0;
-                            ALUSrc = 2'b10;
+                            ALUSrc = 1'b0;
                             ImmSrc = 2'b00;
                             RegW = 1'b0;
                             RegSrc = 3'b100;
                             ALUOp = 2'b11;
                             MS = 1'b1;
                             MCycleOp = 1'b0;
-                            FPUOp = 1'b0;
-                            FPUS = 1'b0;
+                            FPOp = 1'b0;
+                            FPS = 1'b0;
                         end
                         else begin: _DP_reg
                             Branch = 1'b0;
                             MemtoReg = 1'b0;
                             MemW = 1'b0;
-                            ALUSrc = 2'b00;
+                            ALUSrc = 1'b0;
                             ImmSrc = 2'b00;
                             RegW = 1'b1;
                             RegSrc = 3'b000;
                             ALUOp = 2'b11;
                             MS = 1'b0;
                             MCycleOp = 1'b0;
-                            FPUOp = 1'b0;
-                            FPUS = 1'b0;
+                            FPOp = 1'b0;
+                            FPS = 1'b0;
                         end
                     end
                     
@@ -103,8 +105,8 @@ module ControlUnit(
                         ALUOp = 2'b11;
                         MS = 1'b0;
                         MCycleOp = 1'b0;
-                        FPUOp = 1'b0;
-                        FPUS = 1'b0;
+                        FPOp = 1'b0;
+                        FPS = 1'b0;
                     end
                 endcase
             end
@@ -122,8 +124,8 @@ module ControlUnit(
                         ALUOp = 2'b01;
                         MS = 1'b0;
                         MCycleOp = 1'b0;
-                        FPUOp = 1'b0;
-                        FPUS = 1'b0;
+                        FPOp = 1'b0;
+                        FPS = 1'b0;
                     end
                     
                     6'bXXXXX1: begin
@@ -131,29 +133,29 @@ module ControlUnit(
                             Branch = 1'b0;
                             MemtoReg = 1'b0;
                             MemW = 1'b0;
-                            ALUSrc = 2'b10;
+                            ALUSrc = 1'b0;
                             ImmSrc = 2'b01;
                             RegW = 1'b0;
                             RegSrc = 3'b100;
                             ALUOp = 2'b11;
                             MS = 1'b1;
                             MCycleOp = 1'b1;
-                            FPUOp = 1'b0;
-                            FPUS = 1'b0;
+                            FPOp = 1'b0;
+                            FPS = 1'b0;
                         end
                         else begin: _LDR
                             Branch = 1'b0;
                             MemtoReg = 1'b1;
                             MemW = 1'b0;
-                            ALUSrc = {1'b0, ~I_bar};
+                            ALUSrc = ~I_bar;
                             ImmSrc = 2'b01;
                             RegW = 1'b1;
                             RegSrc = 3'b000;
                             ALUOp = 2'b01;
                             MS = 1'b0;
                             MCycleOp = 1'b0;
-                            FPUOp = 1'b0;
-                            FPUS = 1'b0;
+                            FPOp = 1'b0;
+                            FPS = 1'b0;
                         end
                     end
                 endcase
@@ -172,8 +174,8 @@ module ControlUnit(
                         ALUOp = 2'b00;
                         MS = 1'b0;
                         MCycleOp = 1'b0;
-                        FPUOp = 1'b0;
-                        FPUS = 1'b0;
+                        FPOp = 1'b0;
+                        FPS = 1'b0;
                     end
                 endcase
             end
@@ -191,8 +193,8 @@ module ControlUnit(
                         ALUOp = 2'b00;
                         MS = 1'b0;
                         MCycleOp = 1'b0;
-                        FPUOp = 1'b0;
-                        FPUS = 1'b1;
+                        FPOp = 1'b0;
+                        FPS = 1'b1;
                     end
                 endcase
             end
@@ -202,17 +204,17 @@ module ControlUnit(
     
     
     always @(*) begin
-        ALUControl = `ADD;
+        Operation = `ADD;
         FlagW = 4'b0000;
         NoWrite = 1'b0;
 
         if (MS) begin
-            ALUControl = `ADD;
+            Operation = MCycleOp ? `DIV : `MUL;
             FlagW = 4'b0000;
             NoWrite = 1'b0;
         end
-        else if (FPUS) begin
-            ALUControl = `ADD;
+        else if (FPS) begin
+            Operation = FPOp ? `FMUL : `FADD;
             FlagW = 4'b0000;
             NoWrite = 1'b0;
         end
@@ -221,101 +223,101 @@ module ControlUnit(
                 2'b11: begin
                     case (Funct[4:1])
                         `AND: begin
-                            ALUControl = `AND;
+                            Operation = `AND;
                             FlagW = Funct[0] ? 4'b1110 : 4'b0000;
                             NoWrite = 1'b0;
                         end
                         
                         `EOR: begin
-                            ALUControl = `EOR;
+                            Operation = `EOR;
                             FlagW = Funct[0] ? 4'b1110 : 4'b0000;
                             NoWrite = 1'b0;
                         end
                         
                         `SUB: begin
-                            ALUControl = `SUB;
+                            Operation = `SUB;
                             FlagW = Funct[0] ? 4'b1111 : 4'b0000;
                             NoWrite = 1'b0;
                         end
                         
                         `RSB: begin
-                            ALUControl = `RSB;
+                            Operation = `RSB;
                             FlagW = Funct[0] ? 4'b1111 : 4'b0000;
                             NoWrite = 1'b0;
                         end
                         
                         `ADD: begin
-                            ALUControl = `ADD;
+                            Operation = `ADD;
                             FlagW = Funct[0] ? 4'b1111 : 4'b0000;
                             NoWrite = 1'b0;
                         end
                         
                         `ADC: begin
-                            ALUControl = `ADC;
+                            Operation = `ADC;
                             FlagW = Funct[0] ? 4'b1111 : 4'b0000;
                             NoWrite = 1'b0;
                         end
                         
                         `SBC: begin
-                            ALUControl = `SBC;
+                            Operation = `SBC;
                             FlagW = Funct[0] ? 4'b1111 : 4'b0000;
                             NoWrite = 1'b0;
                         end
                         
                         `RSC: begin
-                            ALUControl = `RSC;
+                            Operation = `RSC;
                             FlagW = Funct[0] ? 4'b1111 : 4'b0000;
                             NoWrite = 1'b0;
                         end
                         
                         `TST: begin
                             if (Funct[0])   // TST with S bit clear is not a DP instruction
-                                ALUControl = `TST;
+                                Operation = `TST;
                                 FlagW = Funct[0] ? 4'b1110 : 4'b0000;
                                 NoWrite = 1'b1;
                         end
                         
                         `TEQ: begin
                             if (Funct[0])   // TEQ with S bit clear is not a DP instruction
-                                ALUControl = `TEQ;
+                                Operation = `TEQ;
                             FlagW = Funct[0] ? 4'b1110 : 4'b0000;
                             NoWrite = 1'b1;
                         end
                         
                         `CMP: begin
                             if (Funct[0])   // CMP with S bit clear is not a DP instruction
-                                ALUControl = `CMP;
+                                Operation = `CMP;
                             FlagW = Funct[0] ? 4'b1111 : 4'b0000;
                             NoWrite = 1'b1;
                         end
                         
                         `CMN: begin
                             if (Funct[0])   // CMN with S bit clear is not a DP instruction
-                                ALUControl = `CMN;
+                                Operation = `CMN;
                             FlagW = Funct[0] ? 4'b1111 : 4'b0000;
                             NoWrite = 1'b1;
                         end
                         
                         `ORR: begin
-                            ALUControl = `ORR;
+                            Operation = `ORR;
                             FlagW = Funct[0] ? 4'b1110 : 4'b0000;
                             NoWrite = 1'b0;
                         end
                         
                         `MOV: begin
-                            ALUControl = `MOV;
+                            Operation = `MOV;
                             FlagW = Funct[0] ? 4'b1110 : 4'b0000;
                             NoWrite = 1'b0;
                         end
                         
                         `BIC: begin
-                            ALUControl = `BIC;
+                            Operation = `BIC;
                             FlagW = Funct[0] ? 4'b1110 : 4'b0000;
                             NoWrite = 1'b0;
                         end
                         
                         `MVN: begin
-                            ALUControl = `MVN;
+                            Operation = `MVN;
                             FlagW = Funct[0] ? 4'b1110 : 4'b0000;
                             NoWrite = 1'b0;
                         end
@@ -325,13 +327,13 @@ module ControlUnit(
                 2'b01: begin: _Mem_offset
                     casex (Funct[4:1])
                         4'bX1XX: begin
-                            ALUControl = `ADD;
+                            Operation = `ADD;
                             FlagW = 4'b0000;
                             NoWrite = 1'b0;
                         end
                         
                         4'bX0XX: begin
-                            ALUControl = `SUB;
+                            Operation = `SUB;
                             FlagW = 4'b0000;
                             NoWrite = 1'b0;
                         end
@@ -339,7 +341,7 @@ module ControlUnit(
                 end
                 
                 2'b00: begin: _Branch_
-                    ALUControl = `ADD;
+                    Operation = `ADD;
                     FlagW = 4'b0000;
                     NoWrite = 1'b0;
                 end

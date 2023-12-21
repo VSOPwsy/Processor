@@ -10,7 +10,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module CondUnit(
+module DP_CondUnit(
     input CLK,
     input Reset,
     input [3:0] FlagW,
@@ -18,7 +18,7 @@ module CondUnit(
     input RegW,
     input MemW,
     input [3:0] Cond,
-    input [3:0] ALUControl,
+    input [3:0] Op,
     input [3:0] ALUFlags,
     input ShifterCarry,
     input NoWrite,
@@ -57,8 +57,8 @@ module CondUnit(
             N <= FlagWrite[3] ? ALUFlags[3] : N;
             Z <= FlagWrite[2] ? ALUFlags[2] : Z;
             if (FlagWrite[1]) begin
-                if (ALUControl == `AND || ALUControl == `EOR || ALUControl == `TST || ALUControl == `TEQ || 
-                    ALUControl == `ORR || ALUControl == `MOV || ALUControl == `BIC || ALUControl == `MVN)
+                if (Op == `AND || Op == `EOR || Op == `TST || Op == `TEQ || 
+                    Op == `ORR || Op == `MOV || Op == `BIC || Op == `MVN)
                     C <= ShifterCarry;
                 else
                     C <= ALUFlags[1];

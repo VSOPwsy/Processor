@@ -35,51 +35,8 @@ module ARMcore(
     input               Mem_ReadReady
     );
     
-    
-    wire    [3:0]       HazardUnit_RA1D;
-    wire    [3:0]       HazardUnit_RA2D;
-    wire    [3:0]       HazardUnit_RA1E;
-    wire    [3:0]       HazardUnit_RA2E;
-    wire    [3:0]       HazardUnit_RA2M;
-    wire    [3:0]       HazardUnit_WA3D;
-    wire    [3:0]       HazardUnit_WA3E;
-    wire    [3:0]       HazardUnit_WA3M;
-    wire    [3:0]       HazardUnit_WA3W;
-    wire                HazardUnit_RegWriteE;
-    wire                HazardUnit_RegWriteM;
-    wire                HazardUnit_RegWriteW;
-    wire                HazardUnit_MemWriteM;
-    wire                HazardUnit_MemtoRegE;
-    wire                HazardUnit_MemtoRegW;
-    wire                HazardUnit_MemtoRegM;
-    wire                HazardUnit_dec_mem;
-    wire                HazardUnit_PCSrcE;
-    wire    [3:0]       HazardUnit_MCycleWA3;
-    wire                HazardUnit_MCycleDone;
-    wire                HazardUnit_MCycleBusy;
-    wire                HazardUnit_MStart;
-    wire                HazardUnit_MS;
-    wire    [3:0]       HazardUnit_FPUWA3;
-    wire                HazardUnit_FPUDone;
-    wire                HazardUnit_FPUBusy;
-    wire                HazardUnit_FPUStart;
-    wire                HazardUnit_FPUS;
-    wire                HazardUnit_Cache_ReadReady;
-    wire                HazardUnit_RW;
-    wire                HazardUnit_Mem_ReadReady;
-    // Output
-    wire    [2:0]       HazardUnit_ForwardAE;
-    wire    [2:0]       HazardUnit_ForwardBE;
-    wire                HazardUnit_ForwardM;
-    wire                HazardUnit_StallF;
-    wire                HazardUnit_StallD;
-    wire                HazardUnit_StallE;
-    wire                HazardUnit_StallM;
-    wire                HazardUnit_StallW;
-    wire                HazardUnit_FlushD;
-    wire                HazardUnit_FlushE;
-    wire                HazardUnit_MCycleHazard;
-    wire                HazardUnit_FPUHazard;
+
+    wire    [143:0]     CDB;
 
     wire                ProgramCounter_EN;
     wire                ProgramCounter_PCSrc;
@@ -89,12 +46,14 @@ module ARMcore(
 
 
     wire                FDReg_EN;
-    wire                FDReg_CLR;
     wire    [31:0]      FDReg_InstrF;
     wire    [31:0]      FDReg_InstrD;
 
+
+
     wire    [31:0]      ControlUnit_Instr;
-    wire    [3:0]       ControlUnit_ALUControl;
+    wire                ControlUnit_Issue;
+    wire    [4:0]       ControlUnit_Operation;
     wire                ControlUnit_ALUSrc;
     wire    [1:0]       ControlUnit_ImmSrc;
     wire                ControlUnit_MemW;
@@ -106,413 +65,306 @@ module ARMcore(
     wire                ControlUnit_NoWrite;
     wire                ControlUnit_MS;
     wire                ControlUnit_MCycleOp;
-    wire                ControlUnit_FPUS;
-    wire                ControlUnit_FPUOp;
+    wire                ControlUnit_FPS;
+    wire                ControlUnit_FPOp;
 
-    wire                RegisterFile_WE3;
+
+    
+    wire    [1:0]       Extend_ImmSrc;
+    wire    [23:0]      Extend_InstrImm;
+    wire    [31:0]      Extend_ExtImm;
+
+
+    wire                ReorderBuffer_append;
+    wire                ReorderBuffer_full;
+    wire    [2:0]       ReorderBuffer_ROBTail;
+    wire    [3:0]       ReorderBuffer_DestReg;
+    wire    [3:0]       ReorderBuffer_WA;
+    wire                ReorderBuffer_WE;
+    wire    [31:0]      ReorderBuffer_WD;
+
+
+
+
     wire    [3:0]       RegisterFile_A1;
     wire    [3:0]       RegisterFile_A2;
     wire    [3:0]       RegisterFile_A3;
+    wire                RegisterFile_WE3;
     wire    [31:0]      RegisterFile_WD3;
     wire    [31:0]      RegisterFile_R15;
     wire    [31:0]      RegisterFile_RD1;
     wire    [31:0]      RegisterFile_RD2;
 
-    wire    [1:0]       Extend_ImmSrc;
-    wire    [23:0]      Extend_InstrImm;
-    wire    [31:0]      Extend_ExtImm;
 
-    wire                DEReg_EN;
-    wire                DEReg_CLR;
-    wire    [3:0]       DEReg_CondD;
-    wire    [3:0]       DEReg_FlagWD;
-    wire                DEReg_PCSD;
-    wire                DEReg_RegWD;
-    wire                DEReg_MemWD;
-    wire                DEReg_MemtoRegD;
-    wire    [3:0]       DEReg_WA3D;
-    wire                DEReg_ALUSrcD;
-    wire    [3:0]       DEReg_ALUControlD;
-    wire    [31:0]      DEReg_RD1D;
-    wire    [31:0]      DEReg_RD2D;
-    wire    [31:0]      DEReg_ExtImmD;
-    wire    [3:0]       DEReg_RA1D;
-    wire    [3:0]       DEReg_RA2D;
-    wire    [1:0]       DEReg_ShD;
-    wire    [4:0]       DEReg_Shamt5D;
-    wire                DEReg_NoWriteD;
-    wire                DEReg_MSD;
-    wire                DEReg_MCycleOpD;
-    wire                DEReg_MCycleHazardD;
-    wire                DEReg_FPUSD;
-    wire                DEReg_FPUOpD;
-    wire                DEReg_FPUHazardD;
-    wire    [3:0]       DEReg_CondE;
-    wire    [3:0]       DEReg_FlagWE;
-    wire                DEReg_PCSE;
-    wire                DEReg_RegWE;
-    wire                DEReg_MemWE;
-    wire                DEReg_MemtoRegE;
-    wire    [3:0]       DEReg_WA3E;
-    wire                DEReg_ALUSrcE;
-    wire    [3:0]       DEReg_ALUControlE;
-    wire    [31:0]      DEReg_RD1E;
-    wire    [31:0]      DEReg_RD2E;
-    wire    [31:0]      DEReg_ExtImmE;
-    wire    [3:0]       DEReg_RA1E;
-    wire    [3:0]       DEReg_RA2E;
-    wire    [1:0]       DEReg_ShE;
-    wire    [4:0]       DEReg_Shamt5E;
-    wire                DEReg_NoWriteE;
-    wire                DEReg_MSE;
-    wire                DEReg_MCycleOpE;
-    wire                DEReg_MCycleHazardE;
-    wire                DEReg_FPUSE;
-    wire                DEReg_FPUOpE;
-    wire                DEReg_FPUHazardE;
+    wire                DIReg_EN;
+    wire                DIReg_IssueD;
+    wire    [4:0]       DIReg_OpD;
+    wire    [3:0]       DIReg_RA1D;
+    wire    [3:0]       DIReg_RA2D;
+    wire    [3:0]       DIReg_WA3D;
+    wire                DIReg_ALUSrcD;
+    wire    [31:0]      DIReg_ExtImmD;
+    wire    [3:0]       DIReg_CondD;
+    wire    [4:0]       DIReg_Shamt5D;
+    wire    [1:0]       DIReg_ShD;
+    wire                DIReg_MemWD;
+    wire                DIReg_MemtoRegD;
+    wire                DIReg_MULSD;
+    wire                DIReg_FPSD;
+    wire                DIReg_IssueI;
+    wire    [4:0]       DIReg_OpI;
+    wire    [3:0]       DIReg_RA1I;
+    wire    [3:0]       DIReg_RA2I;
+    wire    [3:0]       DIReg_WA3I;
+    wire                DIReg_ALUSrcI;
+    wire    [31:0]      DIReg_ExtImmI;
+    wire    [3:0]       DIReg_CondI;
+    wire    [4:0]       DIReg_Shamt5I;
+    wire    [1:0]       DIReg_ShI;
+    wire                DIReg_MemWI;
+    wire                DIReg_MemtoRegI;
+    wire                DIReg_MULSI;
+    wire                DIReg_FPSI;
 
-    wire    [1:0]       Shifter_Sh;
-    wire    [4:0]       Shifter_Shamt5;
-    wire    [31:0]      Shifter_ShIn;
-    wire                Shifter_CFlag;
-    wire    [31:0]      Shifter_ShOut;
-    wire                Shifter_Carry;
 
-    wire    [3:0]       CondUnit_Cond;
-    wire    [3:0]       CondUnit_ALUControl;
-    wire                CondUnit_PCS;
-    wire                CondUnit_RegW;
-    wire                CondUnit_MemW;
-    wire    [3:0]       CondUnit_FlagW;
-    wire    [3:0]       CondUnit_ALUFlags;
-    wire                CondUnit_ShifterCarry;
-    wire                CondUnit_NoWrite;
-    wire                CondUnit_MS;
-    wire                CondUnit_FPUS;
-    wire                CondUnit_PCSrc;
-    wire                CondUnit_RegWrite;
-    wire                CondUnit_MemWrite;
-    wire                CondUnit_CFlag;
-    wire                CondUnit_MStart;
-    wire                CondUnit_FPUStart;
 
-    reg     [31:0]      SA;
-    reg     [31:0]      SB;
+    wire                ReservationStations_Issue;
+    wire                ReservationStations_MemW;
+    wire                ReservationStations_MemtoReg;
+    wire                ReservationStations_MULS;
+    wire                ReservationStations_FPS;
+    wire                ReservationStations_full;
+    wire    [7:0]       ReservationStations_rrs_query;
+    wire    [1:0]       ReservationStations_rrs_result_busy;
+    wire    [5:0]       ReservationStations_rrs_index;
+    wire                ReservationStations_ALUSrc;
+    wire    [31:0]      ReservationStations_ExtImm;
+    wire    [3:0]       ReservationStations_Cond;
+    wire    [4:0]       ReservationStations_Shamt5;
+    wire    [1:0]       ReservationStations_Sh;
+    wire    [3:0]       ReservationStations_RA1;
+    wire    [3:0]       ReservationStations_RA2;
+    wire    [31:0]      ReservationStations_RD1;
+    wire    [31:0]      ReservationStations_RD2;
+    wire    [4:0]       ReservationStations_Op;
+    wire    [2:0]       ReservationStations_ROBTail;
+    wire                ReservationStations_DP_Exec;
+    wire    [3:0]       ReservationStations_DP_Cond;
+    wire    [2:0]       ReservationStations_DP_WIndex;
+    wire    [4:0]       ReservationStations_DP_Op;
+    wire    [4:0]       ReservationStations_DP_Shamt5;
+    wire    [1:0]       ReservationStations_DP_Sh;
+    wire    [31:0]      ReservationStations_DP_SrcA;
+    wire    [31:0]      ReservationStations_DP_SrcB;
+    wire                ReservationStations_DP_ALUSrc;
+
+
+
+    wire    [7:0]       RegisterResultStatus_query;
+    wire    [3:0]       RegisterResultStatus_WA;
+    wire    [31:0]      RegisterResultStatus_append;
+    wire    [2:0]       RegisterResultStatus_ROBTail;
+    wire    [1:0]       RegisterResultStatus_result_busy;
+    wire    [5:0]       RegisterResultStatus_index;
+
+
+
+    wire                DP_IEReg_EN;
+    wire                DP_IEReg_CLR;
+    wire                DP_IEReg_ExecI;
+    wire    [3:0]       DP_IEReg_CondI;
+    wire    [3:0]       DP_IEReg_FlagWI;
+    wire    [2:0]       DP_IEReg_WIndexI;
+    wire    [31:0]      DP_IEReg_SrcAI;
+    wire    [31:0]      DP_IEReg_SrcBI;
+    wire    [1:0]       DP_IEReg_ShI;
+    wire    [4:0]       DP_IEReg_Shamt5I;
+    wire                DP_IEReg_ALUSrcI;
+    wire    [4:0]       DP_IEReg_OpI;
+    wire                DP_IEReg_NoWriteI;
+    wire                DP_IEReg_ExecE;
+    wire    [3:0]       DP_IEReg_CondE;
+    wire    [3:0]       DP_IEReg_FlagWE;
+    wire    [2:0]       DP_IEReg_WIndexE;
+    wire    [31:0]      DP_IEReg_SrcAE;
+    wire    [31:0]      DP_IEReg_SrcBE;
+    wire    [1:0]       DP_IEReg_ShE;
+    wire    [4:0]       DP_IEReg_Shamt5E;
+    wire                DP_IEReg_ALUSrcE;
+    wire    [4:0]       DP_IEReg_OpE;
+    wire                DP_IEReg_NoWriteE;
+
+
+    wire    [3:0]       DP_CondUnit_Cond;
+    wire    [3:0]       DP_CondUnit_Op;
+    wire    [3:0]       DP_CondUnit_FlagW;
+    wire    [3:0]       DP_CondUnit_ALUFlags;
+    wire                DP_CondUnit_ShifterCarry;
+    wire                DP_CondUnit_NoWrite;
+    wire                DP_CondUnit_CFlag;
+
+
+    wire    [1:0]       DP_Shifter_Sh;
+    wire    [4:0]       DP_Shifter_Shamt5;
+    wire    [31:0]      DP_Shifter_ShIn;
+    wire                DP_Shifter_CFlag;
+    wire    [31:0]      DP_Shifter_ShOut;
+    wire                DP_Shifter_Carry;
 
     wire    [31:0]      ALU_SrcA;
     wire    [31:0]      ALU_SrcB;
-    wire    [3:0]       ALU_ALUControl;
+    wire    [4:0]       ALU_Op;
     wire                ALU_CFlag;
     wire    [31:0]      ALU_ALUResult;
     wire    [3:0]       ALU_ALUFlags;
 
-    wire                MCycle_Start;
-    wire                MCycle_MCycleOp;
-    wire    [31:0]      MCycle_Operand1;
-    wire    [31:0]      MCycle_Operand2;
-    wire    [3:0]       MCycle_WA3;
-    wire    [31:0]      MCycle_Result;
-    wire                MCycle_Busy;
-    wire                MCycle_Done;
-    wire    [3:0]       MCycle_MCycleWA3;
-    wire                MCycle_MPushIn;
+    wire                DP_EWReg_ExecE;
+    wire    [31:0]      DP_EWReg_ALUResultE;
+    wire    [2:0]       DP_EWReg_WIndexE;
+    wire                DP_EWReg_ExecW;
+    wire    [31:0]      DP_EWReg_ALUResultW;
+    wire    [2:0]       DP_EWReg_WIndexW;
 
-    wire                FPU_Start;
-    wire                FPU_FPUOp;
-    wire    [31:0]      FPU_Operand1;
-    wire    [31:0]      FPU_Operand2;
-    wire    [3:0]       FPU_WA3;
-    wire    [31:0]      FPU_Result;
-    wire                FPU_Busy;
-    wire                FPU_Done;
-    wire    [3:0]       FPU_FPUWA3;
-    wire                FPU_FPUPushIn;
-
-    wire                EMReg_EN;
-    wire                EMReg_RegWriteE;
-    wire                EMReg_MemWriteE;
-    wire                EMReg_MemtoRegE;
-    wire    [31:0]      EMReg_ALUResultE;
-    wire    [31:0]      EMReg_WriteDataE;
-    wire    [3:0]       EMReg_WA3E;
-    wire    [3:0]       EMReg_RA2E;
-    wire                EMReg_RegWriteM;
-    wire                EMReg_MemWriteM;
-    wire                EMReg_MemtoRegM;
-    wire    [31:0]      EMReg_ALUOutM;
-    wire    [31:0]      EMReg_WriteDataM;
-    wire    [3:0]       EMReg_WA3M;
-    wire    [3:0]       EMReg_RA2M;
-
-    wire                MemOrIO_we;
-    wire    [31:0]      MemOrIO_addr_in;
-    wire    [31:0]      MemOrIO_m_rdata;
-    wire    [31:0]      MemOrIO_r_rdata;
-    wire    [31:0]      MemOrIO_io_rdata;
-    wire                MemOrIO_dec_mem;
-    wire    [31:0]      MemOrIO_m_wdata;
-    wire    [31:0]      MemOrIO_m_addr;
-    wire                MemOrIO_m_we;
-    wire    [31:0]      MemOrIO_r_wdata;
-    wire    [31:0]      MemOrIO_io_wdata;
-    wire    [31:0]      MemOrIO_io_addr;
-    wire                MemOrIO_io_we;
-
-    wire                DataMemory_WE;
-    wire    [31:0]      DataMemory_A;
-    wire    [31:0]      DataMemory_WD;
-    wire    [31:0]      DataMemory_RD;
-
-    wire                MWReg_EN;
-    wire                MWReg_RegWriteM;
-    wire                MWReg_MemtoRegM;
-    wire    [31:0]      MWReg_ReadDataM;
-    wire    [31:0]      MWReg_ALUOutM;
-    wire    [3:0]       MWReg_WA3M;
-    wire                MWReg_RegWriteW;
-    wire                MWReg_MemtoRegW;
-    wire    [31:0]      MWReg_ReadDataW;
-    wire    [31:0]      MWReg_ALUOutW;
-    wire    [3:0]       MWReg_WA3W;
-
-    wire    [31:0]      ResultW;
-
-
-    // Assignment
-    assign  HazardUnit_RA1D     =   RegisterFile_A1;
-    assign  HazardUnit_RA2D     =   RegisterFile_A2;
-    assign  HazardUnit_RA1E     =   DEReg_RA1E;
-    assign  HazardUnit_RA2E     =   DEReg_RA2E;
-    assign  HazardUnit_RA2M     =   EMReg_RA2M;
-    assign  HazardUnit_WA3D     =   DEReg_WA3D;
-    assign  HazardUnit_WA3E     =   EMReg_WA3E;
-    assign  HazardUnit_WA3M     =   EMReg_WA3M;
-    assign  HazardUnit_WA3W     =   MWReg_WA3W;
-    assign  HazardUnit_RegWriteE    =   CondUnit_RegWrite;
-    assign  HazardUnit_RegWriteM    =   EMReg_RegWriteM;
-    assign  HazardUnit_RegWriteW    =   MWReg_RegWriteW;
-    assign  HazardUnit_MemWriteM    =   EMReg_MemWriteM;
-    assign  HazardUnit_MemtoRegE    =   DEReg_MemtoRegE;
-    assign  HazardUnit_MemtoRegW    =   MWReg_MemtoRegW;
-    assign  HazardUnit_MemtoRegM    =   MWReg_MemtoRegM;
-    assign  HazardUnit_dec_mem      =   MemOrIO_dec_mem;
-    assign  HazardUnit_PCSrcE       =   CondUnit_PCSrc;
-    assign  HazardUnit_MCycleWA3    =   MCycle_MCycleWA3;
-    assign  HazardUnit_MCycleDone   =   MCycle_Done;
-    assign  HazardUnit_MCycleBusy   =   MCycle_Busy;
-    assign  HazardUnit_MStart       =   CondUnit_MStart;
-    assign  HazardUnit_MS           =   ControlUnit_MS;
-    assign  HazardUnit_FPUWA3       =   FPU_FPUWA3;
-    assign  HazardUnit_FPUDone      =   FPU_Done;
-    assign  HazardUnit_FPUBusy      =   FPU_Busy;
-    assign  HazardUnit_FPUStart     =   CondUnit_FPUStart;
-    assign  HazardUnit_FPUS         =   ControlUnit_FPUS;
-    assign  HazardUnit_Cache_ReadReady  =     Cache_ReadReady;
-    assign  HazardUnit_RW           =   MemOrIO_m_we;
-    assign  HazardUnit_Mem_ReadReady    =   Mem_ReadReady;
-    
-    assign  ProgramCounter_EN       =   ~HazardUnit_StallF;
-    assign  ProgramCounter_PCSrc    =   CondUnit_PCSrc;
-    assign  ProgramCounter_Result   =   ALU_ALUResult;
-    
-    assign  InstructionMemory_PC    =   ProgramCounter_PC;
-    
-    assign  FDReg_EN        =   ~HazardUnit_StallD;
-    assign  FDReg_CLR       =   HazardUnit_FlushD;
-    assign  FDReg_InstrF    =   Instr;
-    
-    assign  ControlUnit_Instr       =   FDReg_InstrD;
-    
-    assign  RegisterFile_WE3    =   MWReg_RegWriteW;
-    assign  RegisterFile_A1     =   ControlUnit_RegSrc[2] ? FDReg_InstrD[11:8] : ControlUnit_RegSrc[0] ? 4'd15 : FDReg_InstrD[19:16];
-    assign  RegisterFile_A2     =   ControlUnit_RegSrc[2] ? FDReg_InstrD[3:0] : ControlUnit_RegSrc[1] ? FDReg_InstrD[15:12] : FDReg_InstrD[3:0];
-    assign  RegisterFile_A3     =   MWReg_WA3W;
-    assign  RegisterFile_WD3    =   ResultW;
-    assign  RegisterFile_R15    =   ProgramCounter_PCPlus4;
-    
-    assign  Extend_ImmSrc       =   ControlUnit_ImmSrc;
-    assign  Extend_InstrImm     =   FDReg_InstrD[23:0];
-    
-    assign  DEReg_EN            =   ~HazardUnit_StallE;
-    assign  DEReg_CLR           =   HazardUnit_FlushE;
-    assign  DEReg_CondD         =   FDReg_InstrD[31:28];
-    assign  DEReg_FlagWD        =   ControlUnit_FlagW;
-    assign  DEReg_PCSD          =   ControlUnit_PCS;
-    assign  DEReg_RegWD         =   ControlUnit_RegW;
-    assign  DEReg_MemWD         =   ControlUnit_MemW;
-    assign  DEReg_MemtoRegD     =   ControlUnit_MemtoReg;
-    assign  DEReg_WA3D          =   ControlUnit_RegSrc[2] ? FDReg_InstrD[19:16] : FDReg_InstrD[15:12];
-    assign  DEReg_ALUSrcD       =   ControlUnit_ALUSrc;
-    assign  DEReg_ALUControlD   =   ControlUnit_ALUControl;
-    assign  DEReg_RD1D          =   RegisterFile_RD1;
-    assign  DEReg_RD2D          =   RegisterFile_RD2;
-    assign  DEReg_ExtImmD       =   Extend_ExtImm;
-    assign  DEReg_RA1D          =   RegisterFile_A1;
-    assign  DEReg_RA2D          =   RegisterFile_A2;
-    assign  DEReg_ShD           =   FDReg_InstrD[6:5];
-    assign  DEReg_Shamt5D       =   FDReg_InstrD[11:7];
-    assign  DEReg_NoWriteD      =   ControlUnit_NoWrite;
-    assign  DEReg_MSD           =   ControlUnit_MS;
-    assign  DEReg_MCycleOpD     =   ControlUnit_MCycleOp;
-    assign  DEReg_MCycleHazardD =   HazardUnit_MCycleHazard;
-    assign  DEReg_FPUHazardD    =   HazardUnit_FPUHazard;
-    assign  DEReg_FPUSD         =   ControlUnit_FPUS;
-    assign  DEReg_FPUOpD        =   ControlUnit_FPUOp;
 
     
-    assign  Shifter_Sh      =   DEReg_ShE;
-    assign  Shifter_Shamt5  =   DEReg_Shamt5E;
-    assign  Shifter_ShIn    =   SB;
-    assign  Shifter_CFlag   =   CondUnit_CFlag;
-    
-    assign  CondUnit_Cond       =   DEReg_CondE;
-    assign  CondUnit_ALUControl =   DEReg_ALUControlE;
-    assign  CondUnit_PCS        =   DEReg_PCSE;
-    assign  CondUnit_RegW       =   DEReg_RegWE;
-    assign  CondUnit_MemW       =   DEReg_MemWE;
-    assign  CondUnit_FlagW      =   DEReg_FlagWE;
-    assign  CondUnit_ALUFlags   =   ALU_ALUFlags;
-    assign  CondUnit_ShifterCarry   =   Shifter_Carry;
-    assign  CondUnit_NoWrite    =   DEReg_NoWriteE;
-    assign  CondUnit_MS         =   DEReg_MSE;
-    assign  CondUnit_FPUS       =   DEReg_FPUSE;
-    
-    
-    always @(*) 
-        case (HazardUnit_ForwardAE)
-            2'b00:  SA = DEReg_RD1E;
-            2'b01:  SA = ResultW;
-            2'b10:  SA = EMReg_ALUOutM;
-            default: SA = DEReg_RD1E;
-        endcase
-    always @(*)
-        case (HazardUnit_ForwardBE)
-            2'b00:  SB =  DEReg_RD2E;
-            2'b01:  SB =  ResultW;
-            2'b10:  SB =  EMReg_ALUOutM;
-            default: SB =  DEReg_RD2E;
-        endcase
-        
-    assign  ALU_SrcA        =   SA;
-    assign  ALU_SrcB        =   DEReg_ALUSrcE ? DEReg_ExtImmE : Shifter_ShOut;
-    assign  ALU_ALUControl  =   DEReg_ALUControlE;
-    assign  ALU_CFlag       =   CondUnit_CFlag;
-    
-
-    assign  MCycle_Start        =   CondUnit_MStart;
-    assign  MCycle_MCycleOp     =   DEReg_MCycleOpE;
-    assign  MCycle_Operand1     =   SA;
-    assign  MCycle_Operand2     =   SB;
-    assign  MCycle_WA3          =   DEReg_WA3E;
-
-
-    assign  FPU_Start           =   CondUnit_FPUStart;
-    assign  FPU_FPUOp           =   DEReg_FPUOpE;
-    assign  FPU_Operand1        =   SA;
-    assign  FPU_Operand2        =   SB;
-    assign  FPU_WA3             =   DEReg_WA3E;
-
-
-    assign  EMReg_EN            =   ~HazardUnit_StallM;
-    assign  EMReg_RegWriteE     =   MCycle_MPushIn | FPU_FPUPushIn | (~(MCycle_Busy & DEReg_MCycleHazardE) & CondUnit_RegWrite) | (~(FPU_Busy & DEReg_FPUHazardE) & CondUnit_RegWrite);
-    assign  EMReg_MemWriteE     =   CondUnit_MemWrite;
-    assign  EMReg_MemtoRegE     =   DEReg_MemtoRegE;
-    assign  EMReg_ALUResultE    =   CondUnit_FPUStart & ~DEReg_FPUOpE ? FPU_Result : 
-                                    FPU_FPUPushIn ? FPU_Result : 
-                                    MCycle_MPushIn ? MCycle_Result : ALU_ALUResult;
-    assign  EMReg_WriteDataE    =   SB;
-    assign  EMReg_WA3E          =   MCycle_MPushIn ? MCycle_MCycleWA3 : 
-                                    FPU_FPUPushIn ? FPU_FPUWA3 : DEReg_WA3E;
-    assign  EMReg_RA2E          =   DEReg_RA2E;
-
-
-    assign  MemOrIO_we          =   EMReg_MemWriteM;
-    assign  MemOrIO_addr_in     =   EMReg_ALUOutM;
-    assign  MemOrIO_m_rdata     =   Cache_ReadReady ? Cache_ReadData : Mem_ReadData;
-    assign  MemOrIO_r_rdata     =   HazardUnit_ForwardM ? ResultW : EMReg_WriteDataM;
-    assign  MemOrIO_io_rdata    =   IO_ReadData;
-
-
-    assign  DataMemory_WE   =   MemOrIO_m_we;
-    assign  DataMemory_A    =   MemOrIO_m_addr;
-    assign  DataMemory_WD   =   MemOrIO_m_wdata;
-
-
-    assign  MWReg_EN            =   ~HazardUnit_StallW;
-    assign  MWReg_RegWriteM     =   EMReg_RegWriteM;
-    assign  MWReg_MemtoRegM     =   EMReg_MemtoRegM;
-    assign  MWReg_ReadDataM     =   MemOrIO_r_wdata;
-    assign  MWReg_ALUOutM       =   EMReg_ALUOutM;
-    assign  MWReg_WA3M          =   EMReg_WA3M;
-    
-
-    assign  ResultW  =  MWReg_MemtoRegW ? MWReg_ReadDataW : MWReg_ALUOutW;
-    
-
     assign  PC  =   ProgramCounter_PC;
 
+    assign  ProgramCounter_EN   =   ~(ReorderBuffer_full | ReservationStations_full);
 
-    assign  IO_Addr         =   MemOrIO_io_addr;
-    assign  IO_WriteData    =   MemOrIO_io_wdata;
-    assign  IO_WE           =   MemOrIO_io_we;
+    assign  FDReg_EN        =   ~(ReorderBuffer_full | ReservationStations_full);
+    assign  FDReg_InstrF    =   Instr;
 
+    assign  ControlUnit_Instr   =   FDReg_InstrD;
 
-    assign  Cache_RW        =   MemOrIO_m_we;
-    assign  Cache_Addr      =   MemOrIO_m_addr;
-    assign  Cache_Valid     =   MemOrIO_dec_mem & (EMReg_MemtoRegM | EMReg_MemWriteM);
-    assign  Cache_WriteData =   MemOrIO_m_wdata;
+    assign  Extend_ImmSrc   =   ControlUnit_ImmSrc;
+    assign  Extend_InstrImm =   FDReg_InstrD[23:0];
 
+    assign  ReorderBuffer_append    =   ReservationStations_Issue;
+    assign  ReorderBuffer_DestReg   =   DIReg_WA3I;
 
+    assign  RegisterFile_WE3    =   ReorderBuffer_WE;
+    assign  RegisterFile_WD3    =   ReorderBuffer_WD;
+    assign  RegisterFile_A1     =   DIReg_RA1I;
+    assign  RegisterFile_A2     =   DIReg_RA2I;
+    assign  RegisterFile_A3     =   ReorderBuffer_WA;
+    assign  RegisterFile_R15    =   ProgramCounter_PCPlus4;
+    
 
-
-    HazardUnit HazardUnit(
-        .RA1D   (HazardUnit_RA1D),
-        .RA2D   (HazardUnit_RA2D),
-        .RA1E   (HazardUnit_RA1E),
-        .RA2E   (HazardUnit_RA2E),
-        .RA2M   (HazardUnit_RA2M),
-        .WA3D   (HazardUnit_WA3D),
-        .WA3E   (HazardUnit_WA3E),
-        .WA3M   (HazardUnit_WA3M),
-        .WA3W   (HazardUnit_WA3W),
-        .RegWriteE  (HazardUnit_RegWriteE   ),
-        .RegWriteM  (HazardUnit_RegWriteM   ),
-        .RegWriteW  (HazardUnit_RegWriteW   ),
-        .MemWriteM  (HazardUnit_MemWriteM   ),
-        .MemtoRegE  (HazardUnit_MemtoRegE   ),
-        .MemtoRegW  (HazardUnit_MemtoRegW   ),
-        .MemtoRegM  (HazardUnit_MemtoRegM   ),
-        .dec_mem    (HazardUnit_dec_mem     ),
-        .PCSrcE     (HazardUnit_PCSrcE      ),
-        .MCycleWA3  (HazardUnit_MCycleWA3   ),
-        .MCycleDone (HazardUnit_MCycleDone  ),
-        .MCycleBusy (HazardUnit_MCycleBusy  ),
-        .MS         (HazardUnit_MS          ),
-        .MStart     (HazardUnit_MStart      ),
-        .FPUWA3     (HazardUnit_FPUWA3      ),
-        .FPUDone    (HazardUnit_FPUDone     ),
-        .FPUBusy    (HazardUnit_FPUBusy     ),
-        .FPUS       (HazardUnit_FPUS        ),
-        .FPUStart   (HazardUnit_FPUStart    ),
-        .ForwardAE  (HazardUnit_ForwardAE   ),
-        .ForwardBE  (HazardUnit_ForwardBE   ),
-        .ForwardM   (HazardUnit_ForwardM    ),
-        .StallF     (HazardUnit_StallF  ),
-        .StallD     (HazardUnit_StallD  ),
-        .StallE     (HazardUnit_StallE  ),
-        .StallM     (HazardUnit_StallM  ),
-        .StallW     (HazardUnit_StallW  ),
-        .FlushD     (HazardUnit_FlushD  ),
-        .FlushE     (HazardUnit_FlushE  ),
-        .MCycleHazard(HazardUnit_MCycleHazard),
-        .FPUHazard  (HazardUnit_FPUHazard),
-        .Cache_ReadReady(HazardUnit_Cache_ReadReady ),
-        .RW         (HazardUnit_RW          ),
-        .Mem_ReadReady  (HazardUnit_Mem_ReadReady   ));
+    assign  DIReg_EN    =   ~(ReorderBuffer_full | ReservationStations_full);
+    assign  DIReg_IssueD=   ControlUnit_Issue;
+    assign  DIReg_OpD   =   ControlUnit_Operation;
+    assign  DIReg_RA1D  =   ControlUnit_RegSrc[2] ? FDReg_InstrD[11:8] : ControlUnit_RegSrc[0] ? 4'd15 : FDReg_InstrD[19:16];;
+    assign  DIReg_RA2D  =   ControlUnit_RegSrc[2] ? FDReg_InstrD[3:0] : ControlUnit_RegSrc[1] ? FDReg_InstrD[15:12] : FDReg_InstrD[3:0];;
+    assign  DIReg_WA3D  =   ControlUnit_RegSrc[2] ? FDReg_InstrD[19:16] : FDReg_InstrD[15:12];
+    assign  DIReg_ALUSrcD    =   ControlUnit_ALUSrc;
+    assign  DIReg_ExtImmD   =   Extend_ExtImm;
+    assign  DIReg_CondD =   FDReg_InstrD[31:28];
+    assign  DIReg_Shamt5D   =   FDReg_InstrD[11:7];
+    assign  DIReg_ShD   =   FDReg_InstrD[6:5];
+    assign  DIReg_MemWD =   ControlUnit_MemW;
+    assign  DIReg_MemtoRegD =   ControlUnit_MemtoReg;
+    assign  DIReg_MULSD =   ControlUnit_MS;
+    assign  DIReg_FPSD  =   ControlUnit_FPS;
     
     
+    assign  ReservationStations_Issue   =   ~(ReorderBuffer_full | ReservationStations_full) & DIReg_IssueI;
+    assign  ReservationStations_MemW    =   DIReg_MemWI;
+    assign  ReservationStations_MemtoReg=   DIReg_MemtoRegI;
+    assign  ReservationStations_MULS    =   DIReg_MULSI;
+    assign  ReservationStations_FPS     =   DIReg_FPSI;
+    assign  ReservationStations_rrs_result_busy =   RegisterResultStatus_result_busy;
+    assign  ReservationStations_rrs_index   =   RegisterResultStatus_index;
+    assign  ReservationStations_ALUSrc       =   DIReg_ALUSrcI;
+    assign  ReservationStations_ExtImm  =   DIReg_ExtImmI;
+    assign  ReservationStations_Cond    =   DIReg_CondI;
+    assign  ReservationStations_Shamt5  =   DIReg_Shamt5I;
+    assign  ReservationStations_Sh      =   DIReg_ShI;
+    assign  ReservationStations_RA1     =   DIReg_RA1I;
+    assign  ReservationStations_RA2     =   DIReg_RA2I;
+    assign  ReservationStations_RD1     =   RegisterFile_RD1;
+    assign  ReservationStations_RD2     =   RegisterFile_RD2;
+    assign  ReservationStations_Op      =   DIReg_OpI;
+    assign  ReservationStations_ROBTail =   ReorderBuffer_ROBTail;
+
+
+    assign  RegisterResultStatus_query  =   ReservationStations_rrs_query;
+    assign  RegisterResultStatus_WA     =   DIReg_WA3I;
+    assign  RegisterResultStatus_append =   ReservationStations_Issue;
+    assign  RegisterResultStatus_ROBTail=   ReorderBuffer_ROBTail;
+
+
+
+
+    assign  DP_IEReg_EN            =   ReservationStations_DP_Exec;
+    assign  DP_IEReg_CLR           =   1'b0;
+    assign  DP_IEReg_ExecI          =   ReservationStations_DP_Exec;
+    assign  DP_IEReg_CondI         =   ReservationStations_Cond;
+    assign  DP_IEReg_FlagWI        =   ControlUnit_FlagW;
+    assign  DP_IEReg_WIndexI       =   ReservationStations_DP_WIndex;
+    assign  DP_IEReg_SrcAI         =   ReservationStations_DP_SrcA;
+    assign  DP_IEReg_SrcBI         =   ReservationStations_DP_SrcB;
+    assign  DP_IEReg_ShI           =   ReservationStations_DP_Sh;
+    assign  DP_IEReg_Shamt5I       =   ReservationStations_DP_Shamt5;
+    assign  DP_IEReg_ALUSrcI       =   ReservationStations_DP_ALUSrc;
+    assign  DP_IEReg_OpI           =   ReservationStations_DP_Op;
+    assign  DP_IEReg_NoWriteI      =   ControlUnit_NoWrite;
+
+
+    
+    assign  DP_Shifter_Sh      =   DP_IEReg_ShE;
+    assign  DP_Shifter_Shamt5  =   DP_IEReg_Shamt5E;
+    assign  DP_Shifter_ShIn    =   DP_IEReg_SrcBE;
+    assign  DP_Shifter_CFlag   =   DP_CondUnit_CFlag;
+
+
+    assign  ALU_SrcA        =   DP_IEReg_SrcAE;
+    assign  ALU_SrcB        =   DP_IEReg_ALUSrcE ? DP_IEReg_SrcBE : DP_Shifter_ShOut;
+    assign  ALU_Op          =   DP_IEReg_OpE;
+    assign  ALU_CFlag       =   DP_CondUnit_CFlag;
+    
+
+    assign  DP_EWReg_ExecE         =   DP_IEReg_ExecE;
+    assign  DP_EWReg_ALUResultE    =   ALU_ALUResult;
+    assign  DP_EWReg_WIndexE       =   DP_IEReg_WIndexE;
+
+
+
+
+
+
+
+    assign  CDB[35:0] = {ALU_ALUResult, DP_IEReg_ExecE, DP_IEReg_WIndexE};
+
+
+
+
+
+
+
+    ProgramCounter ProgramCounter(
+        .CLK        (CLK                        ),
+        .Reset      (Reset                      ),
+        .EN         (ProgramCounter_EN          ),
+        .PCSrc      (1'b0       ),
+        .Result     (32'b0      ),
+        .PC         (ProgramCounter_PC          ),
+        .PCPlus4    (ProgramCounter_PCPlus4     ));
+
+
+    FDReg FDReg(
+        .CLK(CLK),
+        .Reset(Reset),
+        .EN(FDReg_EN),
+        .CLR(1'b0),
+        .InstrF(FDReg_InstrF),
+        .InstrD(FDReg_InstrD)
+    );
+
+
+
     ControlUnit ControlUnit(
         .Instr      (ControlUnit_Instr      ),
+        .Issue      (ControlUnit_Issue      ),
         .FlagW      (ControlUnit_FlagW      ),
         .PCS        (ControlUnit_PCS        ),
         .RegW       (ControlUnit_RegW       ),
@@ -521,33 +373,69 @@ module ARMcore(
         .ALUSrc     (ControlUnit_ALUSrc     ),
         .ImmSrc     (ControlUnit_ImmSrc     ),
         .RegSrc     (ControlUnit_RegSrc     ),
-        .ALUControl (ControlUnit_ALUControl ),
+        .Operation  (ControlUnit_Operation  ),
         .NoWrite    (ControlUnit_NoWrite    ),
         .MS         (ControlUnit_MS         ),
         .MCycleOp   (ControlUnit_MCycleOp   ),
-        .FPUS       (ControlUnit_FPUS       ),
-        .FPUOp      (ControlUnit_FPUOp      ));
+        .FPS       (ControlUnit_FPS       ),
+        .FPOp      (ControlUnit_FPOp      ));
         
 
-    ProgramCounter ProgramCounter(
-        .CLK        (CLK                        ),
-        .Reset      (Reset                      ),
-        .EN         (ProgramCounter_EN          ),
-        .PCSrc      (ProgramCounter_PCSrc       ),
-        .Result     (ProgramCounter_Result      ),
-        .PC         (ProgramCounter_PC          ),
-        .PCPlus4    (ProgramCounter_PCPlus4     ));
-    
-    
-    FDReg FDReg(
-        .CLK        (CLK            ),
-        .Reset      (Reset          ),
-        .EN         (FDReg_EN       ),
-        .CLR        (FDReg_CLR      ),
-        .InstrF     (FDReg_InstrF   ),
-        .InstrD     (FDReg_InstrD   ));
-    
-    
+    Extend Extend(
+        .ImmSrc     (Extend_ImmSrc      ),
+        .InstrImm   (Extend_InstrImm    ),
+        .ExtImm     (Extend_ExtImm      ));
+
+
+    ReorderBuffer ReorderBuffer(
+        .CLK(CLK),
+        .Reset(Reset),
+        .append(ReorderBuffer_append),
+        .full(ReorderBuffer_full),
+        .ROBTail(ReorderBuffer_ROBTail),
+        .CDB(CDB),
+        .DestReg(ReorderBuffer_DestReg),
+        .WA(ReorderBuffer_WA),
+        .WE(ReorderBuffer_WE),
+        .WD(ReorderBuffer_WD)
+    );
+
+
+    DIReg DIReg(
+        .CLK(CLK),
+        .Reset(Reset),
+        .EN(DIReg_EN),
+        .IssueD (DIReg_IssueD),
+        .OpD    (DIReg_OpD),
+        .RA1D   (DIReg_RA1D),
+        .RA2D   (DIReg_RA2D),
+        .WA3D   (DIReg_WA3D),
+        .ALUSrcD     (DIReg_ALUSrcD),
+        .ExtImmD(DIReg_ExtImmD),
+        .CondD(DIReg_CondD),
+        .Shamt5D(DIReg_Shamt5D),
+        .ShD(DIReg_ShD),
+        .MemWD  (DIReg_MemWD),
+        .MemtoRegD  (DIReg_MemtoRegD),
+        .MULSD  (DIReg_MULSD),
+        .FPSD   (DIReg_FPSD),
+        .IssueI (DIReg_IssueI),
+        .OpI    (DIReg_OpI),
+        .RA1I   (DIReg_RA1I),
+        .RA2I   (DIReg_RA2I),
+        .WA3I   (DIReg_WA3I),
+        .ALUSrcI     (DIReg_ALUSrcI),
+        .ExtImmI(DIReg_ExtImmI),
+        .CondI(DIReg_CondI),
+        .MemWI  (DIReg_MemWI),
+        .MemtoRegI  (DIReg_MemtoRegI),
+        .MULSI  (DIReg_MULSI),
+        .FPSI   (DIReg_FPSI),
+        .Shamt5I(DIReg_Shamt5I),
+        .ShI(DIReg_ShI)
+    );
+
+
     RegisterFile RegisterFile(
         .CLK_n  (~CLK               ),
         .Reset  (Reset              ),
@@ -559,186 +447,134 @@ module ARMcore(
         .R15    (RegisterFile_R15   ),
         .RD1    (RegisterFile_RD1   ),
         .RD2    (RegisterFile_RD2   ));
-        
-        
-    Shifter Shifter(
-        .Sh     (Shifter_Sh     ),
-        .Shamt5 (Shifter_Shamt5 ),
-        .ShIn   (Shifter_ShIn   ),
-        .CFlag  (Shifter_CFlag  ),
-        .ShOut  (Shifter_ShOut  ),
-        .Carry  (Shifter_Carry  ));
     
+
+
+    ReservationStations #(
+        .DP_STATION_DEPTH(4)
+    )ReservationStations(
+        .CLK(CLK),
+        .Reset(Reset),
+        .Issue(ReservationStations_Issue),
+        .MemW(ReservationStations_MemW),
+        .MemtoReg(ReservationStations_MemtoReg),
+        .MULS(ReservationStations_MULS),
+        .FPS(ReservationStations_FPS),
+        .full(ReservationStations_full),
+        .CDB(CDB),
+        .rrs_query(ReservationStations_rrs_query),
+        .rrs_result_busy(ReservationStations_rrs_result_busy),
+        .rrs_index(ReservationStations_rrs_index),
+        .ALUSrc(ReservationStations_ALUSrc),
+        .ExtImm(ReservationStations_ExtImm),
+        .Cond(ReservationStations_Cond),
+        .Shamt5(ReservationStations_Shamt5),
+        .Sh(ReservationStations_Sh),
+        .RA1(ReservationStations_RA1),
+        .RA2(ReservationStations_RA2),
+        .RD1(ReservationStations_RD1),
+        .RD2(ReservationStations_RD2),
+        .Op(ReservationStations_Op),
+        .ROBTail(ReservationStations_ROBTail),
+        .DP_Exec(ReservationStations_DP_Exec),
+        .DP_Cond(ReservationStations_DP_Cond),
+        .DP_WIndex(ReservationStations_DP_WIndex),
+        .DP_Op(ReservationStations_DP_Op),
+        .DP_Shamt5(ReservationStations_DP_Shamt5),
+        .DP_Sh(ReservationStations_DP_Sh),
+        .DP_SrcA(ReservationStations_DP_SrcA),
+        .DP_SrcB(ReservationStations_DP_SrcB),
+        .DP_ALUSrc(ReservationStations_DP_ALUSrc)
+    );
         
-    Extend Extend(
-        .ImmSrc     (Extend_ImmSrc      ),
-        .InstrImm   (Extend_InstrImm    ),
-        .ExtImm     (Extend_ExtImm      ));
-        
-        
-    DEReg DEReg(
+
+
+    RegisterResultStatus RegisterResultStatus(
+        .CLK(CLK),
+        .Reset(Reset),
+        .CDB(CDB),
+        .query(RegisterResultStatus_query),
+        .WA(RegisterResultStatus_WA),
+        .append(RegisterResultStatus_append),
+        .ROBTail(RegisterResultStatus_ROBTail),
+        .result_busy(RegisterResultStatus_result_busy),
+        .index(RegisterResultStatus_index)
+    );
+
+
+
+    DP_IEReg DP_IEReg(
         .CLK            (CLK                ),
         .Reset          (Reset              ),
-        .EN             (DEReg_EN           ),
-        .CLR            (DEReg_CLR          ),
-        .CondD          (DEReg_CondD        ),
-        .FlagWD         (DEReg_FlagWD       ),
-        .PCSD           (DEReg_PCSD         ),
-        .RegWD          (DEReg_RegWD        ),
-        .MemWD          (DEReg_MemWD        ),
-        .MemtoRegD      (DEReg_MemtoRegD    ),
-        .WA3D           (DEReg_WA3D         ),
-        .ALUSrcD        (DEReg_ALUSrcD      ),
-        .ALUControlD    (DEReg_ALUControlD  ),
-        .RD1D           (DEReg_RD1D         ),
-        .RD2D           (DEReg_RD2D         ),
-        .ExtImmD        (DEReg_ExtImmD      ),
-        .RA1D           (DEReg_RA1D         ),
-        .RA2D           (DEReg_RA2D         ),
-        .ShD            (DEReg_ShD          ),
-        .Shamt5D        (DEReg_Shamt5D      ),
-        .NoWriteD       (DEReg_NoWriteD     ),
-        .MSD            (DEReg_MSD          ),
-        .MCycleOpD      (DEReg_MCycleOpD    ),
-        .MCycleHazardD  (DEReg_MCycleHazardD),
-        .FPUSD          (DEReg_FPUSD        ),
-        .FPUOpD         (DEReg_FPUOpD       ),
-        .FPUHazardD     (DEReg_FPUHazardD   ),
+        .EN             (DP_IEReg_EN           ),
+        .CLR            (DP_IEReg_CLR          ),
+        .ExecI          (DP_IEReg_ExecI        ),
+        .CondI          (DP_IEReg_CondI        ),
+        .FlagWI         (DP_IEReg_FlagWI       ),
+        .WIndexI        (DP_IEReg_WIndexI      ),
+        .SrcAI          (DP_IEReg_SrcAI        ),
+        .SrcBI          (DP_IEReg_SrcBI        ),
+        .ShI            (DP_IEReg_ShI          ),
+        .Shamt5I        (DP_IEReg_Shamt5I      ),
+        .ALUSrcI        (DP_IEReg_ALUSrcI      ),
+        .OpI            (DP_IEReg_OpI          ),
+        .NoWriteI       (DP_IEReg_NoWriteI     ),
         
-        .CondE          (DEReg_CondE        ),
-        .FlagWE         (DEReg_FlagWE       ),
-        .PCSE           (DEReg_PCSE         ),
-        .RegWE          (DEReg_RegWE        ),
-        .MemWE          (DEReg_MemWE        ),
-        .MemtoRegE      (DEReg_MemtoRegE    ),
-        .WA3E           (DEReg_WA3E         ),
-        .ALUSrcE        (DEReg_ALUSrcE      ),
-        .ALUControlE    (DEReg_ALUControlE  ),
-        .RA1E           (DEReg_RA1E         ),
-        .RA2E           (DEReg_RA2E         ),
-        .RD1E           (DEReg_RD1E         ),
-        .RD2E           (DEReg_RD2E         ),
-        .ExtImmE        (DEReg_ExtImmE      ),
-        .ShE            (DEReg_ShE          ),
-        .Shamt5E        (DEReg_Shamt5E      ),
-        .NoWriteE       (DEReg_NoWriteE     ),
-        .MSE            (DEReg_MSE          ),
-        .MCycleOpE      (DEReg_MCycleOpE    ),
-        .MCycleHazardE  (DEReg_MCycleHazardE),
-        .FPUSE          (DEReg_FPUSE        ),
-        .FPUOpE         (DEReg_FPUOpE       ),
-        .FPUHazardE     (DEReg_FPUHazardE   ));
+        .ExecE          (DP_IEReg_ExecE        ),
+        .CondE          (DP_IEReg_CondE        ),
+        .FlagWE         (DP_IEReg_FlagWE       ),
+        .WIndexE        (DP_IEReg_WIndexE      ),
+        .SrcAE          (DP_IEReg_SrcAE        ),
+        .SrcBE          (DP_IEReg_SrcBE        ),
+        .ShE            (DP_IEReg_ShE          ),
+        .Shamt5E        (DP_IEReg_Shamt5E      ),
+        .ALUSrcE        (DP_IEReg_ALUSrcE      ),
+        .OpE            (DP_IEReg_OpE          ),
+        .NoWriteE       (DP_IEReg_NoWriteE     ));
         
-    
-    CondUnit CondUnit(
+
+    DP_CondUnit DP_CondUnit(
         .CLK        (CLK                ),
         .Reset      (Reset              ),
-        .Cond       (CondUnit_Cond      ),
-        .ALUControl (CondUnit_ALUControl),
-        .PCS        (CondUnit_PCS       ),
-        .RegW       (CondUnit_RegW      ),
-        .MemW       (CondUnit_MemW      ),
-        .FlagW      (CondUnit_FlagW     ),
-        .ALUFlags   (CondUnit_ALUFlags  ),
-        .ShifterCarry(CondUnit_ShifterCarry),
-        .PCSrc      (CondUnit_PCSrc     ),
-        .RegWrite   (CondUnit_RegWrite  ),
-        .MemWrite   (CondUnit_MemWrite  ),
-        .NoWrite    (CondUnit_NoWrite   ),
-        .CFlag      (CondUnit_CFlag     ),
-        .MS         (CondUnit_MS        ),
-        .MStart     (CondUnit_MStart    ),
-        .FPUS       (CondUnit_FPUS      ),
-        .FPUStart   (CondUnit_FPUStart  ));
-    
-    
+        .Cond       (DP_CondUnit_Cond      ),
+        .Op (DP_CondUnit_Op),
+        .FlagW      (DP_CondUnit_FlagW     ),
+        .ALUFlags   (DP_CondUnit_ALUFlags  ),
+        .ShifterCarry(DP_CondUnit_ShifterCarry),
+        .NoWrite    (DP_CondUnit_NoWrite   ),
+        .CFlag      (DP_CondUnit_CFlag     ));
+
+
+
+    DP_Shifter DP_Shifter(
+        .Sh     (DP_Shifter_Sh     ),
+        .Shamt5 (DP_Shifter_Shamt5 ),
+        .ShIn   (DP_Shifter_ShIn   ),
+        .CFlag  (DP_Shifter_CFlag  ),
+        .ShOut  (DP_Shifter_ShOut  ),
+        .Carry  (DP_Shifter_Carry  ));
+
+
+
     ALU ALU(
         .SrcA       (ALU_SrcA       ),
         .SrcB       (ALU_SrcB       ),
-        .ALUControl (ALU_ALUControl ),
+        .Op         (ALU_Op         ),
         .ALUResult  (ALU_ALUResult  ),
         .ALUFlags   (ALU_ALUFlags   ),
         .CFlag      (ALU_CFlag      ));
         
-        
-    MCycle #(32)MCycle(
-        .CLK        (CLK                ),
-        .Reset      (Reset              ),
-        .Start      (MCycle_Start       ),
-        .MCycleOp   (MCycle_MCycleOp    ),
-        .Operand1   (MCycle_Operand1    ),
-        .Operand2   (MCycle_Operand2    ),
-        .WA3        (MCycle_WA3         ),
-        .Result     (MCycle_Result      ),
-        .Busy       (MCycle_Busy        ),
-        .Done       (MCycle_Done        ),
-        .MCycleWA3  (MCycle_MCycleWA3   ),
-        .MPushIn    (MCycle_MPushIn     ));
-        
-    FPU FPU(
-        .CLK        (CLK                ),
-        .Reset      (Reset              ),
-        .Start      (FPU_Start          ),
-        .FPUOp      (FPU_FPUOp          ),
-        .Operand1   (FPU_Operand1       ),
-        .Operand2   (FPU_Operand2       ),
-        .WA3        (FPU_WA3            ),
-        .Result     (FPU_Result         ),
-        .Busy       (FPU_Busy           ),
-        .Done       (FPU_Done           ),
-        .FPUWA3     (FPU_FPUWA3         ),
-        .FPUPushIn  (FPU_FPUPushIn      ));
 
-        
-    EMReg EMReg(
-        .CLK        (CLK                ),
-        .Reset      (Reset              ),
-        .EN         (EMReg_EN           ),
-        .RegWriteE  (EMReg_RegWriteE    ),
-        .MemWriteE  (EMReg_MemWriteE    ),
-        .MemtoRegE  (EMReg_MemtoRegE    ),
-        .ALUResultE (EMReg_ALUResultE   ),
-        .WriteDataE (EMReg_WriteDataE   ),
-        .WA3E       (EMReg_WA3E         ),
-        .RA2E       (EMReg_RA2E         ),
-        .RegWriteM  (EMReg_RegWriteM    ),
-        .MemWriteM  (EMReg_MemWriteM    ),
-        .MemtoRegM  (EMReg_MemtoRegM    ),
-        .ALUOutM    (EMReg_ALUOutM      ),
-        .WriteDataM (EMReg_WriteDataM   ),
-        .WA3M       (EMReg_WA3M         ),
-        .RA2M       (EMReg_RA2M         ));
-        
+    DP_EWReg DP_EWReg(
+        .CLK(CLK),
+        .Reset(Reset),
+        .ExecE(DP_EWReg_ExecE),
+        .ALUResultE(DP_EWReg_ALUResultE),
+        .WIndexE(DP_EWReg_WIndexE),
+        .ExecW(DP_EWReg_ExecW),
+        .ALUResultW(DP_EWReg_ALUResultW),
+        .WIndexW(DP_EWReg_WIndexW)
+    );
 
-    MemOrIO MemOrIO(
-        .we         (MemOrIO_we         ),
-        .addr_in    (MemOrIO_addr_in    ),
-        .dec_mem    (MemOrIO_dec_mem    ),
-        .m_rdata    (MemOrIO_m_rdata    ),
-        .r_rdata    (MemOrIO_r_rdata    ),
-        .io_rdata   (MemOrIO_io_rdata   ),
-        .m_wdata    (MemOrIO_m_wdata    ),
-        .m_addr     (MemOrIO_m_addr     ),
-        .m_we       (MemOrIO_m_we       ),
-        .r_wdata    (MemOrIO_r_wdata    ),
-        .io_wdata   (MemOrIO_io_wdata   ),
-        .io_addr    (MemOrIO_io_addr    ),
-        .io_we      (MemOrIO_io_we      ));
-        
 
-    MWReg MWReg(
-        .CLK        (CLK                ),
-        .Reset      (Reset              ),
-        .EN         (MWReg_EN           ),
-        .RegWriteM  (MWReg_RegWriteM    ),
-        .MemtoRegM  (MWReg_MemtoRegM    ),
-        .ReadDataM  (MWReg_ReadDataM    ),
-        .ALUOutM    (MWReg_ALUOutM      ),
-        .WA3M       (MWReg_WA3M         ),
-        .RegWriteW  (MWReg_RegWriteW    ),
-        .MemtoRegW  (MWReg_MemtoRegW    ),
-        .ReadDataW  (MWReg_ReadDataW    ),
-        .ALUOutW    (MWReg_ALUOutW      ),
-        .WA3W       (MWReg_WA3W         ));
-        
 endmodule

@@ -29,23 +29,31 @@
 
 
 
-`define     AND     4'b0000
-`define     EOR     4'b0001
-`define     SUB     4'b0010
-`define     RSB     4'b0011
-`define     ADD     4'b0100
-`define     ADC     4'b0101
-`define     SBC     4'b0110
-`define     RSC     4'b0111
-`define     TST     4'b1000
-`define     TEQ     4'b1001
-`define     CMP     4'b1010
-`define     CMN     4'b1011
-`define     ORR     4'b1100
-`define     MOV     4'b1101
-`define     BIC     4'b1110
-`define     MVN     4'b1111
+`define     AND     5'b00000
+`define     EOR     5'b00001
+`define     SUB     5'b00010
+`define     RSB     5'b00011
+`define     ADD     5'b00100
+`define     ADC     5'b00101
+`define     SBC     5'b00110
+`define     RSC     5'b00111
+`define     TST     5'b01000
+`define     TEQ     5'b01001
+`define     CMP     5'b01010
+`define     CMN     5'b01011
+`define     ORR     5'b01100
+`define     MOV     5'b01101
+`define     BIC     5'b01110
+`define     MVN     5'b01111
 
+`define     LDR     5'b10000
+`define     STR     5'b10001
+
+`define     MUL     5'b10010
+`define     DIV     5'b10011
+
+`define     FADD    5'b10100
+`define     FMUL    5'b10101
 
 `define     FIFO    1'b0
 `define     RANDOM  1'b1

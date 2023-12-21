@@ -1,0 +1,320 @@
+`include "config.v"
+
+module ReservationStations #(
+    parameter DP_STATION_DEPTH = 2
+)(
+    input CLK,
+    input Reset,
+    input Issue,
+    input MemW,
+    input MemtoReg,
+    input MULS,
+    input FPS,
+    output reg full,
+
+    input [143:0] CDB,
+
+    output [7:0] rrs_query,
+    input [1:0] rrs_result_busy,
+    input [5:0] rrs_index,
+
+    input ALUSrc,
+    input [31:0] ExtImm,
+    input [3:0] Cond,
+    input [4:0] Shamt5,
+    input [1:0] Sh,
+    input [3:0] RA1,
+    input [3:0] RA2,
+    input [31:0] RD1,
+    input [31:0] RD2,
+    input [4:0] Op,
+    input [2:0] ROBTail,
+
+    output DP_Exec,
+    output [3:0] DP_Cond,
+    output [4:0] DP_Op,
+    output [2:0] DP_WIndex,
+    output [4:0] DP_Shamt5,
+    output [1:0] DP_Sh,
+    output [31:0] DP_SrcA,
+    output [31:0] DP_SrcB,
+    output DP_ALUSrc
+);
+    wire dp;
+    assign dp = ~(MemW | MemtoReg) & ~MULS & ~FPS;
+    wire dp_full, mem_full, mul_full, fp_full;
+    always @(*) begin
+        if (dp) begin
+            full = dp_full;
+        end
+        else if (MemW | MemtoReg) begin
+            full = mem_full;
+        end
+        else if (MULS) begin
+            full = mul_full;
+        end
+        else if (FPS) begin
+            full = fp_full;
+        end
+    end
+
+    assign rrs_query = {RA2, RA1};
+    
+    DP_Station #(DP_STATION_DEPTH) DP_Station(
+        .CLK(CLK),
+        .Reset(Reset),
+        .append(dp & Issue),
+        .full(dp_full),
+        .CDB(CDB[35:0]),
+        .rrs_result_busy(rrs_result_busy),
+        .rrs_index(rrs_index),
+        .ALUSrc(ALUSrc),
+        .ExtImm(ExtImm),
+        .Cond(Cond),
+        .Shamt5(Shamt5),
+        .Sh(Sh),
+        .RA1(RA1),
+        .RA2(RA2),
+        .RD1(RD1),
+        .RD2(RD2),
+        .Op(Op),
+        .ROBTail(ROBTail),
+        .Exec(DP_Exec),
+        .Exec_Op(DP_Op),
+        .Exec_Cond(DP_Cond),
+        .WIndex(DP_WIndex),
+        .Exec_Shamt5(DP_Shamt5),
+        .Exec_Sh(DP_Sh),
+        .Exec_SrcA(DP_SrcA),
+        .Exec_SrcB(DP_SrcB),
+        .Exec_ALUSrc(DP_ALUSrc)
+    );
+endmodule
+
+
+
+
+module DP_Station #(
+    parameter DP_STATION_DEPTH = 2
+)(
+    input CLK,
+    input Reset,
+    input append,
+    output full,
+    
+    input [35:0] CDB,
+
+    // rrs: Register result status
+    input [1:0] rrs_result_busy,
+    input [5:0] rrs_index,
+    
+    input ALUSrc,
+    input [31:0] ExtImm,
+    input [3:0] Cond,
+    input [4:0] Shamt5,
+    input [1:0] Sh,
+    input [3:0] RA1,
+    input [3:0] RA2,
+    input [31:0] RD1,
+    input [31:0] RD2,
+    input [4:0] Op,
+    input [2:0] ROBTail,
+
+    output Exec,
+    output reg [3:0] Exec_Cond,
+    output reg [4:0] Exec_Op,
+    output reg [2:0] WIndex,
+    output reg [4:0] Exec_Shamt5,
+    output reg [1:0] Exec_Sh,
+    output reg [31:0] Exec_SrcA,
+    output reg [31:0] Exec_SrcB,
+    output reg Exec_ALUSrc
+);
+
+    reg [DP_STATION_DEPTH*1-1:0] BUSY;
+    reg [DP_STATION_DEPTH*5-1:0] OP;
+    reg [DP_STATION_DEPTH*4-1:0] COND;
+    reg [DP_STATION_DEPTH*5-1:0] SHAMT;
+    reg [DP_STATION_DEPTH*2-1:0] SH;
+    reg [DP_STATION_DEPTH*1-1:0] I;
+    reg [DP_STATION_DEPTH*1-1:0] WAIT;
+    reg [DP_STATION_DEPTH*32-1:0] VJ, VK;
+    reg [DP_STATION_DEPTH*4-1:0] QJ, QK;
+    reg [DP_STATION_DEPTH*3-1:0] DEST;
+
+    wire [DP_STATION_DEPTH-1:0] READY;
+    reg [DP_STATION_DEPTH-1:0] EXEC;
+
+    initial begin
+        Exec_Cond = 0;
+        Exec_Op = 0;
+        WIndex = 0;
+        Exec_Shamt5 = 0;
+        Exec_Sh = 0;
+        Exec_SrcA = 0;
+        Exec_SrcB = 0;
+        Exec_ALUSrc = 0;
+    end
+
+    assign full = &BUSY;
+    assign Exec = |EXEC;
+
+    genvar i;
+    generate
+        for (i = 0; i < DP_STATION_DEPTH; i = i + 1) begin
+            assign READY[i] = BUSY[i] & ~QJ[i*4+3] & ~QK[i*4+3] & WAIT[i];
+            if (i > 0) begin
+                always @(posedge CLK, posedge Reset) begin
+                    if (Reset) begin
+                        BUSY[i] <= 0;
+                    end
+                    else begin
+                        if (append & (&BUSY[i-1:0]) & ~BUSY[i]) begin
+                            BUSY[i] <= 1;
+                            WAIT[i] <= 1;
+                            OP[i*5+:5] <= Op;
+                            COND[i*4+:4] <= Cond;
+                            DEST[i*3+:3] <= ROBTail;
+                            SHAMT[i*5+:5] <= Shamt5;
+                            SH[i*2+:2] <= Sh;
+                            I[i] <= ALUSrc;
+                            if (rrs_result_busy[0]) begin
+                                VJ[i*32+:32] <= VJ[i*32+:32];
+                                QJ[i*4+:4] <= {1'b1, rrs_index[2:0]};
+                            end
+                            else begin
+                                VJ[i*32+:32] <= RD1;
+                                QJ[i*4+:4] <= 4'b0;
+                            end
+
+                            if (ALUSrc) begin
+                                VK[i*32+:32] <= ExtImm;
+                                QK[i*4+:4] <= 4'b0;
+                            end
+                            else if (rrs_result_busy[1]) begin
+                                VK[i*32+:32] <= VK[i*32+:32];
+                                QK[i*4+:4] <= {1'b1, rrs_index[5:3]};
+                            end
+                            else begin
+                                VK[i*32+:32] <= RD2;
+                                QK[i*4+:4] <= 4'b0;
+                            end
+                        end
+
+                        if (READY[i] & (READY[i-1:0] == 0)) begin
+                            EXEC[i] <= 1;
+                            WAIT[i] <= 0;
+                            Exec_Op <= OP[i*5+:5];
+                            WIndex <= DEST[i*3+:3];
+                            Exec_Cond <= COND[i*4+:4];
+                            Exec_Shamt5 <= SHAMT[i*5+:5];
+                            Exec_Sh <= SH[i*2+:2];
+                            Exec_SrcA <= VJ[i*32+:32];
+                            Exec_SrcB <= VK[i*32+:32];
+                            Exec_ALUSrc <= I[i];
+                        end
+                        else begin
+                            EXEC[i] <= 0;
+                        end
+
+
+                        if (BUSY[i]) begin
+                            if (QJ[i*4+3] & CDB[3:0] == QJ[i*4+:4]) begin
+                                QJ[i*4+3] <= 1'b0;
+                                VJ[i*32+:32] <= CDB[35:4];
+                            end
+                            
+                            if (QK[i*4+3] & CDB[3:0] == QK[i*4+:4]) begin
+                                QK[i*4+3] <= 1'b0;
+                                VK[i*32+:32] <= CDB[35:4];
+                            end
+
+                            if (DEST[i*3+:3] == CDB[2:0] & CDB[3]) begin
+                                BUSY[i] <= 0;
+                            end
+                        end
+                    end
+                end
+            end
+            else begin  // i = 0
+                always @(posedge CLK, posedge Reset) begin
+                    if (Reset) begin
+                        BUSY[i] <= 0;
+                    end
+                    else begin
+                        if (append & ~BUSY[i]) begin
+                            BUSY[i] <= 1;
+                            WAIT[i] <= 1;
+                            OP[i*5+:5] <= Op;
+                            COND[i*4+:4] <= Cond;
+                            DEST[i*3+:3] <= ROBTail;
+                            SHAMT[i*5+:5] <= Shamt5;
+                            SH[i*2+:2] <= Sh;
+                            I[i] <= ALUSrc;
+                            if (rrs_result_busy[0]) begin
+                                VJ[i*32+:32] <= VJ[i*32+:32];
+                                QJ[i*4+:4] <= {1'b1, rrs_index[2:0]};
+                            end
+                            else begin
+                                VJ[i*32+:32] <= RD1;
+                                QJ[i*4+:4] <= 4'b0;
+                            end
+
+                            if (ALUSrc) begin
+                                VK[i*32+:32] <= ExtImm;
+                                QK[i*4+:4] <= 4'b0;
+                            end
+                            else if (rrs_result_busy[1]) begin
+                                VK[i*32+:32] <= VK[i*32+:32];
+                                QK[i*4+:4] <= {1'b1, rrs_index[5:3]};
+                            end
+                            else begin
+                                VK[i*32+:32] <= RD2;
+                                QK[i*4+:4] <= 4'b0;
+                            end
+                        end
+
+                        if (READY[i]) begin
+                            EXEC[i] <= 1;
+                            WAIT[i] <= 0;
+                            Exec_Op <= OP[i*5+:5];
+                            WIndex <= DEST[i*3+:3];
+                            Exec_Cond <= COND[i*4+:4];
+                            Exec_Shamt5 <= SHAMT[i*5+:5];
+                            Exec_Sh <= SH[i*2+:2];
+                            Exec_SrcA <= VJ[i*32+:32];
+                            Exec_SrcB <= VK[i*32+:32];
+                            Exec_ALUSrc <= I[i];
+                        end
+                        else begin
+                            EXEC[i] <= 0;
+                        end
+
+
+                        if (BUSY[i]) begin
+                            if (QJ[i*4+3] & CDB[3:0] == QJ[i*4+:4]) begin
+                                QJ[i*4+3] <= 1'b0;
+                                VJ[i*32+:32] <= CDB[35:4];
+                            end
+                            
+                            if (QK[i*4+3] & CDB[3:0] == QK[i*4+:4]) begin
+                                QK[i*4+3] <= 1'b0;
+                                VK[i*32+:32] <= CDB[35:4];
+                            end
+
+                            if (DEST[i*3+:3] == CDB[2:0] & CDB[3]) begin
+                                BUSY[i] <= 0;
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    endgenerate
+endmodule
+
+module MEM_Station(
+
+);
+
+endmodule

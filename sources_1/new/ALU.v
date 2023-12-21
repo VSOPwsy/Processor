@@ -16,7 +16,7 @@ module ALU(
     input   [31:0]  SrcA,
     input   [31:0]  SrcB,
     input           CFlag,
-    input   [3:0]   ALUControl,
+    input   [4:0]   Op,
     
     output reg  [31:0]  ALUResult,
     output      [3:0]   ALUFlags
@@ -33,7 +33,7 @@ module ALU(
     wire [31:0] s;
     
     always @(*) begin
-        case (ALUControl)
+        case (Op)
             `SUB: begin
                 a = SrcA;
                 b = ~SrcB;
@@ -117,7 +117,7 @@ module ALU(
     );
     
     always @(*) begin
-        case (ALUControl)
+        case (Op)
             `AND: ALUResult = SrcA & SrcB;
             `EOR: ALUResult = SrcA ^ SrcB;
             `TST: ALUResult = SrcA & SrcB;
