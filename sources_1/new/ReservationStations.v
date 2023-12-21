@@ -1,7 +1,8 @@
 `include "config.v"
 
 module ReservationStations #(
-    parameter DP_STATION_DEPTH = 2
+    parameter DP_STATION_DEPTH = 2,
+    parameter MEM_STATION_DEPTH = 2
 )(
     input CLK,
     input Reset,
@@ -62,7 +63,7 @@ module ReservationStations #(
     assign dp = ~(MemW | MemtoReg) & ~MULS & ~FPS;
     assign mem = MemW | MemtoReg;
     assign mul = MULS;
-    assign dp = FPS;
+    assign fp = FPS;
     wire dp_full, mem_full, mul_full, fp_full;
     always @(*) begin
         if (dp) begin
@@ -136,14 +137,14 @@ module ReservationStations #(
         .RD2(RD2),
         .Op(Op),
         .ROBTail(ROBTail),
-        .Exec(DP_Exec),
-        .Exec_Op(DP_Op),
-        .Exec_Cond(DP_Cond),
-        .WIndex(DP_WIndex),
-        .Exec_Shamt5(DP_Shamt5),
-        .Exec_Sh(DP_Sh),
-        .Exec_SrcA(DP_SrcA),
-        .Exec_SrcB(DP_SrcB)
+        .Exec(MEM_Exec),
+        .Exec_Op(MEM_Op),
+        .Exec_Cond(MEM_Cond),
+        .WIndex(MEM_WIndex),
+        .Exec_Shamt5(MEM_Shamt5),
+        .Exec_Sh(MEM_Sh),
+        .Exec_SrcA(MEM_SrcA),
+        .Exec_SrcB(MEM_SrcB)
     );
 endmodule
 
@@ -449,6 +450,10 @@ module MEM_Station #(
     input [5:0] rrs_index,
 
     
+    input fs_flagready,
+    input [2:0] fs_index,
+
+
     input ALUSrc,
     input [31:0] ExtImm,
     input [4:0] Shamt5,
@@ -456,6 +461,7 @@ module MEM_Station #(
     input [31:0] RD1,
     input [31:0] RD2,
     input [4:0] Op,
+    input [3:0] Cond,
     input [2:0] ROBTail,
 
     output Exec,

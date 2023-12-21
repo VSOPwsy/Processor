@@ -1,4 +1,4 @@
-module DP_IEReg(
+module MEM_IEReg(
     input CLK,
     input Reset,
     input EN,
