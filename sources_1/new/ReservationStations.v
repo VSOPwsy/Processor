@@ -435,6 +435,11 @@ module DP_Station #(
     endgenerate
 endmodule
 
+
+
+
+
+
 module MEM_Station #(
     parameter MEM_STATION_DEPTH = 2
 )(
@@ -478,4 +483,239 @@ module MEM_Station #(
     output reg Exec_ALUSrc
 );
 
+    reg [MEM_STATION_DEPTH*1-1:0] BUSY;
+    reg [MEM_STATION_DEPTH*5-1:0] OP;
+    reg [MEM_STATION_DEPTH*4-1:0] COND;
+    reg [MEM_STATION_DEPTH*5-1:0] SHAMT;
+    reg [MEM_STATION_DEPTH*2-1:0] SH;
+    reg [MEM_STATION_DEPTH*1-1:0] I;
+    reg [MEM_STATION_DEPTH*1-1:0] WAIT;
+    reg [MEM_STATION_DEPTH*32-1:0] VJ, VK;
+    reg [MEM_STATION_DEPTH*4-1:0] QJ, QK;
+    reg [MEM_STATION_DEPTH*3-1:0] DEST;
+    reg [MEM_STATION_DEPTH*4-1:0] F;
+
+    wire [MEM_STATION_DEPTH-1:0] READY;
+    reg [MEM_STATION_DEPTH-1:0] EXEC;
+
+    initial begin
+        BUSY = 0;
+        OP = 0;
+        COND = 0;
+        FLAGW = 0;
+        REGW = 0;
+        NOWRITE = 0;
+        SHAMT = 0;
+        SH = 0;
+        I = 0;
+        WAIT = 0;
+        VJ = 0;
+        VK = 0;
+        QJ = 0;
+        QK = 0;
+        DEST = 0;
+        F = 0;
+        Exec_Cond = 0;
+        Exec_FlagW = 0;
+        Exec_RegW = 0;
+        Exec_NoWrite = 0;
+        Exec_Op = 0;
+        WIndex = 0;
+        Exec_Shamt5 = 0;
+        Exec_Sh = 0;
+        Exec_SrcA = 0;
+        Exec_SrcB = 0;
+        Exec_ALUSrc = 0;
+    end
+
+    assign full = &BUSY;
+    assign Exec = |EXEC;
+
+    genvar i;
+    generate
+        for (i = 0; i < MEM_STATION_DEPTH; i = i + 1) begin
+            assign READY[i] = BUSY[i] & ~QJ[i*4+3] & ~QK[i*4+3] & ~F[i*4+3] & WAIT[i];
+            if (i > 0) begin
+                always @(posedge CLK, posedge Reset) begin
+                    if (Reset) begin
+                        BUSY[i] <= 0;
+                    end
+                    else begin
+                        if (append & (&BUSY[i-1:0]) & ~BUSY[i]) begin
+                            BUSY[i] <= 1;
+                            WAIT[i] <= 1;
+                            OP[i*5+:5] <= Op;
+                            COND[i*4+:4] <= Cond;
+                            FLAGW[i*4+:4] <= FlagW;
+                            DEST[i*3+:3] <= ROBTail;
+                            REGW[i] <= RegW;
+                            NOWRITE[i] <= NoWrite;
+                            SHAMT[i*5+:5] <= Shamt5;
+                            SH[i*2+:2] <= Sh;
+                            I[i] <= ALUSrc;
+                            if (rrs_result_busy[0]) begin
+                                VJ[i*32+:32] <= VJ[i*32+:32];
+                                QJ[i*4+:4] <= {1'b1, rrs_index[2:0]};
+                            end
+                            else begin
+                                VJ[i*32+:32] <= RD1;
+                                QJ[i*4+:4] <= 4'b0;
+                            end
+
+                            if (ALUSrc) begin
+                                VK[i*32+:32] <= ExtImm;
+                                QK[i*4+:4] <= 4'b0;
+                            end
+                            else if (rrs_result_busy[1]) begin
+                                VK[i*32+:32] <= VK[i*32+:32];
+                                QK[i*4+:4] <= {1'b1, rrs_index[5:3]};
+                            end
+                            else begin
+                                VK[i*32+:32] <= RD2;
+                                QK[i*4+:4] <= 4'b0;
+                            end
+
+                            if (Cond == 4'hE | fs_flagready) begin
+                                F[i*4+:4] <= 4'b0;
+                            end
+                            else begin
+                                F[i*4+:4] <= {1'b1, fs_index};
+                            end
+                        end
+
+                        if (READY[i] & (READY[i-1:0] == 0)) begin
+                            EXEC[i] <= 1;
+                            WAIT[i] <= 0;
+                            Exec_Op <= OP[i*5+:5];
+                            WIndex <= DEST[i*3+:3];
+                            Exec_Cond <= COND[i*4+:4];
+                            Exec_FlagW <= FLAGW[i*4+:4];
+                            Exec_RegW <= REGW[i];
+                            Exec_NoWrite <= NOWRITE[i];
+                            Exec_Shamt5 <= SHAMT[i*5+:5];
+                            Exec_Sh <= SH[i*2+:2];
+                            Exec_SrcA <= VJ[i*32+:32];
+                            Exec_SrcB <= VK[i*32+:32];
+                            Exec_ALUSrc <= I[i];
+                        end
+                        else begin
+                            EXEC[i] <= 0;
+                        end
+
+
+                        if (BUSY[i]) begin
+                            if (QJ[i*4+3] & CDB[3:0] == QJ[i*4+:4]) begin
+                                QJ[i*4+3] <= 1'b0;
+                                VJ[i*32+:32] <= CDB[35:4];
+                            end
+                            
+                            if (QK[i*4+3] & CDB[3:0] == QK[i*4+:4]) begin
+                                QK[i*4+3] <= 1'b0;
+                                VK[i*32+:32] <= CDB[35:4];
+                            end
+
+                            if (F[i*4+3] & CDB[147:144] == F[i*4+:4]) begin
+                                F[i*4+3] <= 1'b0;
+                            end
+
+                            if (DEST[i*3+:3] == CDB[2:0] & CDB[3]) begin
+                                BUSY[i] <= 0;
+                            end
+
+                        end
+                    end
+                end
+            end
+            else begin  // i = 0
+                always @(posedge CLK, posedge Reset) begin
+                    if (Reset) begin
+                        BUSY[i] <= 0;
+                    end
+                    else begin
+                        if (append & ~BUSY[i]) begin
+                            BUSY[i] <= 1;
+                            WAIT[i] <= 1;
+                            OP[i*5+:5] <= Op;
+                            COND[i*4+:4] <= Cond;
+                            FLAGW[i*4+:4] <= FlagW;
+                            REGW[i] <= RegW;
+                            NOWRITE[i] <= NoWrite;
+                            DEST[i*3+:3] <= ROBTail;
+                            SHAMT[i*5+:5] <= Shamt5;
+                            SH[i*2+:2] <= Sh;
+                            I[i] <= ALUSrc;
+                            if (rrs_result_busy[0]) begin
+                                VJ[i*32+:32] <= VJ[i*32+:32];
+                                QJ[i*4+:4] <= {1'b1, rrs_index[2:0]};
+                            end
+                            else begin
+                                VJ[i*32+:32] <= RD1;
+                                QJ[i*4+:4] <= 4'b0;
+                            end
+
+                            if (ALUSrc) begin
+                                VK[i*32+:32] <= ExtImm;
+                                QK[i*4+:4] <= 4'b0;
+                            end
+                            else if (rrs_result_busy[1]) begin
+                                VK[i*32+:32] <= VK[i*32+:32];
+                                QK[i*4+:4] <= {1'b1, rrs_index[5:3]};
+                            end
+                            else begin
+                                VK[i*32+:32] <= RD2;
+                                QK[i*4+:4] <= 4'b0;
+                            end
+
+                            if (Cond == 4'hE | fs_flagready) begin
+                                F[i*4+:4] <= 4'b0;
+                            end
+                            else begin
+                                F[i*4+:4] <= {1'b1, fs_index};
+                            end
+                        end
+
+                        if (READY[i]) begin
+                            EXEC[i] <= 1;
+                            WAIT[i] <= 0;
+                            Exec_Op <= OP[i*5+:5];
+                            WIndex <= DEST[i*3+:3];
+                            Exec_Cond <= COND[i*4+:4];
+                            Exec_FlagW <= FLAGW[i*4+:4];
+                            Exec_RegW <= REGW[i];
+                            Exec_NoWrite <= NOWRITE[i];
+                            Exec_Shamt5 <= SHAMT[i*5+:5];
+                            Exec_Sh <= SH[i*2+:2];
+                            Exec_SrcA <= VJ[i*32+:32];
+                            Exec_SrcB <= VK[i*32+:32];
+                            Exec_ALUSrc <= I[i];
+                        end
+                        else begin
+                            EXEC[i] <= 0;
+                        end
+
+
+                        if (BUSY[i]) begin
+                            if (QJ[i*4+3] & CDB[3:0] == QJ[i*4+:4]) begin
+                                QJ[i*4+3] <= 1'b0;
+                                VJ[i*32+:32] <= CDB[35:4];
+                            end
+                            
+                            if (QK[i*4+3] & CDB[3:0] == QK[i*4+:4]) begin
+                                QK[i*4+3] <= 1'b0;
+                                VK[i*32+:32] <= CDB[35:4];
+                            end
+
+                            if (F[i*4+3] & CDB[147:144] == F[i*4+:4]) begin
+                                F[i*4+3] <= 1'b0;
+                            end
+
+                            if (DEST[i*3+:3] == CDB[2:0] & CDB[3]) begin
+                                BUSY[i] <= 0;
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    endgenerate
 endmodule
