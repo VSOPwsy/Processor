@@ -52,8 +52,9 @@ module ReservationStations #(
 
     output          MEM_Exec,
     output [3:0]    MEM_Cond,
-    output [4:0]    MEM_Op,
+    output          MEM_RegW,
     output [2:0]    MEM_WIndex,
+    output          MEM_ALUSrc,
     output [4:0]    MEM_Shamt5,
     output [1:0]    MEM_Sh,
     output [31:0]   MEM_SrcA,
@@ -131,6 +132,7 @@ module ReservationStations #(
         .ALUSrc(ALUSrc),
         .ExtImm(ExtImm),
         .Cond(Cond),
+        .RegW(RegW),
         .Shamt5(Shamt5),
         .Sh(Sh),
         .RD1(RD1),
@@ -138,9 +140,10 @@ module ReservationStations #(
         .Op(Op),
         .ROBTail(ROBTail),
         .Exec(MEM_Exec),
-        .Exec_Op(MEM_Op),
+        .Exec_RegW(MEM_RegW),
         .Exec_Cond(MEM_Cond),
         .WIndex(MEM_WIndex),
+        .Exec_ALUSrc(MEM_ALUSrc),
         .Exec_Shamt5(MEM_Shamt5),
         .Exec_Sh(MEM_Sh),
         .Exec_SrcA(MEM_SrcA),
@@ -461,6 +464,7 @@ module MEM_Station #(
 
     input ALUSrc,
     input [31:0] ExtImm,
+    input RegW,
     input [4:0] Shamt5,
     input [1:0] Sh,
     input [31:0] RD1,
@@ -475,7 +479,6 @@ module MEM_Station #(
     output reg [2:0] WIndex,
     output reg [3:0] Exec_FlagW,
     output reg Exec_RegW,
-    output reg Exec_NoWrite,
     output reg [4:0] Exec_Shamt5,
     output reg [1:0] Exec_Sh,
     output reg [31:0] Exec_SrcA,
@@ -484,8 +487,8 @@ module MEM_Station #(
 );
 
     reg [MEM_STATION_DEPTH*1-1:0] BUSY;
-    reg [MEM_STATION_DEPTH*5-1:0] OP;
     reg [MEM_STATION_DEPTH*4-1:0] COND;
+    reg [MEM_STATION_DEPTH*4-1:0] REGW;
     reg [MEM_STATION_DEPTH*5-1:0] SHAMT;
     reg [MEM_STATION_DEPTH*2-1:0] SH;
     reg [MEM_STATION_DEPTH*1-1:0] I;
@@ -500,11 +503,8 @@ module MEM_Station #(
 
     initial begin
         BUSY = 0;
-        OP = 0;
         COND = 0;
-        FLAGW = 0;
         REGW = 0;
-        NOWRITE = 0;
         SHAMT = 0;
         SH = 0;
         I = 0;
@@ -518,8 +518,6 @@ module MEM_Station #(
         Exec_Cond = 0;
         Exec_FlagW = 0;
         Exec_RegW = 0;
-        Exec_NoWrite = 0;
-        Exec_Op = 0;
         WIndex = 0;
         Exec_Shamt5 = 0;
         Exec_Sh = 0;
@@ -544,12 +542,9 @@ module MEM_Station #(
                         if (append & (&BUSY[i-1:0]) & ~BUSY[i]) begin
                             BUSY[i] <= 1;
                             WAIT[i] <= 1;
-                            OP[i*5+:5] <= Op;
                             COND[i*4+:4] <= Cond;
-                            FLAGW[i*4+:4] <= FlagW;
                             DEST[i*3+:3] <= ROBTail;
                             REGW[i] <= RegW;
-                            NOWRITE[i] <= NoWrite;
                             SHAMT[i*5+:5] <= Shamt5;
                             SH[i*2+:2] <= Sh;
                             I[i] <= ALUSrc;
@@ -586,12 +581,9 @@ module MEM_Station #(
                         if (READY[i] & (READY[i-1:0] == 0)) begin
                             EXEC[i] <= 1;
                             WAIT[i] <= 0;
-                            Exec_Op <= OP[i*5+:5];
                             WIndex <= DEST[i*3+:3];
                             Exec_Cond <= COND[i*4+:4];
-                            Exec_FlagW <= FLAGW[i*4+:4];
                             Exec_RegW <= REGW[i];
-                            Exec_NoWrite <= NOWRITE[i];
                             Exec_Shamt5 <= SHAMT[i*5+:5];
                             Exec_Sh <= SH[i*2+:2];
                             Exec_SrcA <= VJ[i*32+:32];
@@ -635,11 +627,8 @@ module MEM_Station #(
                         if (append & ~BUSY[i]) begin
                             BUSY[i] <= 1;
                             WAIT[i] <= 1;
-                            OP[i*5+:5] <= Op;
                             COND[i*4+:4] <= Cond;
-                            FLAGW[i*4+:4] <= FlagW;
                             REGW[i] <= RegW;
-                            NOWRITE[i] <= NoWrite;
                             DEST[i*3+:3] <= ROBTail;
                             SHAMT[i*5+:5] <= Shamt5;
                             SH[i*2+:2] <= Sh;
@@ -677,12 +666,9 @@ module MEM_Station #(
                         if (READY[i]) begin
                             EXEC[i] <= 1;
                             WAIT[i] <= 0;
-                            Exec_Op <= OP[i*5+:5];
                             WIndex <= DEST[i*3+:3];
                             Exec_Cond <= COND[i*4+:4];
-                            Exec_FlagW <= FLAGW[i*4+:4];
                             Exec_RegW <= REGW[i];
-                            Exec_NoWrite <= NOWRITE[i];
                             Exec_Shamt5 <= SHAMT[i*5+:5];
                             Exec_Sh <= SH[i*2+:2];
                             Exec_SrcA <= VJ[i*32+:32];

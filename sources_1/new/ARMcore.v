@@ -172,8 +172,9 @@ module ARMcore(
     wire                ReservationStations_DP_ALUSrc;
     wire                ReservationStations_MEM_Exec;
     wire    [3:0]       ReservationStations_MEM_Cond;
+    wire                ReservationStations_MEM_RegW;
     wire    [2:0]       ReservationStations_MEM_WIndex;
-    wire    [4:0]       ReservationStations_MEM_Op;
+    wire                ReservationStations_MEM_ALUSrc;
     wire    [4:0]       ReservationStations_MEM_Shamt5;
     wire    [1:0]       ReservationStations_MEM_Sh;
     wire    [31:0]      ReservationStations_MEM_SrcA;
@@ -266,22 +267,33 @@ module ARMcore(
     wire                MEM_IEReg_CLR;
     wire                MEM_IEReg_ExecI;
     wire    [3:0]       MEM_IEReg_CondI;
+    wire                MEM_IEReg_RegWI;
     wire    [2:0]       MEM_IEReg_WIndexI;
-    wire    [4:0]       MEM_IEReg_OpI;
+    wire                MEM_IEReg_ALUSrcI;
     wire    [31:0]      MEM_IEReg_SrcAI;
     wire    [31:0]      MEM_IEReg_SrcBI;
     wire    [1:0]       MEM_IEReg_ShI;
     wire    [4:0]       MEM_IEReg_Shamt5I;
     wire                MEM_IEReg_ExecE;
     wire    [3:0]       MEM_IEReg_CondE;
+    wire                MEM_IEReg_RegWE;
     wire    [2:0]       MEM_IEReg_WIndexE;
-    wire    [4:0]       MEM_IEReg_OpE;
+    wire                MEM_IEReg_ALUSrcE;
     wire    [31:0]      MEM_IEReg_SrcAE;
     wire    [31:0]      MEM_IEReg_SrcBE;
     wire    [1:0]       MEM_IEReg_ShE;
     wire    [4:0]       MEM_IEReg_Shamt5E;
 
 
+    wire    [1:0]       MEM_Shifter_Sh;
+    wire    [4:0]       MEM_Shifter_Shamt5;
+    wire    [31:0]      MEM_Shifter_ShIn;
+    wire    [31:0]      MEM_Shifter_ShOut;
+
+
+    wire    [31:0]      MEM_adder_a;
+    wire    [31:0]      MEM_adder_b;
+    wire    [31:0]      MEM_adder_s;
 
 
     
@@ -425,19 +437,23 @@ module ARMcore(
     assign  MEM_IEReg_EN            =   ReservationStations_MEM_Exec;
     assign  MEM_IEReg_CLR           =   1'b0;
     assign  MEM_IEReg_CondI         =   ReservationStations_MEM_Cond;
+    assign  MEM_IEReg_RegWI         =   ReservationStations_MEM_RegW;
     assign  MEM_IEReg_ExecI         =   ReservationStations_MEM_Exec;
     assign  MEM_IEReg_WIndexI       =   ReservationStations_MEM_WIndex;
-    assign  MEM_IEReg_OpI           =   ReservationStations_MEM_Op;
+    assign  MEM_IEReg_ALUSrcI       =   ReservationStations_MEM_ALUSrc;
     assign  MEM_IEReg_SrcAI         =   ReservationStations_MEM_SrcA;
     assign  MEM_IEReg_SrcBI         =   ReservationStations_MEM_SrcB;
     assign  MEM_IEReg_ShI           =   ReservationStations_MEM_Sh;
     assign  MEM_IEReg_Shamt5I       =   ReservationStations_MEM_Shamt5;
 
 
+    assign  MEM_Shifter_Sh      =   MEM_IEReg_ShE;
+    assign  MEM_Shifter_Shamt5  =   MEM_IEReg_Shamt5E;
+    assign  MEM_Shifter_ShIn    =   MEM_IEReg_SrcBE;
 
 
-
-
+    assign  MEM_adder_a     =   MEM_IEReg_SrcAE;
+    assign  MEM_adder_b     =   MEM_IEReg_ALUSrcE ? MEM_IEReg_SrcBE : MEM_Shifter_ShOut;
 
 
 
@@ -610,8 +626,9 @@ module ARMcore(
         .DP_ALUSrc  (ReservationStations_DP_ALUSrc),
         .MEM_Exec    (ReservationStations_MEM_Exec),
         .MEM_Cond    (ReservationStations_MEM_Cond),
+        .MEM_RegW    (ReservationStations_MEM_RegW),
         .MEM_WIndex  (ReservationStations_MEM_WIndex),
-        .MEM_Op      (ReservationStations_MEM_Op),
+        .MEM_ALUSrc  (ReservationStations_MEM_ALUSrc),
         .MEM_Shamt5  (ReservationStations_MEM_Shamt5),
         .MEM_Sh      (ReservationStations_MEM_Sh),
         .MEM_SrcA    (ReservationStations_MEM_SrcA),
@@ -696,7 +713,7 @@ module ARMcore(
 
 
 
-    DP_Shifter DP_Shifter(
+    Shifter DP_Shifter(
         .Sh     (DP_Shifter_Sh     ),
         .Shamt5 (DP_Shifter_Shamt5 ),
         .ShIn   (DP_Shifter_ShIn   ),
@@ -741,8 +758,9 @@ module ARMcore(
         .CLR            (MEM_IEReg_CLR          ),
         .ExecI          (MEM_IEReg_ExecI        ),
         .CondI          (MEM_IEReg_CondI        ),
+        .RegWI          (MEM_IEReg_RegWI        ),
         .WIndexI        (MEM_IEReg_WIndexI      ),
-        .OpI            (MEM_IEReg_OpI          ),
+        .ALUSrcI        (MEM_IEReg_ALUSrcI      ),
         .SrcAI          (MEM_IEReg_SrcAI        ),
         .SrcBI          (MEM_IEReg_SrcBI        ),
         .ShI            (MEM_IEReg_ShI          ),
@@ -750,11 +768,30 @@ module ARMcore(
         
         .ExecE          (MEM_IEReg_ExecE        ),
         .CondE          (MEM_IEReg_CondE        ),
+        .RegWE          (MEM_IEReg_RegWE        ),
         .WIndexE        (MEM_IEReg_WIndexE      ),
-        .OpE            (MEM_IEReg_OpE          ),
+        .ALUSrcE        (MEM_IEReg_ALUSrcE      ),
         .SrcAE          (MEM_IEReg_SrcAE        ),
         .SrcBE          (MEM_IEReg_SrcBE        ),
         .ShE            (MEM_IEReg_ShE          ),
         .Shamt5E        (MEM_IEReg_Shamt5E      ));
 
+
+
+    Shifter MEM_Shifter(
+        .Sh     (MEM_Shifter_Sh     ),
+        .Shamt5 (MEM_Shifter_Shamt5 ),
+        .ShIn   (MEM_Shifter_ShIn   ),
+        .CFlag  (                   ),
+        .ShOut  (MEM_Shifter_ShOut  ),
+        .Carry  (                   ));
+
+
+    adder MEM_adder(
+        .cin(1'b0),
+        .a(MEM_adder_a),
+        .b(MEM_adder_b),
+        .s(MEM_adder_s),
+        .cout()
+    );
 endmodule

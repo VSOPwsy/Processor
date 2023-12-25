@@ -116,11 +116,12 @@ module InstructionMemory #(
 			end
         end
         else if (TEST == 3) begin
-            INSTR_MEM[0] = 32'hE2915001; // R5 = R1 + #1 = 1
-            INSTR_MEM[1] = 32'hF0816002; // R6 = R5 + R5
+            INSTR_MEM[0] = 32'hE59F1204;
+//            INSTR_MEM[1] = 32'hE2915001; // R5 = R1 + #1 = 1
+//            INSTR_MEM[2] = 32'hF0816002; // R6 = R5 + R5
             // INSTR_MEM[2] = 32'hE28170FF; // R7 = R1 + #0xFF
             // INSTR_MEM[3] = 32'hE0858005;
-            for(i = 2; i < 128; i = i+1) begin 
+            for(i = 1; i < 128; i = i+1) begin 
 				INSTR_MEM[i] = 32'h0; 
 			end
         end

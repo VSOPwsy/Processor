@@ -5,16 +5,18 @@ module MEM_IEReg(
     input CLR,
     input ExecI,
     input [3:0] CondI,
+    input RegWI,
     input [2:0] WIndexI,
-    input [4:0] OpI,
+    input ALUSrcI,
     input [31:0] SrcAI,
     input [31:0] SrcBI,
     input [1:0] ShI,
     input [4:0] Shamt5I,
     output reg ExecE,
     output reg [3:0] CondE,
+    output reg RegWE,
     output reg [2:0] WIndexE,
-    output reg [4:0] OpE,
+    output reg ALUSrcE,
     output reg [31:0] SrcAE,
     output reg [31:0] SrcBE,
     output reg [1:0] ShE,
@@ -24,8 +26,9 @@ module MEM_IEReg(
     initial begin
         ExecE = 0;
         CondE = 0;
+        RegWE = 0;
         WIndexE = 0;
-        OpE = 0;
+        ALUSrcE = 0;
         SrcAE = 0;
         SrcBE = 0;
         ShE = 0;
@@ -36,8 +39,9 @@ module MEM_IEReg(
         if (Reset) begin
             ExecE <= 0;
             CondE <= 0;
+            RegWE <= 0;
             WIndexE <= 0;
-            OpE <= 0;
+            ALUSrcE <= 0;
             SrcAE <= 0;
             SrcBE <= 0;
             ShE <= 0;
@@ -46,8 +50,9 @@ module MEM_IEReg(
         else if (CLR) begin
             ExecE <= 0;
             CondE <= 0;
+            RegWE <= 0;
             WIndexE <= 0;
-            OpE <= 0;
+            ALUSrcE <= 0;
             SrcAE <= 0;
             SrcBE <= 0;
             ShE <= 0;
@@ -56,8 +61,9 @@ module MEM_IEReg(
         else if (EN) begin
             ExecE <= ExecI;
             CondE <= CondI;
+            RegWE <= RegWI;
             WIndexE <= WIndexI;
-            OpE <= OpI;
+            ALUSrcE <= ALUSrcI;
             SrcAE <= SrcAI;
             SrcBE <= SrcBI;
             ShE <= ShI;
@@ -66,8 +72,9 @@ module MEM_IEReg(
         else begin
             ExecE <= ExecE;
             CondE <= CondE;
+            RegWE <= RegWE;
             WIndexE <= WIndexE;
-            OpE <= OpE;
+            ALUSrcE <= ALUSrcE;
             SrcAE <= SrcAE;
             SrcBE <= SrcBE;
             ShE <= ShE;
