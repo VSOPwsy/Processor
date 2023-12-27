@@ -6,6 +6,7 @@ module ReorderBuffer(
     input append,
     output full,
     output [2:0] ROBTail,
+    output reg [2:0] ROBHead,
     input [147:0] CDB,
     input [3:0] DestReg,
     input DP_WriteBack,
@@ -13,7 +14,14 @@ module ReorderBuffer(
 
     output reg [3:0] WA,
     output reg WE,
-    output reg [31:0] WD
+    output reg [31:0] WD,
+
+    input [2:0] IndexA,
+    input [2:0] IndexB,
+    output [31:0] ForwardDataA,
+    output [31:0] ForwardDataB,
+    output ForwardA,
+    output ForwardB
 );
 
 
@@ -23,8 +31,12 @@ module ReorderBuffer(
     assign CDB_MUL = CDB[107:72];
     assign CDB_FP = CDB[143:108];
 
+    initial ROBHead = 0;
     reg [3:0] head, tail;
-    assign ROBTail = tail;
+    wire [2:0] ROBHead_next;
+    assign ROBTail = tail[2:0];
+    assign ROBHead_next = head[2:0];
+    always @(posedge CLK, posedge Reset) ROBHead <= Reset ? 0 : ROBHead_next;
 
     reg [7:0] BUSY;
     reg [7:0] STATE; // 0 for issue or execute, 1 for write back
@@ -50,18 +62,18 @@ module ReorderBuffer(
         else begin
             if (append) begin
                 tail <= tail + 1;
-                BUSY[tail] <= 1;
-                DESTINATION[tail] <= DestReg;
+                BUSY[ROBTail] <= 1;
+                DESTINATION[ROBTail] <= DestReg;
             end
-            if (BUSY[head] & STATE[head] & ~empty) begin
-                BUSY[head] <= 0;
+            if (BUSY[ROBHead_next] & STATE[ROBHead_next] & ~empty) begin
+                BUSY[ROBHead_next] <= 0;
             end
         end
     end
 
     always @(posedge CLK) begin
         if (append) begin
-            STATE[tail] <= 0;
+            STATE[ROBTail] <= 0;
         end
         if (CDB_DP[3] & BUSY[CDB_DP[2:0]]) begin
             STATE[CDB_DP[2:0]] <= 1;
@@ -86,24 +98,34 @@ module ReorderBuffer(
     always @(posedge CLK, posedge Reset) begin
         if (Reset) begin
             head <= 0;
-            WA <= 0;
-            WE <= 0;
-            WD <= 0;
         end
         else begin
-            if (BUSY[head] & STATE[head] & ~empty) begin
+            if (BUSY[ROBHead_next] & STATE[ROBHead_next] & ~empty) begin
                 head <= head + 1;
-                WA <= DESTINATION[head];
-                WE <= WRITEBACK[head];
-                WD <= VALUE[head];
             end
             else begin
                 head <= head;
-                WA <= 0;
-                WE <= 0;
-                WD <= 0;
             end
         end
     end
+
+    always @(*) begin
+        if (BUSY[ROBHead_next] & STATE[ROBHead_next] & ~empty) begin
+            WA = DESTINATION[ROBHead_next];
+            WE = WRITEBACK[ROBHead_next];
+            WD = VALUE[ROBHead_next];
+        end
+        else begin
+            WA = 0;
+            WE = 0;
+            WD = 0;
+        end
+    end
+
+    assign ForwardA = BUSY[IndexA] & STATE[IndexA];
+    assign ForwardB = BUSY[IndexB] & STATE[IndexB];
+    assign ForwardDataA = VALUE[IndexA];
+    assign ForwardDataB = VALUE[IndexB];
+
 
 endmodule

@@ -37,6 +37,7 @@ module ARMcore(
     
 
     wire    [147:0]     CDB;
+    wire    [35:0]      WBB;
 
     wire                ProgramCounter_EN;
     wire                ProgramCounter_PCSrc;
@@ -78,12 +79,19 @@ module ARMcore(
     wire                ReorderBuffer_append;
     wire                ReorderBuffer_full;
     wire    [2:0]       ReorderBuffer_ROBTail;
+    wire    [2:0]       ReorderBuffer_ROBHead;
     wire    [3:0]       ReorderBuffer_DestReg;
     wire                ReorderBuffer_DP_WriteBack;
     wire                ReorderBuffer_MEM_WriteBack;
     wire    [3:0]       ReorderBuffer_WA;
     wire                ReorderBuffer_WE;
     wire    [31:0]      ReorderBuffer_WD;
+    wire    [2:0]       ReorderBuffer_IndexA;
+    wire    [2:0]       ReorderBuffer_IndexB;
+    wire    [31:0]      ReorderBuffer_ForwardDataA;
+    wire    [31:0]      ReorderBuffer_ForwardDataB;
+    wire                ReorderBuffer_ForwardA;
+    wire                ReorderBuffer_ForwardB;
 
 
 
@@ -161,6 +169,10 @@ module ARMcore(
     wire    [4:0]       ReservationStations_Op;
     wire    [2:0]       ReservationStations_ROBTail;
     wire                ReservationStations_Cache_Busy;
+    wire                ReservationStations_ROB_ForwardA;
+    wire                ReservationStations_ROB_ForwardB;
+    wire    [31:0]      ReservationStations_ROB_ForwardDataA;
+    wire    [31:0]      ReservationStations_ROB_ForwardDataB;
     wire                ReservationStations_DP_Exec;
     wire    [3:0]       ReservationStations_DP_Cond;
     wire    [3:0]       ReservationStations_DP_FlagW;
@@ -281,6 +293,7 @@ module ARMcore(
     wire                MEM_IEReg_ALUSrcI;
     wire    [31:0]      MEM_IEReg_SrcAI;
     wire    [31:0]      MEM_IEReg_SrcBI;
+    wire    [31:0]      MEM_IEReg_WriteDataI;
     wire    [1:0]       MEM_IEReg_ShI;
     wire    [4:0]       MEM_IEReg_Shamt5I;
     wire                MEM_IEReg_ExecE;
@@ -290,6 +303,7 @@ module ARMcore(
     wire                MEM_IEReg_ALUSrcE;
     wire    [31:0]      MEM_IEReg_SrcAE;
     wire    [31:0]      MEM_IEReg_SrcBE;
+    wire    [31:0]      MEM_IEReg_WriteDataE;
     wire    [1:0]       MEM_IEReg_ShE;
     wire    [4:0]       MEM_IEReg_Shamt5E;
 
@@ -346,6 +360,8 @@ module ARMcore(
     assign  ReorderBuffer_DestReg   =   DIReg_WA3I;
     assign  ReorderBuffer_DP_WriteBack =   DP_CondUnit_RegWrite;
     assign  ReorderBuffer_MEM_WriteBack =   MEM_CondUnit_RegWrite;
+    assign  ReorderBuffer_IndexA    =   RegisterResultStatus_index[2:0];
+    assign  ReorderBuffer_IndexB    =   RegisterResultStatus_index[5:3];
 
     assign  RegisterFile_WE3    =   ReorderBuffer_WE;
     assign  RegisterFile_WD3    =   ReorderBuffer_WD;
@@ -384,7 +400,7 @@ module ARMcore(
     assign  ReservationStations_rrs_index   =   RegisterResultStatus_index;
     assign  ReservationStations_fs_flagready=   FlagStatus_FlagReady;
     assign  ReservationStations_fs_index    =   FlagStatus_index;
-    assign  ReservationStations_ALUSrc       =   DIReg_ALUSrcI;
+    assign  ReservationStations_ALUSrc  =   DIReg_ALUSrcI;
     assign  ReservationStations_ExtImm  =   DIReg_ExtImmI;
     assign  ReservationStations_Cond    =   DIReg_CondI;
     assign  ReservationStations_FlagW   =   DIReg_FlagWI;
@@ -399,11 +415,16 @@ module ARMcore(
     assign  ReservationStations_Op      =   DIReg_OpI;
     assign  ReservationStations_ROBTail =   ReorderBuffer_ROBTail;
     assign  ReservationStations_Cache_Busy  =   Cache_Busy;
+    assign  ReservationStations_ROB_ForwardA    =   ReorderBuffer_ForwardA;
+    assign  ReservationStations_ROB_ForwardB    =   ReorderBuffer_ForwardB;
+    assign  ReservationStations_ROB_ForwardDataA    =   ReorderBuffer_ForwardDataA;
+    assign  ReservationStations_ROB_ForwardDataB    =   ReorderBuffer_ForwardDataB;
+
 
 
     assign  RegisterResultStatus_query  =   ReservationStations_rrs_query;
     assign  RegisterResultStatus_WA     =   DIReg_WA3I;
-    assign  RegisterResultStatus_NoWrite=   DIReg_NoWriteI;
+    assign  RegisterResultStatus_NoWrite=   DIReg_NoWriteI | (DIReg_OpI == `STRN | DIReg_OpI == `STRP);
     assign  RegisterResultStatus_append =   ReservationStations_Issue;
     assign  RegisterResultStatus_ROBTail=   ReorderBuffer_ROBTail;
 
@@ -522,8 +543,10 @@ module ARMcore(
     assign  Cache_Valid     =   MemOrIO_dec_mem & (MEM_CondUnit_MemWrite | MEM_CondUnit_RegWrite);
     assign  Cache_WriteData =   MemOrIO_m_wdata;
 
-    assign  Cache_Busy  =   Cache_Valid & ~Cache_ReadReady;
+    assign  Cache_Busy  =   MEM_CondUnit_RegWrite & Cache_Valid & ~Cache_ReadReady;
 
+
+    assign  WBB     =   {ReorderBuffer_WD, ReorderBuffer_WE, ReorderBuffer_ROBHead};
 
     assign  CDB[35:0] = {ALU_ALUResult, DP_IEReg_ExecE, DP_IEReg_WIndexE};
     assign  CDB[71:36] = {Cache_ReadData, Cache_ReadReady | MEM_CondUnit_MemWrite, MEM_IEReg_WIndexE};
@@ -583,13 +606,20 @@ module ARMcore(
         .append(ReorderBuffer_append),
         .full(ReorderBuffer_full),
         .ROBTail(ReorderBuffer_ROBTail),
+        .ROBHead(ReorderBuffer_ROBHead),
         .CDB(CDB),
         .DestReg(ReorderBuffer_DestReg),
         .DP_WriteBack(ReorderBuffer_DP_WriteBack),
         .MEM_WriteBack(ReorderBuffer_MEM_WriteBack),
         .WA(ReorderBuffer_WA),
         .WE(ReorderBuffer_WE),
-        .WD(ReorderBuffer_WD)
+        .WD(ReorderBuffer_WD),
+        .IndexA(ReorderBuffer_IndexA),
+        .IndexB(ReorderBuffer_IndexB),
+        .ForwardDataA(ReorderBuffer_ForwardDataA),
+        .ForwardDataB(ReorderBuffer_ForwardDataB),
+        .ForwardA(ReorderBuffer_ForwardA),
+        .ForwardB(ReorderBuffer_ForwardB)
     );
 
 
@@ -635,7 +665,7 @@ module ARMcore(
 
 
     RegisterFile RegisterFile(
-        .CLK_n  (~CLK               ),
+        .CLK_n  (CLK               ),
         .Reset  (Reset              ),
         .WE3    (RegisterFile_WE3   ),
         .A1     (RegisterFile_A1    ),
@@ -649,7 +679,8 @@ module ARMcore(
 
 
     ReservationStations #(
-        .DP_STATION_DEPTH(4)
+        .DP_STATION_DEPTH(4),
+        .MEM_STATION_DEPTH(2)
     )ReservationStations(
         .CLK(CLK),
         .Reset(Reset),
@@ -680,6 +711,10 @@ module ARMcore(
         .Op(ReservationStations_Op),
         .ROBTail(ReservationStations_ROBTail),
         .Cache_Busy(ReservationStations_Cache_Busy),
+        .ROB_ForwardDataA(ReservationStations_ROB_ForwardDataA),
+        .ROB_ForwardDataB(ReservationStations_ROB_ForwardDataB),
+        .ROB_ForwardA(ReservationStations_ROB_ForwardA),
+        .ROB_ForwardB(ReservationStations_ROB_ForwardB),
         .DP_Exec    (ReservationStations_DP_Exec),
         .DP_Cond    (ReservationStations_DP_Cond),
         .DP_FlagW   (ReservationStations_DP_FlagW),
@@ -709,6 +744,7 @@ module ARMcore(
     RegisterResultStatus RegisterResultStatus(
         .CLK(CLK),
         .Reset(Reset),
+        .WBB(WBB),
         .CDB(CDB),
         .query(RegisterResultStatus_query),
         .WA(RegisterResultStatus_WA),

@@ -327,13 +327,13 @@ module ControlUnit(
                 2'b01: begin: _Mem_offset
                     casex (Funct[4:1])
                         4'bX1XX: begin
-                            Operation = `ADD;
+                            Operation = Funct[0] ? `LDRP : `STRP;
                             FlagW = 4'b0000;
                             NoWrite = 1'b0;
                         end
                         
                         4'bX0XX: begin
-                            Operation = `SUB;
+                            Operation = Funct[0] ? `LDRN : `STRN;
                             FlagW = 4'b0000;
                             NoWrite = 1'b0;
                         end

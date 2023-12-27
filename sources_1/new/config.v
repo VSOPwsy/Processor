@@ -46,14 +46,16 @@
 `define     BIC     5'b01110
 `define     MVN     5'b01111
 
-`define     LDR     5'b10000
-`define     STR     5'b10001
+`define     LDRP    5'b10000
+`define     LDRN    5'b10001
+`define     STRP    5'b10010
+`define     STRN    5'b10011
 
-`define     MUL     5'b10010
-`define     DIV     5'b10011
+`define     MUL     5'b10100
+`define     DIV     5'b10101
 
-`define     FADD    5'b10100
-`define     FMUL    5'b10101
+`define     FADD    5'b10110
+`define     FMUL    5'b10111
 
 `define     FIFO    1'b0
 `define     RANDOM  1'b1
