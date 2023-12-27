@@ -256,6 +256,7 @@ module ARMcore(
     wire    [3:0]       DP_CondUnit_FlagW;
     wire                DP_CondUnit_RegW;
     wire                DP_CondUnit_NoWrite;
+    wire    [3:0]       DP_CondUnit_FlagWrite;
     wire                DP_CondUnit_RegWrite;
 
 

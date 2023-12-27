@@ -18,7 +18,7 @@ module Flags (
         C = 0;
         V = 0;
     end
-
+    assign Flags = {N, Z, C, V};
     always @(posedge CLK, posedge Reset) begin
         if (Reset)
             {N, Z, C, V} <= 4'b0;

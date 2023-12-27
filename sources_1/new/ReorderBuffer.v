@@ -6,7 +6,7 @@ module ReorderBuffer(
     input append,
     output full,
     output [2:0] ROBTail,
-    output reg [2:0] ROBHead,
+    output [2:0] ROBHead,
     input [147:0] CDB,
     input [3:0] DestReg,
     input DP_WriteBack,
@@ -32,23 +32,24 @@ module ReorderBuffer(
     assign CDB_MUL = CDB[107:72];
     assign CDB_FP = CDB[143:108];
 
-    initial ROBHead = 0;
     reg [3:0] head, tail;
-    wire [2:0] ROBHead_next;
     assign ROBTail = tail[2:0];
-    assign ROBHead_next = head[2:0];
-    always @(posedge CLK, posedge Reset) ROBHead <= Reset ? 0 : ROBHead_next;
+    assign ROBHead = head[2:0];
 
     reg [7:0] BUSY;
     reg [7:0] STATE; // 0 for issue or execute, 1 for write back
     reg [3:0] DESTINATION [0:7];
     reg [31:0] VALUE [0:7];
     reg [7:0] WRITEBACK;
-
+    integer i;
     initial begin
         BUSY = 0;
         STATE = 0;
         WRITEBACK = 0;
+        for (i = 0; i < 8; i = i + 1) begin
+            DESTINATION[i] = 0;
+            VALUE[i] = 0;
+        end
     end
 
     assign full = head == {~tail[3], tail[2:0]};
@@ -66,8 +67,8 @@ module ReorderBuffer(
                 BUSY[ROBTail] <= 1;
                 DESTINATION[ROBTail] <= DestReg;
             end
-            if (BUSY[ROBHead_next] & STATE[ROBHead_next] & ~empty) begin
-                BUSY[ROBHead_next] <= 0;
+            if (BUSY[ROBHead] & STATE[ROBHead] & ~empty) begin
+                BUSY[ROBHead] <= 0;
             end
         end
     end
@@ -101,7 +102,7 @@ module ReorderBuffer(
             head <= 0;
         end
         else begin
-            if (BUSY[ROBHead_next] & STATE[ROBHead_next] & ~empty) begin
+            if (BUSY[ROBHead] & STATE[ROBHead] & ~empty) begin
                 head <= head + 1;
             end
             else begin
@@ -111,10 +112,10 @@ module ReorderBuffer(
     end
 
     always @(*) begin
-        if (BUSY[ROBHead_next] & STATE[ROBHead_next] & ~empty) begin
-            WA = DESTINATION[ROBHead_next];
-            WE = WRITEBACK[ROBHead_next];
-            WD = VALUE[ROBHead_next];
+        if (BUSY[ROBHead] & STATE[ROBHead] & ~empty) begin
+            WA = DESTINATION[ROBHead];
+            WE = WRITEBACK[ROBHead];
+            WD = VALUE[ROBHead];
             Commit = 1;
         end
         else begin

@@ -225,7 +225,7 @@ module DP_Station #(
     reg [DP_STATION_DEPTH*4-1:0] COND;
     reg [DP_STATION_DEPTH*4-1:0] FLAGW;
     reg [DP_STATION_DEPTH*1-1:0] REGW;
-    reg [DP_STATION_DEPTH*4-1:0] NOWRITE;
+    reg [DP_STATION_DEPTH*1-1:0] NOWRITE;
     reg [DP_STATION_DEPTH*5-1:0] SHAMT;
     reg [DP_STATION_DEPTH*2-1:0] SH;
     reg [DP_STATION_DEPTH*1-1:0] I;

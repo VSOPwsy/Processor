@@ -13,6 +13,12 @@ module RegisterResultStatus(
 );
     reg [2:0] INDEX [0:15];
     reg [15:0] BUSY;
+    integer i;
+    initial begin
+        for (i = 0; i < 16; i = i + 1) begin
+            INDEX[i] = 0;
+        end
+    end
 
     always @(*) begin
         result_busy[0] = BUSY[query[3:0]];
