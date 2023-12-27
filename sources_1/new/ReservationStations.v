@@ -600,7 +600,7 @@ module DP_Station #(
                     Exec_SrcB <= 0;
                     Exec_ALUSrc <= 0;
                 end
-                if (READY[0]) begin
+                else if (READY[0]) begin
                     Exec_Op <= OP[0*5+:5];
                     WIndex <= DEST[0*3+:3];
                     Exec_Cond <= COND[0*4+:4];
@@ -1035,7 +1035,7 @@ module MEM_Station #(
                     Exec_WriteData <= 0;
                     Exec_ALUSrc <= 0;
                 end
-                if (READY[0] & ~Cache_Busy) begin
+                else if (READY[0] & ~Cache_Busy) begin
                     WIndex <= DEST[0*3+:3];
                     Exec_Cond <= COND[0*4+:4];
                     Exec_RegW <= REGW[0];
@@ -1421,7 +1421,7 @@ module MUL_Station #(
                     Exec_SrcA <= 0;
                     Exec_SrcB <= 0;
                 end
-                if (READY[0] & ~MCycle_Busy) begin
+                else if (READY[0] & ~MCycle_Busy) begin
                     Exec_Op <= OP[0*5+:5];
                     WIndex <= DEST[0*3+:3];
                     Exec_Cond <= COND[0*4+:4];
