@@ -170,6 +170,7 @@ module ARMcore(
     wire    [4:0]       ReservationStations_Op;
     wire    [2:0]       ReservationStations_ROBTail;
     wire                ReservationStations_Cache_Busy;
+    wire                ReservationStations_MCycle_Busy;
     wire                ReservationStations_MULS;
     wire                ReservationStations_ROB_ForwardA;
     wire                ReservationStations_ROB_ForwardB;
@@ -391,7 +392,6 @@ module ARMcore(
     wire    [3:0]       MUL_CondUnit_FlagWrite;
     wire                MUL_CondUnit_MULStart;
 
-
     wire                MCycle_Start;
     wire                MCycle_MCycleOp;
     wire    [31:0]      MCycle_Operand1;
@@ -484,6 +484,7 @@ module ARMcore(
     assign  ReservationStations_Op      =   DIReg_OpI;
     assign  ReservationStations_ROBTail =   ReorderBuffer_ROBTail;
     assign  ReservationStations_Cache_Busy  =   Cache_Busy;
+    assign  ReservationStations_MCycle_Busy =   MCycle_Busy;
     assign  ReservationStations_ROB_ForwardA    =   ReorderBuffer_ForwardA;
     assign  ReservationStations_ROB_ForwardB    =   ReorderBuffer_ForwardB;
     assign  ReservationStations_ROB_ForwardDataA    =   ReorderBuffer_ForwardDataA;
@@ -827,6 +828,7 @@ module ARMcore(
         .Op(ReservationStations_Op),
         .ROBTail(ReservationStations_ROBTail),
         .Cache_Busy(ReservationStations_Cache_Busy),
+        .MCycle_Busy(ReservationStations_MCycle_Busy),
         .ROB_ForwardDataA(ReservationStations_ROB_ForwardDataA),
         .ROB_ForwardDataB(ReservationStations_ROB_ForwardDataB),
         .ROB_ForwardA(ReservationStations_ROB_ForwardA),

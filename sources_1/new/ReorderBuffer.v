@@ -90,6 +90,7 @@ module ReorderBuffer(
         if (CDB_MUL[3] & BUSY[CDB_MUL[2:0]]) begin
             STATE[CDB_MUL[2:0]] <= 1;
             VALUE[CDB_MUL[2:0]] <= CDB_MUL[35:4];
+            WRITEBACK[CDB_MUL[2:0]] <= 1'b1;
         end
         if (CDB_FP[3] & BUSY[CDB_FP[2:0]]) begin
             STATE[CDB_FP[2:0]] <= 1;

@@ -1,10 +1,10 @@
 module FlagStatus(
     input CLK,
     input Reset,
-    input [151:0] CDB,
+    input [147:0] CDB,
     input append,
     input S,
-    input ROBTail,
+    input [2:0] ROBTail,
     output reg FlagReady,
     output [2:0] index
 );
@@ -27,7 +27,7 @@ module FlagStatus(
                 INDEX <= ROBTail;
                 FlagReady <= 0;
             end
-            else if (CDB[151] & CDB[150:148] == INDEX) begin
+            else if (CDB[147] & CDB[146:144] == INDEX) begin
                 FlagReady <= 1;
             end
         end

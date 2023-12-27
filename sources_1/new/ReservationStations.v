@@ -68,6 +68,7 @@ module ReservationStations #(
     output [31:0]   MEM_SrcB,
     output [31:0]   MEM_WriteData,
 
+    input           MCycle_Busy,
     output          MUL_Exec,
     output [3:0]    MUL_Cond,
     output [3:0]    MUL_FlagW,
@@ -198,6 +199,7 @@ module ReservationStations #(
         .ROB_ForwardDataB(ROB_ForwardDataB),
         .ROB_ForwardA(ROB_ForwardA),
         .ROB_ForwardB(ROB_ForwardB),
+        .MCycle_Busy(MCycle_Busy),
         .Exec(MUL_Exec),
         .Exec_Cond(MUL_Cond),
         .Exec_FlagW(MUL_FlagW),
@@ -1022,6 +1024,7 @@ module MUL_Station #(
     input [31:0] RD2,
     input [4:0] Op,
     input [2:0] ROBTail,
+    input MCycle_Busy,
 
     output Exec,
     output reg [3:0] Exec_Cond,
@@ -1151,7 +1154,7 @@ module MUL_Station #(
                             end
                         end
 
-                        if (READY[i] & (READY[i-1:0] == 0)) begin
+                        if (READY[i] & (READY[i-1:0] == 0) & ~MCycle_Busy) begin
                             EXEC[i] <= 1;
                             WAIT[i] <= 0;
                             Exec_Op <= OP[i*5+:5];
@@ -1160,6 +1163,9 @@ module MUL_Station #(
                             Exec_FlagW <= FLAGW[i*4+:4];
                             Exec_SrcA <= VJ[i*32+:32];
                             Exec_SrcB <= VK[i*32+:32];
+                        end
+                        else if (MCycle_Busy) begin
+                            EXEC[i] <= EXEC[i];
                         end
                         else begin
                             EXEC[i] <= 0;
@@ -1197,7 +1203,7 @@ module MUL_Station #(
                                 F[i*4+3] <= 1'b0;
                             end
 
-                            if (DEST[i*3+:3] == CDB[74:72] & CDB[39]) begin
+                            if (DEST[i*3+:3] == CDB[74:72] & CDB[75]) begin
                                 BUSY[i] <= 0;
                             end
                         end
@@ -1283,7 +1289,7 @@ module MUL_Station #(
                             end
                         end
 
-                        if (READY[i]) begin
+                        if (READY[i] & ~MCycle_Busy) begin
                             EXEC[i] <= 1;
                             WAIT[i] <= 0;
                             Exec_Op <= OP[i*5+:5];
@@ -1292,6 +1298,9 @@ module MUL_Station #(
                             Exec_FlagW <= FLAGW[i*4+:4];
                             Exec_SrcA <= VJ[i*32+:32];
                             Exec_SrcB <= VK[i*32+:32];
+                        end
+                        else if (MCycle_Busy) begin
+                            EXEC[i] <= EXEC[i];
                         end
                         else begin
                             EXEC[i] <= 0;
@@ -1329,7 +1338,7 @@ module MUL_Station #(
                                 F[i*4+3] <= 1'b0;
                             end
 
-                            if (DEST[i*3+:3] == CDB[74:72] & CDB[39]) begin
+                            if (DEST[i*3+:3] == CDB[74:72] & CDB[75]) begin
                                 BUSY[i] <= 0;
                             end
                         end
