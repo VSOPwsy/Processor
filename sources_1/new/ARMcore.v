@@ -170,10 +170,12 @@ module ARMcore(
     wire    [4:0]       ReservationStations_Op;
     wire    [2:0]       ReservationStations_ROBTail;
     wire                ReservationStations_Cache_Busy;
+    wire                ReservationStations_MULS;
     wire                ReservationStations_ROB_ForwardA;
     wire                ReservationStations_ROB_ForwardB;
     wire    [31:0]      ReservationStations_ROB_ForwardDataA;
     wire    [31:0]      ReservationStations_ROB_ForwardDataB;
+
     wire                ReservationStations_DP_Exec;
     wire    [3:0]       ReservationStations_DP_Cond;
     wire    [3:0]       ReservationStations_DP_FlagW;
@@ -186,6 +188,7 @@ module ARMcore(
     wire    [31:0]      ReservationStations_DP_SrcA;
     wire    [31:0]      ReservationStations_DP_SrcB;
     wire                ReservationStations_DP_ALUSrc;
+
     wire                ReservationStations_MEM_Exec;
     wire    [3:0]       ReservationStations_MEM_Cond;
     wire                ReservationStations_MEM_RegW;
@@ -196,6 +199,14 @@ module ARMcore(
     wire    [31:0]      ReservationStations_MEM_SrcA;
     wire    [31:0]      ReservationStations_MEM_SrcB;
     wire    [31:0]      ReservationStations_MEM_WriteData;
+
+    wire                ReservationStations_MUL_Exec;
+    wire    [3:0]       ReservationStations_MUL_Cond;
+    wire    [3:0]       ReservationStations_MUL_FlagW;
+    wire    [2:0]       ReservationStations_MUL_WIndex;
+    wire    [4:0]       ReservationStations_MUL_Op;
+    wire    [31:0]      ReservationStations_MUL_SrcA;
+    wire    [31:0]      ReservationStations_MUL_SrcB;
 
 
 
@@ -343,6 +354,62 @@ module ARMcore(
     wire    [31:0]      MemOrIO_io_wdata;
     wire    [31:0]      MemOrIO_io_addr;
     wire                MemOrIO_io_we;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////  MUL Pipline
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    wire                MUL_IEReg_EN;
+    wire                MUL_IEReg_CLR;
+    wire                MUL_IEReg_ExecI;
+    wire    [3:0]       MUL_IEReg_CondI;
+    wire    [3:0]       MUL_IEReg_FlagWI;
+    wire    [2:0]       MUL_IEReg_WIndexI;
+    wire    [31:0]      MUL_IEReg_SrcAI;
+    wire    [31:0]      MUL_IEReg_SrcBI;
+    wire    [4:0]       MUL_IEReg_OpI;
+    wire                MUL_IEReg_MULSI;
+    wire                MUL_IEReg_ExecE;
+    wire    [3:0]       MUL_IEReg_CondE;
+    wire    [3:0]       MUL_IEReg_FlagWE;
+    wire    [2:0]       MUL_IEReg_WIndexE;
+    wire    [31:0]      MUL_IEReg_SrcAE;
+    wire    [31:0]      MUL_IEReg_SrcBE;
+    wire    [4:0]       MUL_IEReg_OpE;
+    wire                MUL_IEReg_MULSE;
+
+
+    wire    [3:0]       MUL_CondUnit_Cond;
+    wire    [3:0]       MUL_CondUnit_Flags;
+    wire    [3:0]       MUL_CondUnit_FlagW;
+    wire                MUL_CondUnit_MULS;
+    wire    [3:0]       MUL_CondUnit_FlagWrite;
+    wire                MUL_CondUnit_MULStart;
+
+
+    wire                MCycle_Start;
+    wire                MCycle_MCycleOp;
+    wire    [31:0]      MCycle_Operand1;
+    wire    [31:0]      MCycle_Operand2;
+    wire    [31:0]      MCycle_Result;
+    wire                MCycle_Busy;
+    wire                MCycle_Done;
+
+
+
+
+
+
+
+
+
+
+
 
 
     
@@ -546,13 +613,59 @@ module ARMcore(
     assign  Cache_WriteData =   MemOrIO_m_wdata;
 
     assign  Cache_Busy  =   MEM_CondUnit_RegWrite & Cache_Valid & ~Cache_ReadReady;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////  MUL Pipline
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    assign  MUL_IEReg_EN            =   ~MCycle_Busy;
+    assign  MUL_IEReg_CLR           =   1'b0;
+    assign  MUL_IEReg_ExecI         =   ReservationStations_MUL_Exec;
+    assign  MUL_IEReg_CondI         =   ReservationStations_MUL_Cond;
+    assign  MUL_IEReg_FlagWI        =   ReservationStations_MUL_FlagW;
+    assign  MUL_IEReg_WIndexI       =   ReservationStations_MUL_WIndex;
+    assign  MUL_IEReg_OpI           =   ReservationStations_MUL_Op;
+    assign  MUL_IEReg_MULSI         =   ReservationStations_MUL_Exec;
+    assign  MUL_IEReg_SrcAI         =   ReservationStations_MUL_SrcA;
+    assign  MUL_IEReg_SrcBI         =   ReservationStations_MUL_SrcB;
+
+
+    assign  MUL_CondUnit_Cond   =   MUL_IEReg_CondE;
+    assign  MUL_CondUnit_Flags  =   Flags_Flags;
+    assign  MUL_CondUnit_FlagW  =   MUL_IEReg_FlagWE;
+    assign  MUL_CondUnit_MULS   =   MUL_IEReg_MULSE;
+
+
+
+    assign  MCycle_Start        =   MUL_CondUnit_MULStart;
+    assign  MCycle_MCycleOp     =   MUL_IEReg_OpE == `DIV;
+    assign  MCycle_Operand1     =   MUL_IEReg_SrcAE;
+    assign  MCycle_Operand2     =   MUL_IEReg_SrcBE;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     assign  WBB     =   {ReorderBuffer_WD, ReorderBuffer_Commit, ReorderBuffer_ROBHead};
 
     assign  CDB[35:0] = {ALU_ALUResult, DP_IEReg_ExecE, DP_IEReg_WIndexE};
     assign  CDB[71:36] = {MEM_CondUnit_MemWrite ? MEM_IEReg_WriteDataE : Cache_ReadData, Cache_ReadReady | MEM_CondUnit_MemWrite, MEM_IEReg_WIndexE};
-
+    assign  CDB[107:72] = {MCycle_Result, MCycle_Done, MUL_IEReg_WIndexE};
     assign  CDB[147:144] = {|DP_IEReg_FlagWE, DP_IEReg_WIndexE};
 
 
@@ -718,6 +831,7 @@ module ARMcore(
         .ROB_ForwardDataB(ReservationStations_ROB_ForwardDataB),
         .ROB_ForwardA(ReservationStations_ROB_ForwardA),
         .ROB_ForwardB(ReservationStations_ROB_ForwardB),
+
         .DP_Exec    (ReservationStations_DP_Exec),
         .DP_Cond    (ReservationStations_DP_Cond),
         .DP_FlagW   (ReservationStations_DP_FlagW),
@@ -730,6 +844,7 @@ module ARMcore(
         .DP_SrcA    (ReservationStations_DP_SrcA),
         .DP_SrcB    (ReservationStations_DP_SrcB),
         .DP_ALUSrc  (ReservationStations_DP_ALUSrc),
+
         .MEM_Exec    (ReservationStations_MEM_Exec),
         .MEM_Cond    (ReservationStations_MEM_Cond),
         .MEM_RegW    (ReservationStations_MEM_RegW),
@@ -739,7 +854,15 @@ module ARMcore(
         .MEM_Sh      (ReservationStations_MEM_Sh),
         .MEM_SrcA    (ReservationStations_MEM_SrcA),
         .MEM_SrcB    (ReservationStations_MEM_SrcB),
-        .MEM_WriteData(ReservationStations_MEM_WriteData)
+        .MEM_WriteData(ReservationStations_MEM_WriteData),
+
+        .MUL_Exec   (ReservationStations_MUL_Exec),
+        .MUL_Cond   (ReservationStations_MUL_Cond),
+        .MUL_FlagW  (ReservationStations_MUL_FlagW),
+        .MUL_Op     (ReservationStations_MUL_Op),
+        .MUL_WIndex (ReservationStations_MUL_WIndex),
+        .MUL_SrcA   (ReservationStations_MUL_SrcA),
+        .MUL_SrcB   (ReservationStations_MUL_SrcB)
     );
         
 
@@ -941,4 +1064,60 @@ module ARMcore(
         .io_wdata   (MemOrIO_io_wdata   ),
         .io_addr    (MemOrIO_io_addr    ),
         .io_we      (MemOrIO_io_we      ));
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////  MUL Pipline
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    MUL_IEReg MUL_IEReg(
+        .CLK            (CLK                ),
+        .Reset          (Reset              ),
+        .EN             (MUL_IEReg_EN           ),
+        .CLR            (MUL_IEReg_CLR          ),
+        .ExecI          (MUL_IEReg_ExecI        ),
+        .CondI          (MUL_IEReg_CondI        ),
+        .FlagWI         (MUL_IEReg_FlagWI       ),
+        .WIndexI        (MUL_IEReg_WIndexI      ),
+        .SrcAI          (MUL_IEReg_SrcAI        ),
+        .SrcBI          (MUL_IEReg_SrcBI        ),
+        .OpI            (MUL_IEReg_OpI          ),
+        .MULSI          (MUL_IEReg_MULSI        ),
+        
+        .ExecE          (MUL_IEReg_ExecE        ),
+        .CondE          (MUL_IEReg_CondE        ),
+        .FlagWE         (MUL_IEReg_FlagWE       ),
+        .WIndexE        (MUL_IEReg_WIndexE      ),
+        .SrcAE          (MUL_IEReg_SrcAE        ),
+        .SrcBE          (MUL_IEReg_SrcBE        ),
+        .OpE            (MUL_IEReg_OpE          ),
+        .MULSE          (MUL_IEReg_MULSE        ));
+        
+
+    MUL_CondUnit MUL_CondUnit(
+        .CLK        (CLK                ),
+        .Reset      (Reset              ),
+        .Cond       (MUL_CondUnit_Cond      ),
+        .Flags      (MUL_CondUnit_Flags),
+        .FlagW      (MUL_CondUnit_FlagW     ),
+        .FlagWrite  (MUL_CondUnit_FlagWrite),
+        .MULS       (MUL_CondUnit_MULS),
+        .MULStart   (MUL_CondUnit_MULStart));
+        
+
+
+    MCycle #(32) MCycle(
+        .CLK        (CLK                ),
+        .Reset      (Reset              ),
+        .Start      (MCycle_Start       ),
+        .MCycleOp   (MCycle_MCycleOp    ),
+        .Operand1   (MCycle_Operand1    ),
+        .Operand2   (MCycle_Operand2    ),
+        .Result     (MCycle_Result      ),
+        .Busy       (MCycle_Busy        ),
+        .Done       (MCycle_Done        ));
 endmodule

@@ -11,22 +11,19 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="150.832 ns"></ZoomStartTime>
-      <ZoomEndTime time="349.633 ns"></ZoomEndTime>
-      <Cursor1Time time="299.832 ns"></Cursor1Time>
+      <ZoomStartTime time="263.500 ns"></ZoomStartTime>
+      <ZoomEndTime time="742.501 ns"></ZoomEndTime>
+      <Cursor1Time time="516.500 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="164"></NameColumnWidth>
-      <ValueColumnWidth column_width="90"></ValueColumnWidth>
+      <NameColumnWidth column_width="197"></NameColumnWidth>
+      <ValueColumnWidth column_width="93"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="33" />
+   <WVObjectSize size="6" />
    <wave_markers>
       <marker time="5041600" label="" />
       <marker time="1745000" label="" />
       <marker time="1415825" label="" />
-      <marker time="269800" label="" />
-      <marker time="345000" label="" />
-      <marker time="340900" label="" />
    </wave_markers>
    <wvobject fp_name="/TOP_tb/CLK" type="logic">
       <obj_property name="ElementShortName">CLK</obj_property>
@@ -40,127 +37,16 @@
       <obj_property name="ElementShortName">PC[31:0]</obj_property>
       <obj_property name="ObjectShortName">PC[31:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/FDReg/InstrD" type="array">
-      <obj_property name="ElementShortName">InstrD[31:0]</obj_property>
-      <obj_property name="ObjectShortName">InstrD[31:0]</obj_property>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/DIReg/MULSI" type="logic">
+      <obj_property name="ElementShortName">MULSI</obj_property>
+      <obj_property name="ObjectShortName">MULSI</obj_property>
    </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_WIndex" type="array">
-      <obj_property name="ElementShortName">DP_WIndex[2:0]</obj_property>
-      <obj_property name="ObjectShortName">DP_WIndex[2:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Station/WIndex" type="array">
-      <obj_property name="ElementShortName">WIndex[2:0]</obj_property>
-      <obj_property name="ObjectShortName">WIndex[2:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/DP_IEReg/WIndexE" type="array">
-      <obj_property name="ElementShortName">WIndexE[2:0]</obj_property>
-      <obj_property name="ObjectShortName">WIndexE[2:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/Flags/N" type="logic">
-      <obj_property name="ElementShortName">N</obj_property>
-      <obj_property name="ObjectShortName">N</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/Flags/Z" type="logic">
-      <obj_property name="ElementShortName">Z</obj_property>
-      <obj_property name="ObjectShortName">Z</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/Flags/C" type="logic">
-      <obj_property name="ElementShortName">C</obj_property>
-      <obj_property name="ObjectShortName">C</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/Flags/V" type="logic">
-      <obj_property name="ElementShortName">V</obj_property>
-      <obj_property name="ObjectShortName">V</obj_property>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/MULS" type="logic">
+      <obj_property name="ElementShortName">MULS</obj_property>
+      <obj_property name="ObjectShortName">MULS</obj_property>
    </wvobject>
    <wvobject fp_name="/TOP_tb/uut/ARMcore/RegisterFile/RegBankCore" type="array">
       <obj_property name="ElementShortName">RegBankCore[0:14][31:0]</obj_property>
       <obj_property name="ObjectShortName">RegBankCore[0:14][31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReorderBuffer/BUSY" type="array">
-      <obj_property name="ElementShortName">BUSY[7:0]</obj_property>
-      <obj_property name="ObjectShortName">BUSY[7:0]</obj_property>
-      <obj_property name="isExpanded"></obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReorderBuffer/STATE" type="array">
-      <obj_property name="ElementShortName">STATE[7:0]</obj_property>
-      <obj_property name="ObjectShortName">STATE[7:0]</obj_property>
-      <obj_property name="isExpanded"></obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReorderBuffer/Commit" type="logic">
-      <obj_property name="ElementShortName">Commit</obj_property>
-      <obj_property name="ObjectShortName">Commit</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReorderBuffer/ROBHead" type="array">
-      <obj_property name="ElementShortName">ROBHead[2:0]</obj_property>
-      <obj_property name="ObjectShortName">ROBHead[2:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReorderBuffer/VALUE" type="array">
-      <obj_property name="ElementShortName">VALUE[0:7][31:0]</obj_property>
-      <obj_property name="ObjectShortName">VALUE[0:7][31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ControlUnit/Instr" type="array">
-      <obj_property name="ElementShortName">Instr[31:0]</obj_property>
-      <obj_property name="ObjectShortName">Instr[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/DIReg/RA1I" type="array">
-      <obj_property name="ElementShortName">RA1I[3:0]</obj_property>
-      <obj_property name="ObjectShortName">RA1I[3:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/DIReg/RA2I" type="array">
-      <obj_property name="ElementShortName">RA2I[3:0]</obj_property>
-      <obj_property name="ObjectShortName">RA2I[3:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/RegisterFile/RD1" type="array">
-      <obj_property name="ElementShortName">RD1[31:0]</obj_property>
-      <obj_property name="ObjectShortName">RD1[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/RegisterFile/RD2" type="array">
-      <obj_property name="ElementShortName">RD2[31:0]</obj_property>
-      <obj_property name="ObjectShortName">RD2[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/full" type="logic">
-      <obj_property name="ElementShortName">full</obj_property>
-      <obj_property name="ObjectShortName">full</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Station/VJ" type="array">
-      <obj_property name="ElementShortName">VJ[127:0]</obj_property>
-      <obj_property name="ObjectShortName">VJ[127:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Station/VK" type="array">
-      <obj_property name="ElementShortName">VK[127:0]</obj_property>
-      <obj_property name="ObjectShortName">VK[127:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Station/QJ" type="array">
-      <obj_property name="ElementShortName">QJ[15:0]</obj_property>
-      <obj_property name="ObjectShortName">QJ[15:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Station/QK" type="array">
-      <obj_property name="ElementShortName">QK[15:0]</obj_property>
-      <obj_property name="ObjectShortName">QK[15:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Station/DEST" type="array">
-      <obj_property name="ElementShortName">DEST[11:0]</obj_property>
-      <obj_property name="ObjectShortName">DEST[11:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Station/BUSY" type="array">
-      <obj_property name="ElementShortName">BUSY[3:0]</obj_property>
-      <obj_property name="ObjectShortName">BUSY[3:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/CDB" type="array">
-      <obj_property name="ElementShortName">CDB[147:0]</obj_property>
-      <obj_property name="ObjectShortName">CDB[147:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/WBB" type="array">
-      <obj_property name="ElementShortName">WBB[35:0]</obj_property>
-      <obj_property name="ObjectShortName">WBB[35:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/RegisterResultStatus/INDEX" type="array">
-      <obj_property name="ElementShortName">INDEX[0:15][2:0]</obj_property>
-      <obj_property name="ObjectShortName">INDEX[0:15][2:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/RegisterResultStatus/BUSY" type="array">
-      <obj_property name="ElementShortName">BUSY[15:0]</obj_property>
-      <obj_property name="ObjectShortName">BUSY[15:0]</obj_property>
-      <obj_property name="isExpanded"></obj_property>
    </wvobject>
 </wave_config>

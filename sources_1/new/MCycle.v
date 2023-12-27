@@ -19,13 +19,10 @@ module MCycle #(
     input                   MCycleOp,
     input   [width-1:0]     Operand1, // Multiplicand / Dividend
     input   [width-1:0]     Operand2, // Multiplier / Divisor
-    input   [3:0]           WA3,
 
     output  [width-1:0]     Result,
     output                  Busy,
-    output                  Done,
-    output  reg [3:0]       MCycleWA3,
-    output  reg             MPushIn
+    output                  Done
 );
     reg MCycleOp_reg;
     wire [width-1:0] a, b, s;
@@ -35,11 +32,10 @@ module MCycle #(
     reg [width-1:0] shifted_op1 = 0 ;
 
     initial begin
-        MPushIn = 0;
-        MCycleWA3 = 0;
         MCycleOp_reg = 0;
     end
     
+    wire Shift, Write;
     ControlTest #(
         .width(width)
     )ControlTest(
@@ -70,13 +66,11 @@ module MCycle #(
         if (Reset) begin
             temp_sum <= 0;
             shifted_op1 <= 0;
-            MCycleWA3 <= 0;
             MCycleOp_reg <= 0;
         end
         else if (Init) begin
             temp_sum <= {{width{1'b0}}, (Start ? MCycleOp : MCycleOp_reg) ? Operand1 : Operand2};
             shifted_op1 <= (Start ? MCycleOp : MCycleOp_reg) ? Operand2 : Operand1;
-            MCycleWA3 <= WA3;
             MCycleOp_reg <= MCycleOp;
         end
         else if (Shift) begin
@@ -96,5 +90,4 @@ module MCycle #(
     end
 
     assign Result = temp_sum[width-1:0];
-    always @(posedge CLK, posedge Reset) MPushIn <= Reset ? 0 : Done;
 endmodule

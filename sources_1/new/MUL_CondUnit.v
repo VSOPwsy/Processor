@@ -10,21 +10,15 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module DP_CondUnit(
+module MUL_CondUnit(
     input CLK,
     input Reset,
     input [3:0] FlagW,
-    input PCS,
-    input RegW,
-    input MemW,
     input [3:0] Cond,
-    input [3:0] Op,
     input [3:0] Flags,
-    input NoWrite,
-    output PCSrc,
+    input MULS,
     output [3:0] FlagWrite,
-    output RegWrite,
-    output MemWrite
+    output MULStart
     );
     
     wire CondEx;
@@ -36,9 +30,7 @@ module DP_CondUnit(
         );
         
         
-    assign PCSrc = PCS & CondEx;
-    assign RegWrite = RegW & CondEx & ~NoWrite;
-    assign MemWrite = MemW & CondEx;
     assign FlagWrite = FlagW & {4{CondEx}};
+    assign MULStart = MULS & CondEx;
     
 endmodule

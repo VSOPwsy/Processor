@@ -81,6 +81,7 @@ module ControlTest #(
                     count <= 0;
                     Shift <= next_state == `COMPUTING ? 1'b1 : 1'b0;
                     done <= next_state == `COMPUTING ? 1'b0 : 1'b1;
+                    Done <= 1'b0;
                 end
                 
                 `COMPUTING: begin
@@ -88,17 +89,12 @@ module ControlTest #(
                         done <= 1'b1;
                         count <= 0;
                         Shift <= 1'b0;
+                        Done <= 1'b1;
                     end
                     else if (next_state == `COMPUTING) begin
                         done <= done;
                         count <= count + 1;
                         Shift <= 1'b1;
-                    end
-                    
-                    if (count == (MCycleOp ? width - 1 : width - 2)) begin
-                        Done <= 1'b1;
-                    end
-                    else begin
                         Done <= 1'b0;
                     end
                 end
