@@ -404,17 +404,6 @@ module DP_Station #(
                         if (READY[i] & (READY[i-1:0] == 0)) begin
                             EXEC[i] <= 1;
                             WAIT[i] <= 0;
-                            Exec_Op <= OP[i*5+:5];
-                            WIndex <= DEST[i*3+:3];
-                            Exec_Cond <= COND[i*4+:4];
-                            Exec_FlagW <= FLAGW[i*4+:4];
-                            Exec_RegW <= REGW[i];
-                            Exec_NoWrite <= NOWRITE[i];
-                            Exec_Shamt5 <= SHAMT[i*5+:5];
-                            Exec_Sh <= SH[i*2+:2];
-                            Exec_SrcA <= VJ[i*32+:32];
-                            Exec_SrcB <= VK[i*32+:32];
-                            Exec_ALUSrc <= I[i];
                         end
                         else begin
                             EXEC[i] <= 0;
@@ -547,17 +536,6 @@ module DP_Station #(
                         if (READY[i]) begin
                             EXEC[i] <= 1;
                             WAIT[i] <= 0;
-                            Exec_Op <= OP[i*5+:5];
-                            WIndex <= DEST[i*3+:3];
-                            Exec_Cond <= COND[i*4+:4];
-                            Exec_FlagW <= FLAGW[i*4+:4];
-                            Exec_RegW <= REGW[i];
-                            Exec_NoWrite <= NOWRITE[i];
-                            Exec_Shamt5 <= SHAMT[i*5+:5];
-                            Exec_Sh <= SH[i*2+:2];
-                            Exec_SrcA <= VJ[i*32+:32];
-                            Exec_SrcB <= VK[i*32+:32];
-                            Exec_ALUSrc <= I[i];
                         end
                         else begin
                             EXEC[i] <= 0;
@@ -600,6 +578,79 @@ module DP_Station #(
                             end
                         end
                     end
+                end
+            end
+        end
+    endgenerate
+
+
+    generate
+        if (DP_STATION_DEPTH == 4) begin
+            always @(posedge CLK, posedge Reset) begin
+                if (Reset) begin
+                    Exec_Op <= 0;
+                    WIndex <= 0;
+                    Exec_Cond <= 0;
+                    Exec_FlagW <= 0;
+                    Exec_RegW <= 0;
+                    Exec_NoWrite <= 0;
+                    Exec_Shamt5 <= 0;
+                    Exec_Sh <= 0;
+                    Exec_SrcA <= 0;
+                    Exec_SrcB <= 0;
+                    Exec_ALUSrc <= 0;
+                end
+                if (READY[0]) begin
+                    Exec_Op <= OP[0*5+:5];
+                    WIndex <= DEST[0*3+:3];
+                    Exec_Cond <= COND[0*4+:4];
+                    Exec_FlagW <= FLAGW[0*4+:4];
+                    Exec_RegW <= REGW[0];
+                    Exec_NoWrite <= NOWRITE[0];
+                    Exec_Shamt5 <= SHAMT[0*5+:5];
+                    Exec_Sh <= SH[0*2+:2];
+                    Exec_SrcA <= VJ[0*32+:32];
+                    Exec_SrcB <= VK[0*32+:32];
+                    Exec_ALUSrc <= I[0];
+                end
+                else if (READY[1]) begin
+                    Exec_Op <= OP[1*5+:5];
+                    WIndex <= DEST[1*3+:3];
+                    Exec_Cond <= COND[1*4+:4];
+                    Exec_FlagW <= FLAGW[1*4+:4];
+                    Exec_RegW <= REGW[1];
+                    Exec_NoWrite <= NOWRITE[1];
+                    Exec_Shamt5 <= SHAMT[1*5+:5];
+                    Exec_Sh <= SH[1*2+:2];
+                    Exec_SrcA <= VJ[1*32+:32];
+                    Exec_SrcB <= VK[1*32+:32];
+                    Exec_ALUSrc <= I[1];
+                end
+                else if (READY[2]) begin
+                    Exec_Op <= OP[2*5+:5];
+                    WIndex <= DEST[2*3+:3];
+                    Exec_Cond <= COND[2*4+:4];
+                    Exec_FlagW <= FLAGW[2*4+:4];
+                    Exec_RegW <= REGW[2];
+                    Exec_NoWrite <= NOWRITE[2];
+                    Exec_Shamt5 <= SHAMT[2*5+:5];
+                    Exec_Sh <= SH[2*2+:2];
+                    Exec_SrcA <= VJ[2*32+:32];
+                    Exec_SrcB <= VK[2*32+:32];
+                    Exec_ALUSrc <= I[2];
+                end
+                else if (READY[3]) begin
+                    Exec_Op <= OP[3*5+:5];
+                    WIndex <= DEST[3*3+:3];
+                    Exec_Cond <= COND[3*4+:4];
+                    Exec_FlagW <= FLAGW[3*4+:4];
+                    Exec_RegW <= REGW[3];
+                    Exec_NoWrite <= NOWRITE[3];
+                    Exec_Shamt5 <= SHAMT[3*5+:5];
+                    Exec_Sh <= SH[3*2+:2];
+                    Exec_SrcA <= VJ[3*32+:32];
+                    Exec_SrcB <= VK[3*32+:32];
+                    Exec_ALUSrc <= I[3];
                 end
             end
         end
@@ -791,15 +842,6 @@ module MEM_Station #(
                         if (READY[i] & (READY[i-1:0] == 0) & ~Cache_Busy) begin
                             EXEC[i] <= 1;
                             WAIT[i] <= 0;
-                            WIndex <= DEST[i*3+:3];
-                            Exec_Cond <= COND[i*4+:4];
-                            Exec_RegW <= REGW[i];
-                            Exec_Shamt5 <= SHAMT[i*5+:5];
-                            Exec_Sh <= SH[i*2+:2];
-                            Exec_SrcA <= VJ[i*32+:32];
-                            Exec_SrcB <= EXTIMM[i*32+:32];
-                            Exec_WriteData <= VK[i*32+:32];
-                            Exec_ALUSrc <= I[i];
                         end
                         else if (Cache_Busy) begin
                             EXEC[i] <= EXEC[i];
@@ -928,15 +970,6 @@ module MEM_Station #(
                         if (READY[i] & ~Cache_Busy) begin
                             EXEC[i] <= 1;
                             WAIT[i] <= 0;
-                            WIndex <= DEST[i*3+:3];
-                            Exec_Cond <= COND[i*4+:4];
-                            Exec_RegW <= REGW[i];
-                            Exec_Shamt5 <= SHAMT[i*5+:5];
-                            Exec_Sh <= SH[i*2+:2];
-                            Exec_SrcA <= VJ[i*32+:32];
-                            Exec_SrcB <= EXTIMM[i*32+:32];
-                            Exec_WriteData <= VK[i*32+:32];
-                            Exec_ALUSrc <= I[i];
                         end
                         else if (Cache_Busy) begin
                             EXEC[i] <= EXEC[i];
@@ -982,6 +1015,47 @@ module MEM_Station #(
                             end
                         end
                     end
+                end
+            end
+        end
+    endgenerate
+
+
+    generate
+        if (MEM_STATION_DEPTH == 2) begin
+            always @(posedge CLK, posedge Reset) begin
+                if (Reset) begin
+                    WIndex <= 0;
+                    Exec_Cond <= 0;
+                    Exec_RegW <= 0;
+                    Exec_Shamt5 <= 0;
+                    Exec_Sh <= 0;
+                    Exec_SrcA <= 0;
+                    Exec_SrcB <= 0;
+                    Exec_WriteData <= 0;
+                    Exec_ALUSrc <= 0;
+                end
+                if (READY[0] & ~Cache_Busy) begin
+                    WIndex <= DEST[0*3+:3];
+                    Exec_Cond <= COND[0*4+:4];
+                    Exec_RegW <= REGW[0];
+                    Exec_Shamt5 <= SHAMT[0*5+:5];
+                    Exec_Sh <= SH[0*2+:2];
+                    Exec_SrcA <= VJ[0*32+:32];
+                    Exec_SrcB <= EXTIMM[0*32+:32];
+                    Exec_WriteData <= VK[0*32+:32];
+                    Exec_ALUSrc <= I[0];
+                end
+                else if (READY[1] & ~Cache_Busy) begin
+                    WIndex <= DEST[1*3+:3];
+                    Exec_Cond <= COND[1*4+:4];
+                    Exec_RegW <= REGW[1];
+                    Exec_Shamt5 <= SHAMT[1*5+:5];
+                    Exec_Sh <= SH[1*2+:2];
+                    Exec_SrcA <= VJ[1*32+:32];
+                    Exec_SrcB <= EXTIMM[1*32+:32];
+                    Exec_WriteData <= VK[1*32+:32];
+                    Exec_ALUSrc <= I[1];
                 end
             end
         end
@@ -1157,12 +1231,6 @@ module MUL_Station #(
                         if (READY[i] & (READY[i-1:0] == 0) & ~MCycle_Busy) begin
                             EXEC[i] <= 1;
                             WAIT[i] <= 0;
-                            Exec_Op <= OP[i*5+:5];
-                            WIndex <= DEST[i*3+:3];
-                            Exec_Cond <= COND[i*4+:4];
-                            Exec_FlagW <= FLAGW[i*4+:4];
-                            Exec_SrcA <= VJ[i*32+:32];
-                            Exec_SrcB <= VK[i*32+:32];
                         end
                         else if (MCycle_Busy) begin
                             EXEC[i] <= EXEC[i];
@@ -1292,12 +1360,6 @@ module MUL_Station #(
                         if (READY[i] & ~MCycle_Busy) begin
                             EXEC[i] <= 1;
                             WAIT[i] <= 0;
-                            Exec_Op <= OP[i*5+:5];
-                            WIndex <= DEST[i*3+:3];
-                            Exec_Cond <= COND[i*4+:4];
-                            Exec_FlagW <= FLAGW[i*4+:4];
-                            Exec_SrcA <= VJ[i*32+:32];
-                            Exec_SrcB <= VK[i*32+:32];
                         end
                         else if (MCycle_Busy) begin
                             EXEC[i] <= EXEC[i];
@@ -1343,6 +1405,37 @@ module MUL_Station #(
                             end
                         end
                     end
+                end
+            end
+        end
+    endgenerate
+
+    generate
+        if (MUL_STATION_DEPTH == 2) begin
+            always @(posedge CLK, posedge Reset) begin
+                if (Reset) begin
+                    Exec_Op <= 0;
+                    WIndex <= 0;
+                    Exec_Cond <= 0;
+                    Exec_FlagW <= 0;
+                    Exec_SrcA <= 0;
+                    Exec_SrcB <= 0;
+                end
+                if (READY[0] & ~MCycle_Busy) begin
+                    Exec_Op <= OP[0*5+:5];
+                    WIndex <= DEST[0*3+:3];
+                    Exec_Cond <= COND[0*4+:4];
+                    Exec_FlagW <= FLAGW[0*4+:4];
+                    Exec_SrcA <= VJ[0*32+:32];
+                    Exec_SrcB <= VK[0*32+:32];
+                end
+                else if (READY[1] & ~MCycle_Busy) begin
+                    Exec_Op <= OP[1*5+:5];
+                    WIndex <= DEST[1*3+:3];
+                    Exec_Cond <= COND[1*4+:4];
+                    Exec_FlagW <= FLAGW[1*4+:4];
+                    Exec_SrcA <= VJ[1*32+:32];
+                    Exec_SrcB <= VK[1*32+:32];
                 end
             end
         end
