@@ -10,39 +10,26 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module DP_CondUnit(
-    input CLK,
-    input Reset,
-    input [3:0] FlagW,
-    input PCS,
+module MEM_CondUnit(
     input RegW,
-    input MemW,
     input [3:0] Cond,
-    input [3:0] Op,
+    input Exec,
     input [3:0] Flags,
-    input NoWrite,
-    input MS,
-    input FPUS,
-    output PCSrc,
-    output [3:0] FlagWrite,
     output RegWrite,
     output MemWrite
     );
     
     wire CondEx;
+    wire N = 0, Z = 0, C = 0, V = 0;
+    assign {N, Z, C, V} = Flags;
     
     ConditionCheck CondCheck(
         .Cond(Cond),
-        .Flags(Flags),
+        .Flags({N, Z, C, V}),
         .CondEx(CondEx)
         );
         
-        
-    assign PCSrc = PCS & CondEx;
-    assign RegWrite = RegW & CondEx & ~NoWrite;
-    assign MemWrite = MemW & CondEx;
-    assign FlagWrite = FlagW & {4{CondEx}};
-    assign MStart = MS & CondEx;
-    assign FPUStart = FPUS & CondEx;
+    assign RegWrite = RegW & CondEx & Exec;
+    assign MemWrite = ~RegW & CondEx & Exec;
     
 endmodule

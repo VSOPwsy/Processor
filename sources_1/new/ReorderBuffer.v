@@ -8,7 +8,8 @@ module ReorderBuffer(
     output [2:0] ROBTail,
     input [147:0] CDB,
     input [3:0] DestReg,
-    input WriteBack,
+    input DP_WriteBack,
+    input MEM_WriteBack,
 
     output reg [3:0] WA,
     output reg WE,
@@ -65,11 +66,12 @@ module ReorderBuffer(
         if (CDB_DP[3] & BUSY[CDB_DP[2:0]]) begin
             STATE[CDB_DP[2:0]] <= 1;
             VALUE[CDB_DP[2:0]] <= CDB_DP[35:4];
-            WRITEBACK[CDB_DP[2:0]] <= WriteBack;////////////////////////////////////////////////////////////////////////
+            WRITEBACK[CDB_DP[2:0]] <= DP_WriteBack;
         end
         if (CDB_MEM[3] & BUSY[CDB_MEM[2:0]]) begin
             STATE[CDB_MEM[2:0]] <= 1;
             VALUE[CDB_MEM[2:0]] <= CDB_MEM[35:4];
+            WRITEBACK[CDB_MEM[2:0]] <= MEM_WriteBack;
         end
         if (CDB_MUL[3] & BUSY[CDB_MUL[2:0]]) begin
             STATE[CDB_MUL[2:0]] <= 1;

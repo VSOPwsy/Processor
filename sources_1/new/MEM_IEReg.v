@@ -10,6 +10,7 @@ module MEM_IEReg(
     input ALUSrcI,
     input [31:0] SrcAI,
     input [31:0] SrcBI,
+    input [31:0] WriteDataI,
     input [1:0] ShI,
     input [4:0] Shamt5I,
     output reg ExecE,
@@ -19,6 +20,7 @@ module MEM_IEReg(
     output reg ALUSrcE,
     output reg [31:0] SrcAE,
     output reg [31:0] SrcBE,
+    output reg [31:0] WriteDataE,
     output reg [1:0] ShE,
     output reg [4:0] Shamt5E
 );
@@ -31,6 +33,7 @@ module MEM_IEReg(
         ALUSrcE = 0;
         SrcAE = 0;
         SrcBE = 0;
+        WriteDataE = 0;
         ShE = 0;
         Shamt5E = 0;
     end
@@ -44,6 +47,7 @@ module MEM_IEReg(
             ALUSrcE <= 0;
             SrcAE <= 0;
             SrcBE <= 0;
+            WriteDataE <= 0;
             ShE <= 0;
             Shamt5E <= 0;
         end
@@ -55,6 +59,7 @@ module MEM_IEReg(
             ALUSrcE <= 0;
             SrcAE <= 0;
             SrcBE <= 0;
+            WriteDataE <= 0;
             ShE <= 0;
             Shamt5E <= 0;
         end
@@ -66,6 +71,7 @@ module MEM_IEReg(
             ALUSrcE <= ALUSrcI;
             SrcAE <= SrcAI;
             SrcBE <= SrcBI;
+            WriteDataE <= WriteDataI;
             ShE <= ShI;
             Shamt5E <= Shamt5I;
         end
@@ -77,6 +83,7 @@ module MEM_IEReg(
             ALUSrcE <= ALUSrcE;
             SrcAE <= SrcAE;
             SrcBE <= SrcBE;
+            WriteDataE <= WriteDataE;
             ShE <= ShE;
             Shamt5E <= Shamt5E;
         end

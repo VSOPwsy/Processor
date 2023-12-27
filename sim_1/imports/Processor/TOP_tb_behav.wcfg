@@ -12,14 +12,14 @@
    </db_ref_list>
    <zoom_setting>
       <ZoomStartTime time="0.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="607.771 ns"></ZoomEndTime>
-      <Cursor1Time time="456.768 ns"></Cursor1Time>
+      <ZoomEndTime time="488.001 ns"></ZoomEndTime>
+      <Cursor1Time time="85.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="188"></NameColumnWidth>
+      <NameColumnWidth column_width="182"></NameColumnWidth>
       <ValueColumnWidth column_width="90"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="42" />
+   <WVObjectSize size="9" />
    <wave_markers>
       <marker time="5041600" label="" />
       <marker time="1745000" label="" />
@@ -57,140 +57,8 @@
       <obj_property name="ElementShortName">RegBankCore[0:14][31:0]</obj_property>
       <obj_property name="ObjectShortName">RegBankCore[0:14][31:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Station/F" type="array">
-      <obj_property name="ElementShortName">F[15:0]</obj_property>
-      <obj_property name="ObjectShortName">F[15:0]</obj_property>
-   </wvobject>
    <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Station/CDB" type="array">
       <obj_property name="ElementShortName">CDB[147:0]</obj_property>
       <obj_property name="ObjectShortName">CDB[147:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/DP_Exec" type="logic">
-      <obj_property name="ElementShortName">DP_Exec</obj_property>
-      <obj_property name="ObjectShortName">DP_Exec</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/DP_CondUnit/NoWrite" type="logic">
-      <obj_property name="ElementShortName">NoWrite</obj_property>
-      <obj_property name="ObjectShortName">NoWrite</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/DP_CondUnit/RegWrite" type="logic">
-      <obj_property name="ElementShortName">RegWrite</obj_property>
-      <obj_property name="ObjectShortName">RegWrite</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReorderBuffer/WE" type="logic">
-      <obj_property name="ElementShortName">WE</obj_property>
-      <obj_property name="ObjectShortName">WE</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/mem" type="logic">
-      <obj_property name="ElementShortName">mem</obj_property>
-      <obj_property name="ObjectShortName">mem</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/MEM_Station/BUSY" type="array">
-      <obj_property name="ElementShortName">BUSY[1:0]</obj_property>
-      <obj_property name="ObjectShortName">BUSY[1:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/MEM_Exec" type="logic">
-      <obj_property name="ElementShortName">MEM_Exec</obj_property>
-      <obj_property name="ObjectShortName">MEM_Exec</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/MEM_Cond" type="array">
-      <obj_property name="ElementShortName">MEM_Cond[3:0]</obj_property>
-      <obj_property name="ObjectShortName">MEM_Cond[3:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/MEM_SrcA" type="array">
-      <obj_property name="ElementShortName">MEM_SrcA[31:0]</obj_property>
-      <obj_property name="ObjectShortName">MEM_SrcA[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/MEM_SrcB" type="array">
-      <obj_property name="ElementShortName">MEM_SrcB[31:0]</obj_property>
-      <obj_property name="ObjectShortName">MEM_SrcB[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/MEM_WIndex" type="array">
-      <obj_property name="ElementShortName">MEM_WIndex[2:0]</obj_property>
-      <obj_property name="ObjectShortName">MEM_WIndex[2:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_IEReg/CLK" type="logic">
-      <obj_property name="ElementShortName">CLK</obj_property>
-      <obj_property name="ObjectShortName">CLK</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_IEReg/Reset" type="logic">
-      <obj_property name="ElementShortName">Reset</obj_property>
-      <obj_property name="ObjectShortName">Reset</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_IEReg/EN" type="logic">
-      <obj_property name="ElementShortName">EN</obj_property>
-      <obj_property name="ObjectShortName">EN</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_IEReg/CLR" type="logic">
-      <obj_property name="ElementShortName">CLR</obj_property>
-      <obj_property name="ObjectShortName">CLR</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_IEReg/ExecI" type="logic">
-      <obj_property name="ElementShortName">ExecI</obj_property>
-      <obj_property name="ObjectShortName">ExecI</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_IEReg/CondI" type="array">
-      <obj_property name="ElementShortName">CondI[3:0]</obj_property>
-      <obj_property name="ObjectShortName">CondI[3:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_IEReg/WIndexI" type="array">
-      <obj_property name="ElementShortName">WIndexI[2:0]</obj_property>
-      <obj_property name="ObjectShortName">WIndexI[2:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_IEReg/SrcAI" type="array">
-      <obj_property name="ElementShortName">SrcAI[31:0]</obj_property>
-      <obj_property name="ObjectShortName">SrcAI[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_IEReg/SrcBI" type="array">
-      <obj_property name="ElementShortName">SrcBI[31:0]</obj_property>
-      <obj_property name="ObjectShortName">SrcBI[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_IEReg/ShI" type="array">
-      <obj_property name="ElementShortName">ShI[1:0]</obj_property>
-      <obj_property name="ObjectShortName">ShI[1:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_IEReg/Shamt5I" type="array">
-      <obj_property name="ElementShortName">Shamt5I[4:0]</obj_property>
-      <obj_property name="ObjectShortName">Shamt5I[4:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_IEReg/ExecE" type="logic">
-      <obj_property name="ElementShortName">ExecE</obj_property>
-      <obj_property name="ObjectShortName">ExecE</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_IEReg/CondE" type="array">
-      <obj_property name="ElementShortName">CondE[3:0]</obj_property>
-      <obj_property name="ObjectShortName">CondE[3:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_IEReg/WIndexE" type="array">
-      <obj_property name="ElementShortName">WIndexE[2:0]</obj_property>
-      <obj_property name="ObjectShortName">WIndexE[2:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_IEReg/SrcAE" type="array">
-      <obj_property name="ElementShortName">SrcAE[31:0]</obj_property>
-      <obj_property name="ObjectShortName">SrcAE[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_IEReg/SrcBE" type="array">
-      <obj_property name="ElementShortName">SrcBE[31:0]</obj_property>
-      <obj_property name="ObjectShortName">SrcBE[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_IEReg/ShE" type="array">
-      <obj_property name="ElementShortName">ShE[1:0]</obj_property>
-      <obj_property name="ObjectShortName">ShE[1:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_IEReg/Shamt5E" type="array">
-      <obj_property name="ElementShortName">Shamt5E[4:0]</obj_property>
-      <obj_property name="ObjectShortName">Shamt5E[4:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_adder/a" type="array">
-      <obj_property name="ElementShortName">a[31:0]</obj_property>
-      <obj_property name="ObjectShortName">a[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_adder/b" type="array">
-      <obj_property name="ElementShortName">b[31:0]</obj_property>
-      <obj_property name="ObjectShortName">b[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/MEM_adder/s" type="array">
-      <obj_property name="ElementShortName">s[31:0]</obj_property>
-      <obj_property name="ObjectShortName">s[31:0]</obj_property>
    </wvobject>
 </wave_config>

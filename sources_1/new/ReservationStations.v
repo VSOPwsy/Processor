@@ -50,6 +50,7 @@ module ReservationStations #(
     output [31:0]   DP_SrcB,
     output          DP_ALUSrc,
 
+    input           Cache_Busy,
     output          MEM_Exec,
     output [3:0]    MEM_Cond,
     output          MEM_RegW,
@@ -58,7 +59,8 @@ module ReservationStations #(
     output [4:0]    MEM_Shamt5,
     output [1:0]    MEM_Sh,
     output [31:0]   MEM_SrcA,
-    output [31:0]   MEM_SrcB
+    output [31:0]   MEM_SrcB,
+    output [31:0]   MEM_WriteData
 );
     wire dp, mem, mul, fp;
     assign dp = ~(MemW | MemtoReg) & ~MULS & ~FPS;
@@ -139,6 +141,7 @@ module ReservationStations #(
         .RD2(RD2),
         .Op(Op),
         .ROBTail(ROBTail),
+        .Cache_Busy(Cache_Busy),
         .Exec(MEM_Exec),
         .Exec_RegW(MEM_RegW),
         .Exec_Cond(MEM_Cond),
@@ -147,7 +150,8 @@ module ReservationStations #(
         .Exec_Shamt5(MEM_Shamt5),
         .Exec_Sh(MEM_Sh),
         .Exec_SrcA(MEM_SrcA),
-        .Exec_SrcB(MEM_SrcB)
+        .Exec_SrcB(MEM_SrcB),
+        .Exec_WriteData(MEM_WriteData)
     );
 endmodule
 
@@ -272,8 +276,18 @@ module DP_Station #(
                             SH[i*2+:2] <= Sh;
                             I[i] <= ALUSrc;
                             if (rrs_result_busy[0]) begin
-                                VJ[i*32+:32] <= VJ[i*32+:32];
-                                QJ[i*4+:4] <= {1'b1, rrs_index[2:0]};
+                                if (CDB[3] & CDB[2:0] == rrs_index[2:0]) begin
+                                    VJ[i*32+:32] <= CDB[35:4];
+                                    QJ[i*4+:4] <= 4'b0;
+                                end
+                                else if (CDB[39] & CDB[38:36] == rrs_index[2:0]) begin
+                                    VJ[i*32+:32] <= CDB[71:40];
+                                    QJ[i*4+:4] <= 4'b0;
+                                end
+                                else begin
+                                    VJ[i*32+:32] <= VJ[i*32+:32];
+                                    QJ[i*4+:4] <= {1'b1, rrs_index[2:0]};
+                                end
                             end
                             else begin
                                 VJ[i*32+:32] <= RD1;
@@ -285,8 +299,18 @@ module DP_Station #(
                                 QK[i*4+:4] <= 4'b0;
                             end
                             else if (rrs_result_busy[1]) begin
-                                VK[i*32+:32] <= VK[i*32+:32];
-                                QK[i*4+:4] <= {1'b1, rrs_index[5:3]};
+                                if (CDB[3] & CDB[2:0] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[35:4];
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else if (CDB[39] & CDB[38:36] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[71:40];
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else begin
+                                    VK[i*32+:32] <= VK[i*32+:32];
+                                    QK[i*4+:4] <= {1'b1, rrs_index[5:3]};
+                                end
                             end
                             else begin
                                 VK[i*32+:32] <= RD2;
@@ -326,10 +350,18 @@ module DP_Station #(
                                 QJ[i*4+3] <= 1'b0;
                                 VJ[i*32+:32] <= CDB[35:4];
                             end
+                            else if (QJ[i*4+3] & CDB[39:36] == QJ[i*4+:4]) begin
+                                QJ[i*4+3] <= 1'b0;
+                                VJ[i*32+:32] <= CDB[71:40];
+                            end
                             
                             if (QK[i*4+3] & CDB[3:0] == QK[i*4+:4]) begin
                                 QK[i*4+3] <= 1'b0;
                                 VK[i*32+:32] <= CDB[35:4];
+                            end
+                            else if (QK[i*4+3] & CDB[39:36] == QK[i*4+:4]) begin
+                                QK[i*4+3] <= 1'b0;
+                                VK[i*32+:32] <= CDB[71:40];
                             end
 
                             if (F[i*4+3] & CDB[147:144] == F[i*4+:4]) begin
@@ -363,8 +395,18 @@ module DP_Station #(
                             SH[i*2+:2] <= Sh;
                             I[i] <= ALUSrc;
                             if (rrs_result_busy[0]) begin
-                                VJ[i*32+:32] <= VJ[i*32+:32];
-                                QJ[i*4+:4] <= {1'b1, rrs_index[2:0]};
+                                if (CDB[3] & CDB[2:0] == rrs_index[2:0]) begin
+                                    VJ[i*32+:32] <= CDB[35:4];
+                                    QJ[i*4+:4] <= 4'b0;
+                                end
+                                else if (CDB[39] & CDB[38:36] == rrs_index[2:0]) begin
+                                    VJ[i*32+:32] <= CDB[71:40];
+                                    QJ[i*4+:4] <= 4'b0;
+                                end
+                                else begin
+                                    VJ[i*32+:32] <= VJ[i*32+:32];
+                                    QJ[i*4+:4] <= {1'b1, rrs_index[2:0]};
+                                end
                             end
                             else begin
                                 VJ[i*32+:32] <= RD1;
@@ -376,8 +418,18 @@ module DP_Station #(
                                 QK[i*4+:4] <= 4'b0;
                             end
                             else if (rrs_result_busy[1]) begin
-                                VK[i*32+:32] <= VK[i*32+:32];
-                                QK[i*4+:4] <= {1'b1, rrs_index[5:3]};
+                                if (CDB[3] & CDB[2:0] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[35:4];
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else if (CDB[39] & CDB[38:36] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[71:40];
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else begin
+                                    VK[i*32+:32] <= VK[i*32+:32];
+                                    QK[i*4+:4] <= {1'b1, rrs_index[5:3]};
+                                end
                             end
                             else begin
                                 VK[i*32+:32] <= RD2;
@@ -417,10 +469,18 @@ module DP_Station #(
                                 QJ[i*4+3] <= 1'b0;
                                 VJ[i*32+:32] <= CDB[35:4];
                             end
+                            else if (QJ[i*4+3] & CDB[39:36] == QJ[i*4+:4]) begin
+                                QJ[i*4+3] <= 1'b0;
+                                VJ[i*32+:32] <= CDB[71:40];
+                            end
                             
                             if (QK[i*4+3] & CDB[3:0] == QK[i*4+:4]) begin
                                 QK[i*4+3] <= 1'b0;
                                 VK[i*32+:32] <= CDB[35:4];
+                            end
+                            else if (QK[i*4+3] & CDB[39:36] == QK[i*4+:4]) begin
+                                QK[i*4+3] <= 1'b0;
+                                VK[i*32+:32] <= CDB[71:40];
                             end
 
                             if (F[i*4+3] & CDB[147:144] == F[i*4+:4]) begin
@@ -472,6 +532,7 @@ module MEM_Station #(
     input [4:0] Op,
     input [3:0] Cond,
     input [2:0] ROBTail,
+    input Cache_Busy,
 
     output Exec,
     output reg [3:0] Exec_Cond,
@@ -483,12 +544,14 @@ module MEM_Station #(
     output reg [1:0] Exec_Sh,
     output reg [31:0] Exec_SrcA,
     output reg [31:0] Exec_SrcB,
+    output reg [31:0] Exec_WriteData,
     output reg Exec_ALUSrc
 );
 
     reg [MEM_STATION_DEPTH*1-1:0] BUSY;
     reg [MEM_STATION_DEPTH*4-1:0] COND;
     reg [MEM_STATION_DEPTH*4-1:0] REGW;
+    reg [MEM_STATION_DEPTH*32-1:0] EXTIMM;
     reg [MEM_STATION_DEPTH*5-1:0] SHAMT;
     reg [MEM_STATION_DEPTH*2-1:0] SH;
     reg [MEM_STATION_DEPTH*1-1:0] I;
@@ -505,6 +568,7 @@ module MEM_Station #(
         BUSY = 0;
         COND = 0;
         REGW = 0;
+        EXTIMM = 0;
         SHAMT = 0;
         SH = 0;
         I = 0;
@@ -523,6 +587,7 @@ module MEM_Station #(
         Exec_Sh = 0;
         Exec_SrcA = 0;
         Exec_SrcB = 0;
+        Exec_WriteData = 0;
         Exec_ALUSrc = 0;
     end
 
@@ -548,22 +613,39 @@ module MEM_Station #(
                             SHAMT[i*5+:5] <= Shamt5;
                             SH[i*2+:2] <= Sh;
                             I[i] <= ALUSrc;
+                            EXTIMM[i*32+:32] <= ExtImm;
                             if (rrs_result_busy[0]) begin
-                                VJ[i*32+:32] <= VJ[i*32+:32];
-                                QJ[i*4+:4] <= {1'b1, rrs_index[2:0]};
+                                if (CDB[3] & CDB[2:0] == rrs_index[2:0]) begin
+                                    VJ[i*32+:32] <= CDB[35:4];
+                                    QJ[i*4+:4] <= 4'b0;
+                                end
+                                else if (CDB[39] & CDB[38:36] == rrs_index[2:0]) begin
+                                    VJ[i*32+:32] <= CDB[71:40];
+                                    QJ[i*4+:4] <= 4'b0;
+                                end
+                                else begin
+                                    VJ[i*32+:32] <= VJ[i*32+:32];
+                                    QJ[i*4+:4] <= {1'b1, rrs_index[2:0]};
+                                end
                             end
                             else begin
                                 VJ[i*32+:32] <= RD1;
                                 QJ[i*4+:4] <= 4'b0;
                             end
 
-                            if (ALUSrc) begin
-                                VK[i*32+:32] <= ExtImm;
-                                QK[i*4+:4] <= 4'b0;
-                            end
-                            else if (rrs_result_busy[1]) begin
-                                VK[i*32+:32] <= VK[i*32+:32];
-                                QK[i*4+:4] <= {1'b1, rrs_index[5:3]};
+                            if (rrs_result_busy[1]) begin
+                                if (CDB[3] & CDB[2:0] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[35:4];
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else if (CDB[39] & CDB[38:36] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[71:40];
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else begin
+                                    VK[i*32+:32] <= VK[i*32+:32];
+                                    QK[i*4+:4] <= {1'b1, rrs_index[5:3]};
+                                end
                             end
                             else begin
                                 VK[i*32+:32] <= RD2;
@@ -578,7 +660,7 @@ module MEM_Station #(
                             end
                         end
 
-                        if (READY[i] & (READY[i-1:0] == 0)) begin
+                        if (READY[i] & (READY[i-1:0] == 0) & ~Cache_Busy) begin
                             EXEC[i] <= 1;
                             WAIT[i] <= 0;
                             WIndex <= DEST[i*3+:3];
@@ -587,8 +669,12 @@ module MEM_Station #(
                             Exec_Shamt5 <= SHAMT[i*5+:5];
                             Exec_Sh <= SH[i*2+:2];
                             Exec_SrcA <= VJ[i*32+:32];
-                            Exec_SrcB <= VK[i*32+:32];
+                            Exec_SrcB <= EXTIMM[i*32+:32];
+                            Exec_WriteData <= VK[i*32+:32];
                             Exec_ALUSrc <= I[i];
+                        end
+                        else if (Cache_Busy) begin
+                            EXEC[i] <= EXEC[i];
                         end
                         else begin
                             EXEC[i] <= 0;
@@ -600,17 +686,25 @@ module MEM_Station #(
                                 QJ[i*4+3] <= 1'b0;
                                 VJ[i*32+:32] <= CDB[35:4];
                             end
+                            else if (QJ[i*4+3] & CDB[39:36] == QJ[i*4+:4]) begin
+                                QJ[i*4+3] <= 1'b0;
+                                VJ[i*32+:32] <= CDB[71:40];
+                            end
                             
                             if (QK[i*4+3] & CDB[3:0] == QK[i*4+:4]) begin
                                 QK[i*4+3] <= 1'b0;
                                 VK[i*32+:32] <= CDB[35:4];
+                            end
+                            else if (QK[i*4+3] & CDB[39:36] == QK[i*4+:4]) begin
+                                QK[i*4+3] <= 1'b0;
+                                VK[i*32+:32] <= CDB[71:40];
                             end
 
                             if (F[i*4+3] & CDB[147:144] == F[i*4+:4]) begin
                                 F[i*4+3] <= 1'b0;
                             end
 
-                            if (DEST[i*3+:3] == CDB[2:0] & CDB[3]) begin
+                            if (DEST[i*3+:3] == CDB[38:36] & CDB[39]) begin
                                 BUSY[i] <= 0;
                             end
 
@@ -628,27 +722,44 @@ module MEM_Station #(
                             BUSY[i] <= 1;
                             WAIT[i] <= 1;
                             COND[i*4+:4] <= Cond;
-                            REGW[i] <= RegW;
                             DEST[i*3+:3] <= ROBTail;
+                            REGW[i] <= RegW;
                             SHAMT[i*5+:5] <= Shamt5;
                             SH[i*2+:2] <= Sh;
                             I[i] <= ALUSrc;
+                            EXTIMM[i*32+:32] <= ExtImm;
                             if (rrs_result_busy[0]) begin
-                                VJ[i*32+:32] <= VJ[i*32+:32];
-                                QJ[i*4+:4] <= {1'b1, rrs_index[2:0]};
+                                if (CDB[3] & CDB[2:0] == rrs_index[2:0]) begin
+                                    VJ[i*32+:32] <= CDB[35:4];
+                                    QJ[i*4+:4] <= 4'b0;
+                                end
+                                else if (CDB[39] & CDB[38:36] == rrs_index[2:0]) begin
+                                    VJ[i*32+:32] <= CDB[71:40];
+                                    QJ[i*4+:4] <= 4'b0;
+                                end
+                                else begin
+                                    VJ[i*32+:32] <= VJ[i*32+:32];
+                                    QJ[i*4+:4] <= {1'b1, rrs_index[2:0]};
+                                end
                             end
                             else begin
                                 VJ[i*32+:32] <= RD1;
                                 QJ[i*4+:4] <= 4'b0;
                             end
 
-                            if (ALUSrc) begin
-                                VK[i*32+:32] <= ExtImm;
-                                QK[i*4+:4] <= 4'b0;
-                            end
-                            else if (rrs_result_busy[1]) begin
-                                VK[i*32+:32] <= VK[i*32+:32];
-                                QK[i*4+:4] <= {1'b1, rrs_index[5:3]};
+                            if (rrs_result_busy[1]) begin
+                                if (CDB[3] & CDB[2:0] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[35:4];
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else if (CDB[39] & CDB[38:36] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[71:40];
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else begin
+                                    VK[i*32+:32] <= VK[i*32+:32];
+                                    QK[i*4+:4] <= {1'b1, rrs_index[5:3]};
+                                end
                             end
                             else begin
                                 VK[i*32+:32] <= RD2;
@@ -663,7 +774,7 @@ module MEM_Station #(
                             end
                         end
 
-                        if (READY[i]) begin
+                        if (READY[i] & ~Cache_Busy) begin
                             EXEC[i] <= 1;
                             WAIT[i] <= 0;
                             WIndex <= DEST[i*3+:3];
@@ -672,8 +783,12 @@ module MEM_Station #(
                             Exec_Shamt5 <= SHAMT[i*5+:5];
                             Exec_Sh <= SH[i*2+:2];
                             Exec_SrcA <= VJ[i*32+:32];
-                            Exec_SrcB <= VK[i*32+:32];
+                            Exec_SrcB <= EXTIMM[i*32+:32];
+                            Exec_WriteData <= VK[i*32+:32];
                             Exec_ALUSrc <= I[i];
+                        end
+                        else if (Cache_Busy) begin
+                            EXEC[i] <= EXEC[i];
                         end
                         else begin
                             EXEC[i] <= 0;
@@ -685,17 +800,25 @@ module MEM_Station #(
                                 QJ[i*4+3] <= 1'b0;
                                 VJ[i*32+:32] <= CDB[35:4];
                             end
+                            else if (QJ[i*4+3] & CDB[39:36] == QJ[i*4+:4]) begin
+                                QJ[i*4+3] <= 1'b0;
+                                VJ[i*32+:32] <= CDB[71:40];
+                            end
                             
                             if (QK[i*4+3] & CDB[3:0] == QK[i*4+:4]) begin
                                 QK[i*4+3] <= 1'b0;
                                 VK[i*32+:32] <= CDB[35:4];
+                            end
+                            else if (QK[i*4+3] & CDB[39:36] == QK[i*4+:4]) begin
+                                QK[i*4+3] <= 1'b0;
+                                VK[i*32+:32] <= CDB[71:40];
                             end
 
                             if (F[i*4+3] & CDB[147:144] == F[i*4+:4]) begin
                                 F[i*4+3] <= 1'b0;
                             end
 
-                            if (DEST[i*3+:3] == CDB[2:0] & CDB[3]) begin
+                            if (DEST[i*3+:3] == CDB[38:36] & CDB[39]) begin
                                 BUSY[i] <= 0;
                             end
                         end

@@ -79,7 +79,8 @@ module ARMcore(
     wire                ReorderBuffer_full;
     wire    [2:0]       ReorderBuffer_ROBTail;
     wire    [3:0]       ReorderBuffer_DestReg;
-    wire                ReorderBuffer_WriteBack;
+    wire                ReorderBuffer_DP_WriteBack;
+    wire                ReorderBuffer_MEM_WriteBack;
     wire    [3:0]       ReorderBuffer_WA;
     wire                ReorderBuffer_WE;
     wire    [31:0]      ReorderBuffer_WD;
@@ -107,6 +108,7 @@ module ARMcore(
     wire    [31:0]      DIReg_ExtImmD;
     wire    [3:0]       DIReg_CondD;
     wire    [3:0]       DIReg_FlagWD;
+    wire                DIReg_RegWD;
     wire                DIReg_NoWriteD;
     wire    [4:0]       DIReg_Shamt5D;
     wire    [1:0]       DIReg_ShD;
@@ -158,6 +160,7 @@ module ARMcore(
     wire    [31:0]      ReservationStations_RD2;
     wire    [4:0]       ReservationStations_Op;
     wire    [2:0]       ReservationStations_ROBTail;
+    wire                ReservationStations_Cache_Busy;
     wire                ReservationStations_DP_Exec;
     wire    [3:0]       ReservationStations_DP_Cond;
     wire    [3:0]       ReservationStations_DP_FlagW;
@@ -179,6 +182,7 @@ module ARMcore(
     wire    [1:0]       ReservationStations_MEM_Sh;
     wire    [31:0]      ReservationStations_MEM_SrcA;
     wire    [31:0]      ReservationStations_MEM_SrcB;
+    wire    [31:0]      ReservationStations_MEM_WriteData;
 
 
 
@@ -196,6 +200,13 @@ module ARMcore(
     wire    [2:0]       FlagStatus_ROBTail;
     wire                FlagStatus_FlagReady;
     wire    [2:0]       FlagStatus_index;
+
+
+    wire    [3:0]       Flags_FlagWrite;
+    wire    [3:0]       Flags_ALUFlags;
+    wire                Flags_ShifterCarry;
+    wire    [4:0]       Flags_Op;
+    wire    [3:0]       Flags_Flags;
 
 
     wire                DP_IEReg_EN;
@@ -228,13 +239,11 @@ module ARMcore(
 
     wire    [3:0]       DP_CondUnit_Cond;
     wire    [3:0]       DP_CondUnit_Op;
+    wire    [3:0]       DP_CondUnit_Flags;
     wire    [3:0]       DP_CondUnit_FlagW;
     wire                DP_CondUnit_RegW;
-    wire    [3:0]       DP_CondUnit_ALUFlags;
-    wire                DP_CondUnit_ShifterCarry;
     wire                DP_CondUnit_NoWrite;
     wire                DP_CondUnit_RegWrite;
-    wire                DP_CondUnit_CFlag;
 
 
     wire    [1:0]       DP_Shifter_Sh;
@@ -295,6 +304,30 @@ module ARMcore(
     wire    [31:0]      MEM_adder_b;
     wire    [31:0]      MEM_adder_s;
 
+    wire    [3:0]       MEM_CondUnit_Cond;
+    wire                MEM_CondUnit_Exec;
+    wire    [3:0]       MEM_CondUnit_Flags;
+    wire                MEM_CondUnit_RegW;
+    wire                MEM_CondUnit_RegWrite;
+    wire                MEM_CondUnit_MemWrite;
+
+    wire                Cache_Busy;
+
+
+    wire                MemOrIO_we;
+    wire    [31:0]      MemOrIO_addr_in;
+    wire    [31:0]      MemOrIO_m_rdata;
+    wire    [31:0]      MemOrIO_r_rdata;
+    wire    [31:0]      MemOrIO_io_rdata;
+    wire                MemOrIO_dec_mem;
+    wire    [31:0]      MemOrIO_m_wdata;
+    wire    [31:0]      MemOrIO_m_addr;
+    wire                MemOrIO_m_we;
+    wire    [31:0]      MemOrIO_r_wdata;
+    wire    [31:0]      MemOrIO_io_wdata;
+    wire    [31:0]      MemOrIO_io_addr;
+    wire                MemOrIO_io_we;
+
 
     
     assign  PC  =   ProgramCounter_PC;
@@ -311,14 +344,15 @@ module ARMcore(
 
     assign  ReorderBuffer_append    =   ReservationStations_Issue;
     assign  ReorderBuffer_DestReg   =   DIReg_WA3I;
-    assign  ReorderBuffer_WriteBack =   DP_CondUnit_RegWrite;
+    assign  ReorderBuffer_DP_WriteBack =   DP_CondUnit_RegWrite;
+    assign  ReorderBuffer_MEM_WriteBack =   MEM_CondUnit_RegWrite;
 
     assign  RegisterFile_WE3    =   ReorderBuffer_WE;
     assign  RegisterFile_WD3    =   ReorderBuffer_WD;
     assign  RegisterFile_A1     =   DIReg_RA1I;
     assign  RegisterFile_A2     =   DIReg_RA2I;
     assign  RegisterFile_A3     =   ReorderBuffer_WA;
-    assign  RegisterFile_R15    =   ProgramCounter_PCPlus4;
+    assign  RegisterFile_R15    =   ProgramCounter_PC;
     
 
     assign  DIReg_EN    =   ~(ReorderBuffer_full | ReservationStations_full);
@@ -364,6 +398,7 @@ module ARMcore(
     assign  ReservationStations_RD2     =   RegisterFile_RD2;
     assign  ReservationStations_Op      =   DIReg_OpI;
     assign  ReservationStations_ROBTail =   ReorderBuffer_ROBTail;
+    assign  ReservationStations_Cache_Busy  =   Cache_Busy;
 
 
     assign  RegisterResultStatus_query  =   ReservationStations_rrs_query;
@@ -377,12 +412,18 @@ module ARMcore(
     assign  FlagStatus_ROBTail  =   ReorderBuffer_ROBTail;
 
 
+    assign  Flags_FlagWrite     =   DP_CondUnit_FlagWrite;
+    assign  Flags_ALUFlags      =   ALU_ALUFlags;
+    assign  Flags_ShifterCarry  =   DP_Shifter_Carry;
+    assign  Flags_Op            =   DP_CondUnit_Op;
+
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////  Data Processing Pipline
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    assign  DP_IEReg_EN            =   ReservationStations_DP_Exec;
+    assign  DP_IEReg_EN            =   1'b1;
     assign  DP_IEReg_CLR           =   1'b0;
     assign  DP_IEReg_ExecI         =   ReservationStations_DP_Exec;
     assign  DP_IEReg_CondI         =   ReservationStations_DP_Cond;
@@ -402,23 +443,22 @@ module ARMcore(
     assign  DP_Shifter_Sh      =   DP_IEReg_ShE;
     assign  DP_Shifter_Shamt5  =   DP_IEReg_Shamt5E;
     assign  DP_Shifter_ShIn    =   DP_IEReg_SrcBE;
-    assign  DP_Shifter_CFlag   =   DP_CondUnit_CFlag;
+    assign  DP_Shifter_CFlag   =   Flags_Flags[1];
 
 
 
     assign  DP_CondUnit_Cond    =   DP_IEReg_CondE;
     assign  DP_CondUnit_Op      =   DP_IEReg_OpE;
+    assign  DP_CondUnit_Flags   =   Flags_Flags;
     assign  DP_CondUnit_FlagW   =   DP_IEReg_FlagWE;
     assign  DP_CondUnit_RegW    =   DP_IEReg_RegWE;
-    assign  DP_CondUnit_ALUFlags=   ALU_ALUFlags;
-    assign  DP_CondUnit_ShifterCarry=DP_Shifter_Carry;
     assign  DP_CondUnit_NoWrite =   DP_IEReg_NoWriteE;
 
 
     assign  ALU_SrcA        =   DP_IEReg_SrcAE;
     assign  ALU_SrcB        =   DP_IEReg_ALUSrcE ? DP_IEReg_SrcBE : DP_Shifter_ShOut;
     assign  ALU_Op          =   DP_IEReg_OpE;
-    assign  ALU_CFlag       =   DP_CondUnit_CFlag;
+    assign  ALU_CFlag       =   Flags_Flags[1];
     
 
     assign  DP_EWReg_ExecE         =   DP_IEReg_ExecE;
@@ -434,7 +474,7 @@ module ARMcore(
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////  Memory Pipline
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    assign  MEM_IEReg_EN            =   ReservationStations_MEM_Exec;
+    assign  MEM_IEReg_EN            =   ~Cache_Busy;
     assign  MEM_IEReg_CLR           =   1'b0;
     assign  MEM_IEReg_CondI         =   ReservationStations_MEM_Cond;
     assign  MEM_IEReg_RegWI         =   ReservationStations_MEM_RegW;
@@ -443,6 +483,7 @@ module ARMcore(
     assign  MEM_IEReg_ALUSrcI       =   ReservationStations_MEM_ALUSrc;
     assign  MEM_IEReg_SrcAI         =   ReservationStations_MEM_SrcA;
     assign  MEM_IEReg_SrcBI         =   ReservationStations_MEM_SrcB;
+    assign  MEM_IEReg_WriteDataI    =   ReservationStations_MEM_WriteData;
     assign  MEM_IEReg_ShI           =   ReservationStations_MEM_Sh;
     assign  MEM_IEReg_Shamt5I       =   ReservationStations_MEM_Shamt5;
 
@@ -457,10 +498,35 @@ module ARMcore(
 
 
 
+    assign  MEM_CondUnit_Cond    =   MEM_IEReg_CondE;
+    assign  MEM_CondUnit_Exec    =   MEM_IEReg_ExecE;
+    assign  MEM_CondUnit_Flags   =   Flags_Flags;
+    assign  MEM_CondUnit_RegW    =   MEM_IEReg_RegWE;
 
+
+
+    assign  MemOrIO_we          =   ~MEM_IEReg_RegWE;
+    assign  MemOrIO_addr_in     =   MEM_adder_s;
+    assign  MemOrIO_m_rdata     =   Cache_ReadData;
+    assign  MemOrIO_r_rdata     =   MEM_IEReg_WriteDataE;
+    assign  MemOrIO_io_rdata    =   IO_ReadData;
+
+
+    assign  IO_Addr         =   MemOrIO_io_addr;
+    assign  IO_WriteData    =   MemOrIO_io_wdata;
+    assign  IO_WE           =   MemOrIO_io_we;
+
+
+    assign  Cache_RW        =   MemOrIO_m_we;
+    assign  Cache_Addr      =   MemOrIO_m_addr;
+    assign  Cache_Valid     =   MemOrIO_dec_mem & (MEM_CondUnit_MemWrite | MEM_CondUnit_RegWrite);
+    assign  Cache_WriteData =   MemOrIO_m_wdata;
+
+    assign  Cache_Busy  =   Cache_Valid & ~Cache_ReadReady;
 
 
     assign  CDB[35:0] = {ALU_ALUResult, DP_IEReg_ExecE, DP_IEReg_WIndexE};
+    assign  CDB[71:36] = {Cache_ReadData, Cache_ReadReady | MEM_CondUnit_MemWrite, MEM_IEReg_WIndexE};
 
     assign  CDB[147:144] = {|DP_IEReg_FlagWE, DP_IEReg_WIndexE};
 
@@ -519,7 +585,8 @@ module ARMcore(
         .ROBTail(ReorderBuffer_ROBTail),
         .CDB(CDB),
         .DestReg(ReorderBuffer_DestReg),
-        .WriteBack(ReorderBuffer_WriteBack),
+        .DP_WriteBack(ReorderBuffer_DP_WriteBack),
+        .MEM_WriteBack(ReorderBuffer_MEM_WriteBack),
         .WA(ReorderBuffer_WA),
         .WE(ReorderBuffer_WE),
         .WD(ReorderBuffer_WD)
@@ -612,6 +679,7 @@ module ARMcore(
         .RD2(ReservationStations_RD2),
         .Op(ReservationStations_Op),
         .ROBTail(ReservationStations_ROBTail),
+        .Cache_Busy(ReservationStations_Cache_Busy),
         .DP_Exec    (ReservationStations_DP_Exec),
         .DP_Cond    (ReservationStations_DP_Cond),
         .DP_FlagW   (ReservationStations_DP_FlagW),
@@ -632,7 +700,8 @@ module ARMcore(
         .MEM_Shamt5  (ReservationStations_MEM_Shamt5),
         .MEM_Sh      (ReservationStations_MEM_Sh),
         .MEM_SrcA    (ReservationStations_MEM_SrcA),
-        .MEM_SrcB    (ReservationStations_MEM_SrcB)
+        .MEM_SrcB    (ReservationStations_MEM_SrcB),
+        .MEM_WriteData(ReservationStations_MEM_WriteData)
     );
         
 
@@ -662,6 +731,16 @@ module ARMcore(
         .index(FlagStatus_index)
     );
 
+
+    Flags Flags(
+        .CLK(CLK),
+        .Reset(Reset),
+        .FlagWrite(Flags_FlagWrite),
+        .ALUFlags(Flags_ALUFlags),
+        .ShifterCarry(Flags_ShifterCarry),
+        .Op(Flags_Op),
+        .Flags(Flags_Flags)
+    );
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////  Data Processing Pipline
@@ -702,14 +781,13 @@ module ARMcore(
         .CLK        (CLK                ),
         .Reset      (Reset              ),
         .Cond       (DP_CondUnit_Cond      ),
-        .Op (DP_CondUnit_Op),
+        .Op         (DP_CondUnit_Op),
+        .Flags      (DP_CondUnit_Flags),
         .FlagW      (DP_CondUnit_FlagW     ),
         .RegW       (DP_CondUnit_RegW),
-        .ALUFlags   (DP_CondUnit_ALUFlags  ),
-        .ShifterCarry(DP_CondUnit_ShifterCarry),
         .NoWrite    (DP_CondUnit_NoWrite   ),
-        .RegWrite   (DP_CondUnit_RegWrite),
-        .CFlag      (DP_CondUnit_CFlag     ));
+        .FlagWrite  (DP_CondUnit_FlagWrite),
+        .RegWrite   (DP_CondUnit_RegWrite));
 
 
 
@@ -763,6 +841,7 @@ module ARMcore(
         .ALUSrcI        (MEM_IEReg_ALUSrcI      ),
         .SrcAI          (MEM_IEReg_SrcAI        ),
         .SrcBI          (MEM_IEReg_SrcBI        ),
+        .WriteDataI     (MEM_IEReg_WriteDataI   ),
         .ShI            (MEM_IEReg_ShI          ),
         .Shamt5I        (MEM_IEReg_Shamt5I      ),
         
@@ -773,6 +852,7 @@ module ARMcore(
         .ALUSrcE        (MEM_IEReg_ALUSrcE      ),
         .SrcAE          (MEM_IEReg_SrcAE        ),
         .SrcBE          (MEM_IEReg_SrcBE        ),
+        .WriteDataE     (MEM_IEReg_WriteDataE   ),
         .ShE            (MEM_IEReg_ShE          ),
         .Shamt5E        (MEM_IEReg_Shamt5E      ));
 
@@ -794,4 +874,32 @@ module ARMcore(
         .s(MEM_adder_s),
         .cout()
     );
+
+
+
+    MEM_CondUnit MEM_CondUnit(
+        .Cond       (MEM_CondUnit_Cond  ),
+        .Exec       (MEM_CondUnit_Exec  ),
+        .Flags      (MEM_CondUnit_Flags ),
+        .RegW       (MEM_CondUnit_RegW  ),
+        .RegWrite   (MEM_CondUnit_RegWrite),
+        .MemWrite   (MEM_CondUnit_MemWrite));
+
+
+
+
+    MemOrIO MemOrIO(
+        .we         (MemOrIO_we         ),
+        .addr_in    (MemOrIO_addr_in    ),
+        .dec_mem    (MemOrIO_dec_mem    ),
+        .m_rdata    (MemOrIO_m_rdata    ),
+        .r_rdata    (MemOrIO_r_rdata    ),
+        .io_rdata   (MemOrIO_io_rdata   ),
+        .m_wdata    (MemOrIO_m_wdata    ),
+        .m_addr     (MemOrIO_m_addr     ),
+        .m_we       (MemOrIO_m_we       ),
+        .r_wdata    (MemOrIO_r_wdata    ),
+        .io_wdata   (MemOrIO_io_wdata   ),
+        .io_addr    (MemOrIO_io_addr    ),
+        .io_we      (MemOrIO_io_we      ));
 endmodule
