@@ -86,6 +86,7 @@ module ARMcore(
     wire    [3:0]       ReorderBuffer_WA;
     wire                ReorderBuffer_WE;
     wire    [31:0]      ReorderBuffer_WD;
+    wire                ReorderBuffer_Commit;
     wire    [2:0]       ReorderBuffer_IndexA;
     wire    [2:0]       ReorderBuffer_IndexB;
     wire    [31:0]      ReorderBuffer_ForwardDataA;
@@ -546,10 +547,10 @@ module ARMcore(
     assign  Cache_Busy  =   MEM_CondUnit_RegWrite & Cache_Valid & ~Cache_ReadReady;
 
 
-    assign  WBB     =   {ReorderBuffer_WD, ReorderBuffer_WE, ReorderBuffer_ROBHead};
+    assign  WBB     =   {ReorderBuffer_WD, ReorderBuffer_Commit, ReorderBuffer_ROBHead};
 
     assign  CDB[35:0] = {ALU_ALUResult, DP_IEReg_ExecE, DP_IEReg_WIndexE};
-    assign  CDB[71:36] = {Cache_ReadData, Cache_ReadReady | MEM_CondUnit_MemWrite, MEM_IEReg_WIndexE};
+    assign  CDB[71:36] = {MEM_CondUnit_MemWrite ? MEM_IEReg_WriteDataE : Cache_ReadData, Cache_ReadReady | MEM_CondUnit_MemWrite, MEM_IEReg_WIndexE};
 
     assign  CDB[147:144] = {|DP_IEReg_FlagWE, DP_IEReg_WIndexE};
 
@@ -614,6 +615,7 @@ module ARMcore(
         .WA(ReorderBuffer_WA),
         .WE(ReorderBuffer_WE),
         .WD(ReorderBuffer_WD),
+        .Commit(ReorderBuffer_Commit),
         .IndexA(ReorderBuffer_IndexA),
         .IndexB(ReorderBuffer_IndexB),
         .ForwardDataA(ReorderBuffer_ForwardDataA),

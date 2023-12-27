@@ -26,7 +26,7 @@ module RegisterResultStatus(
             BUSY = 0;
         end
         else begin
-            if (append & ~NoWrite) begin
+            if (append) begin
                 BUSY[WA] <= 1;
                 INDEX[WA] <= ROBTail;
             end

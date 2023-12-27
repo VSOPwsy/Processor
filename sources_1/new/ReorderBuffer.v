@@ -15,6 +15,7 @@ module ReorderBuffer(
     output reg [3:0] WA,
     output reg WE,
     output reg [31:0] WD,
+    output reg Commit,
 
     input [2:0] IndexA,
     input [2:0] IndexB,
@@ -114,11 +115,13 @@ module ReorderBuffer(
             WA = DESTINATION[ROBHead_next];
             WE = WRITEBACK[ROBHead_next];
             WD = VALUE[ROBHead_next];
+            Commit = 1;
         end
         else begin
             WA = 0;
             WE = 0;
             WD = 0;
+            Commit = 0;
         end
     end
 

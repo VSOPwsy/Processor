@@ -675,33 +675,27 @@ module MEM_Station #(
                                 QJ[i*4+:4] <= 4'b0;
                             end
 
-                            if (RegW) begin
-                                VK[i*32+:32] <= 0;
-                                QK[i*4+:4] <= 4'b0;
-                            end
-                            else begin
-                                if (rrs_result_busy[1]) begin
-                                    if (CDB[3] & CDB[2:0] == rrs_index[5:3]) begin
-                                        VK[i*32+:32] <= CDB[35:4];
-                                        QK[i*4+:4] <= 4'b0;
-                                    end
-                                    else if (CDB[39] & CDB[38:36] == rrs_index[5:3]) begin
-                                        VK[i*32+:32] <= CDB[71:40];
-                                        QK[i*4+:4] <= 4'b0;
-                                    end
-                                    else if (ROB_ForwardB) begin
-                                        VK[i*32+:32] <= ROB_ForwardDataB;
-                                        QK[i*4+:4] <= 4'b0;
-                                    end
-                                    else begin
-                                        VK[i*32+:32] <= VK[i*32+:32];
-                                        QK[i*4+:4] <= {1'b1, rrs_index[5:3]};
-                                    end
-                                end
-                                else begin
-                                    VK[i*32+:32] <= RD2;
+                            if (rrs_result_busy[1]) begin
+                                if (CDB[3] & CDB[2:0] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[35:4];
                                     QK[i*4+:4] <= 4'b0;
                                 end
+                                else if (CDB[39] & CDB[38:36] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[71:40];
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else if (ROB_ForwardB) begin
+                                    VK[i*32+:32] <= ROB_ForwardDataB;
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else begin
+                                    VK[i*32+:32] <= VK[i*32+:32];
+                                    QK[i*4+:4] <= {1'b1, rrs_index[5:3]};
+                                end
+                            end
+                            else begin
+                                VK[i*32+:32] <= RD2;
+                                QK[i*4+:4] <= 4'b0;
                             end
 
                             if (Cond == 4'hE | fs_flagready) begin
@@ -803,33 +797,27 @@ module MEM_Station #(
                                 QJ[i*4+:4] <= 4'b0;
                             end
 
-                            if (RegW) begin
-                                VK[i*32+:32] <= 0;
-                                QK[i*4+:4] <= 4'b0;
-                            end
-                            else begin
-                                if (rrs_result_busy[1]) begin
-                                    if (CDB[3] & CDB[2:0] == rrs_index[5:3]) begin
-                                        VK[i*32+:32] <= CDB[35:4];
-                                        QK[i*4+:4] <= 4'b0;
-                                    end
-                                    else if (CDB[39] & CDB[38:36] == rrs_index[5:3]) begin
-                                        VK[i*32+:32] <= CDB[71:40];
-                                        QK[i*4+:4] <= 4'b0;
-                                    end
-                                    else if (ROB_ForwardB) begin
-                                        VK[i*32+:32] <= ROB_ForwardDataB;
-                                        QK[i*4+:4] <= 4'b0;
-                                    end
-                                    else begin
-                                        VK[i*32+:32] <= VK[i*32+:32];
-                                        QK[i*4+:4] <= {1'b1, rrs_index[5:3]};
-                                    end
-                                end
-                                else begin
-                                    VK[i*32+:32] <= RD2;
+                            if (rrs_result_busy[1]) begin
+                                if (CDB[3] & CDB[2:0] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[35:4];
                                     QK[i*4+:4] <= 4'b0;
                                 end
+                                else if (CDB[39] & CDB[38:36] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[71:40];
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else if (ROB_ForwardB) begin
+                                    VK[i*32+:32] <= ROB_ForwardDataB;
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else begin
+                                    VK[i*32+:32] <= VK[i*32+:32];
+                                    QK[i*4+:4] <= {1'b1, rrs_index[5:3]};
+                                end
+                            end
+                            else begin
+                                VK[i*32+:32] <= RD2;
+                                QK[i*4+:4] <= 4'b0;
                             end
 
                             if (Cond == 4'hE | fs_flagready) begin
