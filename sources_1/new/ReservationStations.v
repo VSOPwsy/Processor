@@ -26,8 +26,11 @@ module ReservationStations #(
     input ROB_ForwardA,
     input ROB_ForwardB,
 
-    input fs_flagready,
-    input [2:0] fs_index,
+    input fs_setflagready,
+    input [2:0] fs_setindex,
+    input fs_useflagready,
+    input [2:0] fs_useindex,
+    input fs_set_use_order,
 
     input ALUSrc,
     input [31:0] ExtImm,
@@ -121,8 +124,11 @@ module ReservationStations #(
         .CDB(CDB),
         .rrs_result_busy(rrs_result_busy),
         .rrs_index(rrs_index),
-        .fs_flagready(fs_flagready),
-        .fs_index(fs_index),
+        .fs_setflagready(fs_setflagready),
+        .fs_setindex(fs_setindex),
+        .fs_useflagready(fs_useflagready),
+        .fs_useindex(fs_useindex),
+        .fs_set_use_order(fs_set_use_order),
         .ALUSrc(ALUSrc),
         .ExtImm(ExtImm),
         .Cond(Cond),
@@ -161,8 +167,11 @@ module ReservationStations #(
         .CDB(CDB),
         .rrs_result_busy(rrs_result_busy),
         .rrs_index(rrs_index),
-        .fs_flagready(fs_flagready),
-        .fs_index(fs_index),
+        .fs_setflagready(fs_setflagready),
+        .fs_setindex(fs_setindex),
+        .fs_useflagready(fs_useflagready),
+        .fs_useindex(fs_useindex),
+        .fs_set_use_order(fs_set_use_order),
         .ALUSrc(ALUSrc),
         .ExtImm(ExtImm),
         .Cond(Cond),
@@ -200,8 +209,11 @@ module ReservationStations #(
         .CDB(CDB),
         .rrs_result_busy(rrs_result_busy),
         .rrs_index(rrs_index),
-        .fs_flagready(fs_flagready),
-        .fs_index(fs_index),
+        .fs_setflagready(fs_setflagready),
+        .fs_setindex(fs_setindex),
+        .fs_useflagready(fs_useflagready),
+        .fs_useindex(fs_useindex),
+        .fs_set_use_order(fs_set_use_order),
         .Cond(Cond),
         .FlagW(FlagW),
         .RD1(RD1),
@@ -230,8 +242,11 @@ module ReservationStations #(
         .CDB(CDB),
         .rrs_result_busy(rrs_result_busy),
         .rrs_index(rrs_index),
-        .fs_flagready(fs_flagready),
-        .fs_index(fs_index),
+        .fs_setflagready(fs_setflagready),
+        .fs_setindex(fs_setindex),
+        .fs_useflagready(fs_useflagready),
+        .fs_useindex(fs_useindex),
+        .fs_set_use_order(fs_set_use_order),
         .Cond(Cond),
         .FlagW(FlagW),
         .RD1(RD1),
@@ -275,8 +290,11 @@ module DP_Station #(
     input ROB_ForwardA,
     input ROB_ForwardB,
 
-    input fs_flagready,
-    input [2:0] fs_index,
+    input fs_setflagready,
+    input [2:0] fs_setindex,
+    input fs_useflagready,
+    input [2:0] fs_useindex,
+    input fs_set_use_order,
 
     input ALUSrc,
     input [31:0] ExtImm,
@@ -436,14 +454,44 @@ module DP_Station #(
                                 QK[i*4+:4] <= 4'b0;
                             end
 
-                            if (Cond == 4'hE & ~|FlagW) begin
-                                F[i*4+:4] <= 4'b0;
+                            if (|FlagW) begin
+                                if (fs_set_use_order) begin
+                                    if (fs_useflagready) begin
+                                        if (fs_setflagready) begin
+                                            F[i*4+:4] <= 4'b0;
+                                        end
+                                        else begin
+                                            F[i*4+:4] <= {1'b1, fs_setindex};
+                                        end
+                                    end
+                                    else begin
+                                        F[i*4+:4] <= {1'b1, fs_useindex};
+                                    end
+                                end
+                                else begin
+                                    if (fs_setflagready) begin
+                                        if (fs_useflagready) begin
+                                            F[i*4+:4] <= 4'b0;
+                                        end
+                                        else begin
+                                            F[i*4+:4] <= {1'b1, fs_useindex};
+                                        end
+                                    end
+                                    else begin
+                                        F[i*4+:4] <= {1'b1, fs_setindex};
+                                    end
+                                end
                             end
-                            else if (fs_flagready) begin
-                                F[i*4+:4] <= 4'b0;
+                            else if ((~|FlagW) & (Cond != 4'hE)) begin
+                                if (fs_setflagready) begin
+                                    F[i*4+:4] <= 4'b0;
+                                end
+                                else begin
+                                    F[i*4+:4] <= {1'b1, fs_setindex};
+                                end
                             end
                             else begin
-                                F[i*4+:4] <= {1'b1, fs_index};
+                                F[i*4+:4] <= 4'b0;
                             end
                         end
 
@@ -571,14 +619,44 @@ module DP_Station #(
                                 QK[i*4+:4] <= 4'b0;
                             end
 
-                            if (Cond == 4'hE & ~|FlagW) begin
-                                F[i*4+:4] <= 4'b0;
+                            if (|FlagW) begin
+                                if (fs_set_use_order) begin
+                                    if (fs_useflagready) begin
+                                        if (fs_setflagready) begin
+                                            F[i*4+:4] <= 4'b0;
+                                        end
+                                        else begin
+                                            F[i*4+:4] <= {1'b1, fs_setindex};
+                                        end
+                                    end
+                                    else begin
+                                        F[i*4+:4] <= {1'b1, fs_useindex};
+                                    end
+                                end
+                                else begin
+                                    if (fs_setflagready) begin
+                                        if (fs_useflagready) begin
+                                            F[i*4+:4] <= 4'b0;
+                                        end
+                                        else begin
+                                            F[i*4+:4] <= {1'b1, fs_useindex};
+                                        end
+                                    end
+                                    else begin
+                                        F[i*4+:4] <= {1'b1, fs_setindex};
+                                    end
+                                end
                             end
-                            else if (fs_flagready) begin
-                                F[i*4+:4] <= 4'b0;
+                            else if ((~|FlagW) & (Cond != 4'hE)) begin
+                                if (fs_setflagready) begin
+                                    F[i*4+:4] <= 4'b0;
+                                end
+                                else begin
+                                    F[i*4+:4] <= {1'b1, fs_setindex};
+                                end
                             end
                             else begin
-                                F[i*4+:4] <= {1'b1, fs_index};
+                                F[i*4+:4] <= 4'b0;
                             end
                         end
 
@@ -773,8 +851,11 @@ module MEM_Station #(
     input ROB_ForwardA,
     input ROB_ForwardB,
     
-    input fs_flagready,
-    input [2:0] fs_index,
+    input fs_setflagready,
+    input [2:0] fs_setindex,
+    input fs_useflagready,
+    input [2:0] fs_useindex,
+    input fs_set_use_order,
 
 
     input ALUSrc,
@@ -920,11 +1001,11 @@ module MEM_Station #(
                                 QK[i*4+:4] <= 4'b0;
                             end
 
-                            if (Cond == 4'hE | fs_flagready) begin
+                            if (Cond == 4'hE | fs_setflagready) begin
                                 F[i*4+:4] <= 4'b0;
                             end
                             else begin
-                                F[i*4+:4] <= {1'b1, fs_index};
+                                F[i*4+:4] <= {1'b1, fs_setindex};
                             end
                         end
 
@@ -1048,11 +1129,11 @@ module MEM_Station #(
                                 QK[i*4+:4] <= 4'b0;
                             end
 
-                            if (Cond == 4'hE | fs_flagready) begin
+                            if (Cond == 4'hE | fs_setflagready) begin
                                 F[i*4+:4] <= 4'b0;
                             end
                             else begin
-                                F[i*4+:4] <= {1'b1, fs_index};
+                                F[i*4+:4] <= {1'b1, fs_setindex};
                             end
                         end
 
@@ -1176,8 +1257,11 @@ module MUL_Station #(
     input ROB_ForwardA,
     input ROB_ForwardB,
 
-    input fs_flagready,
-    input [2:0] fs_index,
+    input fs_setflagready,
+    input [2:0] fs_setindex,
+    input fs_useflagready,
+    input [2:0] fs_useindex,
+    input fs_set_use_order,
 
     input ALUSrc,
     input [31:0] ExtImm,
@@ -1313,11 +1397,11 @@ module MUL_Station #(
                             if (Cond == 4'hE & ~|FlagW) begin
                                 F[i*4+:4] <= 4'b0;
                             end
-                            else if (fs_flagready) begin
+                            else if (fs_setflagready) begin
                                 F[i*4+:4] <= 4'b0;
                             end
                             else begin
-                                F[i*4+:4] <= {1'b1, fs_index};
+                                F[i*4+:4] <= {1'b1, fs_setindex};
                             end
                         end
 
@@ -1445,11 +1529,11 @@ module MUL_Station #(
                             if (Cond == 4'hE & ~|FlagW) begin
                                 F[i*4+:4] <= 4'b0;
                             end
-                            else if (fs_flagready) begin
+                            else if (fs_setflagready) begin
                                 F[i*4+:4] <= 4'b0;
                             end
                             else begin
-                                F[i*4+:4] <= {1'b1, fs_index};
+                                F[i*4+:4] <= {1'b1, fs_setindex};
                             end
                         end
 
@@ -1559,8 +1643,11 @@ module FP_Station #(
     input ROB_ForwardA,
     input ROB_ForwardB,
 
-    input fs_flagready,
-    input [2:0] fs_index,
+    input fs_setflagready,
+    input [2:0] fs_setindex,
+    input fs_useflagready,
+    input [2:0] fs_useindex,
+    input fs_set_use_order,
 
     input ALUSrc,
     input [31:0] ExtImm,
@@ -1695,11 +1782,11 @@ module FP_Station #(
                             if (Cond == 4'hE & ~|FlagW) begin
                                 F[i*4+:4] <= 4'b0;
                             end
-                            else if (fs_flagready) begin
+                            else if (fs_setflagready) begin
                                 F[i*4+:4] <= 4'b0;
                             end
                             else begin
-                                F[i*4+:4] <= {1'b1, fs_index};
+                                F[i*4+:4] <= {1'b1, fs_setindex};
                             end
                         end
 
@@ -1827,11 +1914,11 @@ module FP_Station #(
                             if (Cond == 4'hE & ~|FlagW) begin
                                 F[i*4+:4] <= 4'b0;
                             end
-                            else if (fs_flagready) begin
+                            else if (fs_setflagready) begin
                                 F[i*4+:4] <= 4'b0;
                             end
                             else begin
-                                F[i*4+:4] <= {1'b1, fs_index};
+                                F[i*4+:4] <= {1'b1, fs_setindex};
                             end
                         end
 

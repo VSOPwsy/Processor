@@ -36,7 +36,7 @@ module ARMcore(
     );
     
 
-    wire    [147:0]     CDB;
+    wire    [163:0]     CDB;
     wire    [35:0]      WBB;
 
     wire                ProgramCounter_EN;
@@ -154,8 +154,11 @@ module ARMcore(
     wire    [7:0]       ReservationStations_rrs_query;
     wire    [1:0]       ReservationStations_rrs_result_busy;
     wire    [5:0]       ReservationStations_rrs_index;
-    wire                ReservationStations_fs_flagready;
-    wire    [2:0]       ReservationStations_fs_index;
+    wire                ReservationStations_fs_setflagready;
+    wire    [2:0]       ReservationStations_fs_setindex;
+    wire                ReservationStations_fs_useflagready;
+    wire    [2:0]       ReservationStations_fs_useindex;
+    wire                ReservationStations_fs_set_use_order;
     wire                ReservationStations_ALUSrc;
     wire    [31:0]      ReservationStations_ExtImm;
     wire    [3:0]       ReservationStations_Cond;
@@ -229,10 +232,14 @@ module ARMcore(
 
 
     wire                FlagStatus_append;
-    wire                FlagStatus_S;
+    wire                FlagStatus_Set;
+    wire                FlagStatus_Use;
     wire    [2:0]       FlagStatus_ROBTail;
-    wire                FlagStatus_FlagReady;
-    wire    [2:0]       FlagStatus_index;
+    wire                FlagStatus_SetFlagReady;
+    wire    [2:0]       FlagStatus_SetIndex;
+    wire                FlagStatus_UseFlagReady;
+    wire    [2:0]       FlagStatus_UseIndex;
+    wire                FlagStatus_SetUseOder;
 
 
     wire    [3:0]       Flags_FlagWrite;
@@ -515,8 +522,11 @@ module ARMcore(
     assign  ReservationStations_FPS     =   DIReg_FPSI;
     assign  ReservationStations_rrs_result_busy =   RegisterResultStatus_result_busy;
     assign  ReservationStations_rrs_index   =   RegisterResultStatus_index;
-    assign  ReservationStations_fs_flagready=   FlagStatus_FlagReady;
-    assign  ReservationStations_fs_index    =   FlagStatus_index;
+    assign  ReservationStations_fs_setflagready=   FlagStatus_SetFlagReady;
+    assign  ReservationStations_fs_setindex    =   FlagStatus_SetIndex;
+    assign  ReservationStations_fs_useflagready=   FlagStatus_UseFlagReady;
+    assign  ReservationStations_fs_useindex    =   FlagStatus_UseIndex;
+    assign  ReservationStations_fs_set_use_order    =   FlagStatus_SetUseOder;
     assign  ReservationStations_ALUSrc  =   DIReg_ALUSrcI;
     assign  ReservationStations_ExtImm  =   DIReg_ExtImmI;
     assign  ReservationStations_Cond    =   DIReg_CondI;
@@ -548,7 +558,8 @@ module ARMcore(
     assign  RegisterResultStatus_ROBTail=   ReorderBuffer_ROBTail;
 
     assign  FlagStatus_append   =   ReservationStations_Issue;
-    assign  FlagStatus_S        =   |DIReg_FlagWI;
+    assign  FlagStatus_Set      =   |DIReg_FlagWI;
+    assign  FlagStatus_Use      =   DIReg_CondI != 4'hE;
     assign  FlagStatus_ROBTail  =   ReorderBuffer_ROBTail;
 
 
@@ -745,6 +756,10 @@ module ARMcore(
     assign  CDB[107:72] = {MCycle_Result, MCycle_Done, MUL_IEReg_WIndexE};
     assign  CDB[143:108] = {FPU_Result, FPU_Done, FP_IEReg_WIndexE};
     assign  CDB[147:144] = {|DP_IEReg_FlagWE, DP_IEReg_WIndexE};
+    assign  CDB[151:148] = {|DP_IEReg_CondE != 4'hE, DP_IEReg_WIndexE};
+    assign  CDB[155:152] = {|MEM_IEReg_CondE != 4'hE, MEM_IEReg_WIndexE};
+    assign  CDB[159:156] = {|MUL_IEReg_CondE != 4'hE, MUL_IEReg_WIndexE};
+    assign  CDB[163:160] = {|FP_IEReg_CondE != 4'hE, FP_IEReg_WIndexE};
 
 
 
@@ -888,8 +903,11 @@ module ARMcore(
         .rrs_query(ReservationStations_rrs_query),
         .rrs_result_busy(ReservationStations_rrs_result_busy),
         .rrs_index(ReservationStations_rrs_index),
-        .fs_flagready(ReservationStations_fs_flagready),
-        .fs_index(ReservationStations_fs_index),
+        .fs_setflagready(ReservationStations_fs_setflagready),
+        .fs_setindex(ReservationStations_fs_setindex),
+        .fs_useflagready(ReservationStations_fs_useflagready),
+        .fs_useindex(ReservationStations_fs_useindex),
+        .fs_set_use_order(ReservationStations_fs_set_use_order),
         .ALUSrc(ReservationStations_ALUSrc),
         .ExtImm(ReservationStations_ExtImm),
         .Cond(ReservationStations_Cond),
@@ -974,10 +992,14 @@ module ARMcore(
         .Reset(Reset),
         .CDB(CDB),
         .append(FlagStatus_append),
-        .S(FlagStatus_S),
+        .Set(FlagStatus_Set),
+        .Use(FlagStatus_Use),
         .ROBTail(FlagStatus_ROBTail),
-        .FlagReady(FlagStatus_FlagReady),
-        .index(FlagStatus_index)
+        .SetFlagReady(FlagStatus_SetFlagReady),
+        .SetIndex(FlagStatus_SetIndex),
+        .UseFlagReady(FlagStatus_UseFlagReady),
+        .UseIndex(FlagStatus_UseIndex),
+        .SetUseOder(FlagStatus_SetUseOder)
     );
 
 
