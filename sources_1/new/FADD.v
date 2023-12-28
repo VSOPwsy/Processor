@@ -13,17 +13,14 @@ module FADD (
     input CLK,
     input Reset,
     input Start,
-    input [3:0] WA3,
     input       [31:0]  Operand1,
     input       [31:0]  Operand2,
     output reg  [31:0]  Result,
     output Busy,
-    output Done,
-    output reg [3:0] FADDWA3
+    output Done
     );
     reg [31:0] Operand1_reg, Operand2_reg;
     initial begin
-        FADDWA3 = 0;
         Operand1_reg = 0;
         Operand2_reg = 0;
     end
@@ -36,9 +33,8 @@ module FADD (
     assign Busy = state == 2'b00 ? Start : 
                   state == 2'b01 ? 1 :
                   state == 2'b10 ? 0 : 0;
-    assign Done = state == 2'b01;
+    assign Done = state == 2'b10;
     always @(posedge CLK, posedge Reset) begin
-        FADDWA3 <= Reset ? 0 : state == 2'b00 & Start ? WA3 : FADDWA3;
         Operand1_reg <= Reset ? 0 : state == 2'b00 & Start ? Operand1 : Operand1_reg;
         Operand2_reg <= Reset ? 0 : state == 2'b00 & Start ? Operand2 : Operand2_reg;
     end

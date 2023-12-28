@@ -4,11 +4,9 @@ module FMUL (
     input Start, // Multi-cycle Enable. The control unit should assert this when MUL or DIV instruction is detected.
     input   [31:0]  Operand1,
     input   [31:0]  Operand2,
-    input [3:0]     WA3,
     output reg  [31:0]  Result,
     output  Busy,
-    output Done,
-    output [3:0] FMULWA3
+    output Done
     );
 
     reg [31:0]  fraction_1;
@@ -128,16 +126,12 @@ MCycle  #(.width(48)) MCycle(
 	.CLK      	( CLK       ),
 	.Reset    	( Reset     ),
 	.Start    	( Start&CA),
-    .WA3        (WA3),
 	.MCycleOp 	( 1'b0 ),
 	.Operand1 	( {16'b0,fraction_1}  ),
 	.Operand2 	( {16'b0,fraction_2}  ),
 	.Result  	( MResult   ),
     .Done(Done),
-	.Busy     	( Busy      ),
-    .MCycleWA3(FMULWA3),
-    .MPushIn()
-);
+	.Busy     	( Busy      ));
 
 
 endmodule

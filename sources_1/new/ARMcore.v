@@ -171,6 +171,7 @@ module ARMcore(
     wire    [2:0]       ReservationStations_ROBTail;
     wire                ReservationStations_Cache_Busy;
     wire                ReservationStations_MCycle_Busy;
+    wire                ReservationStations_FPU_Busy;
     wire                ReservationStations_ROB_ForwardA;
     wire                ReservationStations_ROB_ForwardB;
     wire    [31:0]      ReservationStations_ROB_ForwardDataA;
@@ -207,6 +208,14 @@ module ARMcore(
     wire    [4:0]       ReservationStations_MUL_Op;
     wire    [31:0]      ReservationStations_MUL_SrcA;
     wire    [31:0]      ReservationStations_MUL_SrcB;
+
+    wire                ReservationStations_FP_Exec;
+    wire    [3:0]       ReservationStations_FP_Cond;
+    wire    [3:0]       ReservationStations_FP_FlagW;
+    wire    [2:0]       ReservationStations_FP_WIndex;
+    wire    [4:0]       ReservationStations_FP_Op;
+    wire    [31:0]      ReservationStations_FP_SrcA;
+    wire    [31:0]      ReservationStations_FP_SrcB;
 
 
 
@@ -392,7 +401,53 @@ module ARMcore(
     wire    [31:0]      MCycle_Result;
     wire                MCycle_Busy;
     wire                MCycle_Done;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////  FP Pipline
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    wire                FP_IEReg_EN;
+    wire                FP_IEReg_CLR;
+    wire                FP_IEReg_ExecI;
+    wire    [3:0]       FP_IEReg_CondI;
+    wire    [3:0]       FP_IEReg_FlagWI;
+    wire    [2:0]       FP_IEReg_WIndexI;
+    wire    [31:0]      FP_IEReg_SrcAI;
+    wire    [31:0]      FP_IEReg_SrcBI;
+    wire    [4:0]       FP_IEReg_OpI;
+    wire                FP_IEReg_FPSI;
+    wire                FP_IEReg_ExecE;
+    wire    [3:0]       FP_IEReg_CondE;
+    wire    [3:0]       FP_IEReg_FlagWE;
+    wire    [2:0]       FP_IEReg_WIndexE;
+    wire    [31:0]      FP_IEReg_SrcAE;
+    wire    [31:0]      FP_IEReg_SrcBE;
+    wire    [4:0]       FP_IEReg_OpE;
+    wire                FP_IEReg_FPSE;
+
+
+    wire    [3:0]       FP_CondUnit_Cond;
+    wire    [3:0]       FP_CondUnit_Flags;
+    wire    [3:0]       FP_CondUnit_FlagW;
+    wire                FP_CondUnit_FPS;
+    wire    [3:0]       FP_CondUnit_FlagWrite;
+    wire                FP_CondUnit_FPStart;
+
+    wire                FPU_Start;
+    wire                FPU_FPUOp;
+    wire    [31:0]      FPU_Operand1;
+    wire    [31:0]      FPU_Operand2;
+    wire    [31:0]      FPU_Result;
+    wire                FPU_Busy;
+    wire                FPU_Done;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -478,6 +533,7 @@ module ARMcore(
     assign  ReservationStations_ROBTail =   ReorderBuffer_ROBTail;
     assign  ReservationStations_Cache_Busy  =   Cache_Busy;
     assign  ReservationStations_MCycle_Busy =   MCycle_Busy;
+    assign  ReservationStations_FPU_Busy    =   FPU_Busy;
     assign  ReservationStations_ROB_ForwardA    =   ReorderBuffer_ForwardA;
     assign  ReservationStations_ROB_ForwardB    =   ReorderBuffer_ForwardB;
     assign  ReservationStations_ROB_ForwardDataA    =   ReorderBuffer_ForwardDataA;
@@ -636,9 +692,40 @@ module ARMcore(
     assign  MCycle_MCycleOp     =   MUL_IEReg_OpE == `DIV;
     assign  MCycle_Operand1     =   MUL_IEReg_SrcAE;
     assign  MCycle_Operand2     =   MUL_IEReg_SrcBE;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////  FP Pipline
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    assign  FP_IEReg_EN         =   ~FPU_Busy;
+    assign  FP_IEReg_CLR        =   1'b0;
+    assign  FP_IEReg_ExecI      =   ReservationStations_FP_Exec;
+    assign  FP_IEReg_CondI      =   ReservationStations_FP_Cond;
+    assign  FP_IEReg_FlagWI     =   ReservationStations_FP_FlagW;
+    assign  FP_IEReg_WIndexI    =   ReservationStations_FP_WIndex;
+    assign  FP_IEReg_OpI        =   ReservationStations_FP_Op;
+    assign  FP_IEReg_FPSI       =   ReservationStations_FP_Exec;
+    assign  FP_IEReg_SrcAI      =   ReservationStations_FP_SrcA;
+    assign  FP_IEReg_SrcBI      =   ReservationStations_FP_SrcB;
+
+
+    assign  FP_CondUnit_Cond    =   FP_IEReg_CondE;
+    assign  FP_CondUnit_Flags   =   Flags_Flags;
+    assign  FP_CondUnit_FlagW   =   FP_IEReg_FlagWE;
+    assign  FP_CondUnit_FPS     =   FP_IEReg_FPSE;
+
+
+
+    assign  FPU_Start       =   FP_CondUnit_FPStart;
+    assign  FPU_FPUOp       =   FP_IEReg_OpE == `FMUL;
+    assign  FPU_Operand1    =   FP_IEReg_SrcAE;
+    assign  FPU_Operand2    =   FP_IEReg_SrcBE;
 
 
 
@@ -656,6 +743,7 @@ module ARMcore(
     assign  CDB[35:0] = {ALU_ALUResult, DP_IEReg_ExecE, DP_IEReg_WIndexE};
     assign  CDB[71:36] = {MEM_CondUnit_MemWrite ? MEM_IEReg_WriteDataE : Cache_ReadData, Cache_ReadReady | MEM_CondUnit_MemWrite, MEM_IEReg_WIndexE};
     assign  CDB[107:72] = {MCycle_Result, MCycle_Done, MUL_IEReg_WIndexE};
+    assign  CDB[143:108] = {FPU_Result, FPU_Done, FP_IEReg_WIndexE};
     assign  CDB[147:144] = {|DP_IEReg_FlagWE, DP_IEReg_WIndexE};
 
 
@@ -818,6 +906,7 @@ module ARMcore(
         .ROBTail(ReservationStations_ROBTail),
         .Cache_Busy(ReservationStations_Cache_Busy),
         .MCycle_Busy(ReservationStations_MCycle_Busy),
+        .FPU_Busy(ReservationStations_FPU_Busy),
         .ROB_ForwardDataA(ReservationStations_ROB_ForwardDataA),
         .ROB_ForwardDataB(ReservationStations_ROB_ForwardDataB),
         .ROB_ForwardA(ReservationStations_ROB_ForwardA),
@@ -853,7 +942,15 @@ module ARMcore(
         .MUL_Op     (ReservationStations_MUL_Op     ),
         .MUL_WIndex (ReservationStations_MUL_WIndex ),
         .MUL_SrcA   (ReservationStations_MUL_SrcA   ),
-        .MUL_SrcB   (ReservationStations_MUL_SrcB   ));
+        .MUL_SrcB   (ReservationStations_MUL_SrcB   ),
+
+        .FP_Exec   (ReservationStations_FP_Exec   ),
+        .FP_Cond   (ReservationStations_FP_Cond   ),
+        .FP_FlagW  (ReservationStations_FP_FlagW  ),
+        .FP_Op     (ReservationStations_FP_Op     ),
+        .FP_WIndex (ReservationStations_FP_WIndex ),
+        .FP_SrcA   (ReservationStations_FP_SrcA   ),
+        .FP_SrcB   (ReservationStations_FP_SrcB   ));
         
 
 
@@ -1099,4 +1196,62 @@ module ARMcore(
         .Result     (MCycle_Result      ),
         .Busy       (MCycle_Busy        ),
         .Done       (MCycle_Done        ));
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+        
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////  FP Pipline
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    FP_IEReg FP_IEReg(
+        .CLK            (CLK                ),
+        .Reset          (Reset              ),
+        .EN             (FP_IEReg_EN           ),
+        .CLR            (FP_IEReg_CLR          ),
+        .ExecI          (FP_IEReg_ExecI        ),
+        .CondI          (FP_IEReg_CondI        ),
+        .FlagWI         (FP_IEReg_FlagWI       ),
+        .WIndexI        (FP_IEReg_WIndexI      ),
+        .SrcAI          (FP_IEReg_SrcAI        ),
+        .SrcBI          (FP_IEReg_SrcBI        ),
+        .OpI            (FP_IEReg_OpI          ),
+        .FPSI           (FP_IEReg_FPSI        ),
+        
+        .ExecE          (FP_IEReg_ExecE        ),
+        .CondE          (FP_IEReg_CondE        ),
+        .FlagWE         (FP_IEReg_FlagWE       ),
+        .WIndexE        (FP_IEReg_WIndexE      ),
+        .SrcAE          (FP_IEReg_SrcAE        ),
+        .SrcBE          (FP_IEReg_SrcBE        ),
+        .OpE            (FP_IEReg_OpE          ),
+        .FPSE           (FP_IEReg_FPSE        ));
+        
+
+    FP_CondUnit FP_CondUnit(
+        .CLK        (CLK                ),
+        .Reset      (Reset              ),
+        .Cond       (FP_CondUnit_Cond      ),
+        .Flags      (FP_CondUnit_Flags),
+        .FlagW      (FP_CondUnit_FlagW     ),
+        .FlagWrite  (FP_CondUnit_FlagWrite),
+        .FPS        (FP_CondUnit_FPS),
+        .FPStart    (FP_CondUnit_FPStart));
+        
+
+
+    FPU FPU(
+        .CLK        (CLK                ),
+        .Reset      (Reset              ),
+        .Start      (FPU_Start          ),
+        .FPUOp      (FPU_FPUOp          ),
+        .Operand1   (FPU_Operand1       ),
+        .Operand2   (FPU_Operand2       ),
+        .Result     (FPU_Result         ),
+        .Busy       (FPU_Busy           ),
+        .Done       (FPU_Done           ));
 endmodule

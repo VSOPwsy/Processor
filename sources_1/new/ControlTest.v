@@ -97,6 +97,10 @@ module ControlTest #(
                         Shift <= 1'b1;
                         Done <= 1'b0;
                     end
+
+                    if (next_state == `IDLE) begin
+                        Done <= 1'b0;
+                    end
                 end
             endcase
         end

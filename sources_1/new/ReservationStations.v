@@ -3,7 +3,8 @@
 module ReservationStations #(
     parameter DP_STATION_DEPTH = 4,
     parameter MEM_STATION_DEPTH = 2,
-    parameter MUL_STATION_DEPTH = 2
+    parameter MUL_STATION_DEPTH = 2,
+    parameter FP_STATION_DEPTH = 2
 )(
     input CLK,
     input Reset,
@@ -75,7 +76,16 @@ module ReservationStations #(
     output [4:0]    MUL_Op,
     output [2:0]    MUL_WIndex,
     output [31:0]   MUL_SrcA,
-    output [31:0]   MUL_SrcB
+    output [31:0]   MUL_SrcB,
+
+    input           FPU_Busy,
+    output          FP_Exec,
+    output [3:0]    FP_Cond,
+    output [3:0]    FP_FlagW,
+    output [4:0]    FP_Op,
+    output [2:0]    FP_WIndex,
+    output [31:0]   FP_SrcA,
+    output [31:0]   FP_SrcB
 );
     wire dp, mem, mul, fp;
     assign dp = ~(MemW | MemtoReg) & ~MULS & ~FPS;
@@ -211,6 +221,36 @@ module ReservationStations #(
         .Exec_SrcA(MUL_SrcA),
         .Exec_SrcB(MUL_SrcB)
     );
+
+    FP_Station #(FP_STATION_DEPTH) FP_Station(
+        .CLK(CLK),
+        .Reset(Reset),
+        .append(fp & Issue),
+        .full(fp_full),
+        .CDB(CDB),
+        .rrs_result_busy(rrs_result_busy),
+        .rrs_index(rrs_index),
+        .fs_flagready(fs_flagready),
+        .fs_index(fs_index),
+        .Cond(Cond),
+        .FlagW(FlagW),
+        .RD1(RD1),
+        .RD2(RD2),
+        .Op(Op),
+        .ROBTail(ROBTail),
+        .ROB_ForwardDataA(ROB_ForwardDataA),
+        .ROB_ForwardDataB(ROB_ForwardDataB),
+        .ROB_ForwardA(ROB_ForwardA),
+        .ROB_ForwardB(ROB_ForwardB),
+        .FPU_Busy(FPU_Busy),
+        .Exec(FP_Exec),
+        .Exec_Cond(FP_Cond),
+        .Exec_FlagW(FP_FlagW),
+        .Exec_Op(FP_Op),
+        .WIndex(FP_WIndex),
+        .Exec_SrcA(FP_SrcA),
+        .Exec_SrcB(FP_SrcB)
+    );
 endmodule
 
 
@@ -300,7 +340,6 @@ module DP_Station #(
         QK = 0;
         DEST = 0;
         F = 0;
-        EXEC = 0;
         Exec_Cond = 0;
         Exec_FlagW = 0;
         Exec_RegW = 0;
@@ -397,7 +436,10 @@ module DP_Station #(
                                 QK[i*4+:4] <= 4'b0;
                             end
 
-                            if (Cond == 4'hE | fs_flagready) begin
+                            if (Cond == 4'hE & ~|FlagW) begin
+                                F[i*4+:4] <= 4'b0;
+                            end
+                            else if (fs_flagready) begin
                                 F[i*4+:4] <= 4'b0;
                             end
                             else begin
@@ -529,7 +571,10 @@ module DP_Station #(
                                 QK[i*4+:4] <= 4'b0;
                             end
 
-                            if (Cond == 4'hE | fs_flagready) begin
+                            if (Cond == 4'hE & ~|FlagW) begin
+                                F[i*4+:4] <= 4'b0;
+                            end
+                            else if (fs_flagready) begin
                                 F[i*4+:4] <= 4'b0;
                             end
                             else begin
@@ -787,7 +832,6 @@ module MEM_Station #(
         QK = 0;
         DEST = 0;
         F = 0;
-        EXEC = 0;
         Exec_Cond = 0;
         Exec_RegW = 0;
         WIndex = 0;
@@ -1135,6 +1179,8 @@ module MUL_Station #(
     input fs_flagready,
     input [2:0] fs_index,
 
+    input ALUSrc,
+    input [31:0] ExtImm,
     input [3:0] Cond,
     input [3:0] FlagW,
     input [31:0] RD1,
@@ -1233,7 +1279,11 @@ module MUL_Station #(
                                 QJ[i*4+:4] <= 4'b0;
                             end
 
-                            if (rrs_result_busy[1]) begin
+                            if (ALUSrc) begin
+                                VK[i*32+:32] <= ExtImm;
+                                QK[i*4+:4] <= 4'b0;
+                            end
+                            else if (rrs_result_busy[1]) begin
                                 if (CDB[3] & CDB[2:0] == rrs_index[5:3]) begin
                                     VK[i*32+:32] <= CDB[35:4];
                                     QK[i*4+:4] <= 4'b0;
@@ -1260,7 +1310,10 @@ module MUL_Station #(
                                 QK[i*4+:4] <= 4'b0;
                             end
 
-                            if (Cond == 4'hE | fs_flagready) begin
+                            if (Cond == 4'hE & ~|FlagW) begin
+                                F[i*4+:4] <= 4'b0;
+                            end
+                            else if (fs_flagready) begin
                                 F[i*4+:4] <= 4'b0;
                             end
                             else begin
@@ -1268,7 +1321,7 @@ module MUL_Station #(
                             end
                         end
 
-                        if (READY[i] & (READY[i-1:0] == 0) & ~MCycle_Busy) begin
+                        if (READY[i] & (READY[i-1:0] == 0) & ~MCycle_Busy & ~Exec) begin
                             EXEC[i] <= 1;
                             WAIT[i] <= 0;
                         end
@@ -1358,7 +1411,11 @@ module MUL_Station #(
                                 QJ[i*4+:4] <= 4'b0;
                             end
 
-                            if (rrs_result_busy[1]) begin
+                            if (ALUSrc) begin
+                                VK[i*32+:32] <= ExtImm;
+                                QK[i*4+:4] <= 4'b0;
+                            end
+                            else if (rrs_result_busy[1]) begin
                                 if (CDB[3] & CDB[2:0] == rrs_index[5:3]) begin
                                     VK[i*32+:32] <= CDB[35:4];
                                     QK[i*4+:4] <= 4'b0;
@@ -1385,7 +1442,10 @@ module MUL_Station #(
                                 QK[i*4+:4] <= 4'b0;
                             end
 
-                            if (Cond == 4'hE | fs_flagready) begin
+                            if (Cond == 4'hE & ~|FlagW) begin
+                                F[i*4+:4] <= 4'b0;
+                            end
+                            else if (fs_flagready) begin
                                 F[i*4+:4] <= 4'b0;
                             end
                             else begin
@@ -1393,7 +1453,7 @@ module MUL_Station #(
                             end
                         end
 
-                        if (READY[i] & ~MCycle_Busy) begin
+                        if (READY[i] & ~MCycle_Busy & ~Exec) begin
                             EXEC[i] <= 1;
                             WAIT[i] <= 0;
                         end
@@ -1466,6 +1526,388 @@ module MUL_Station #(
                     Exec_SrcB <= VK[0*32+:32];
                 end
                 else if (READY[1] & ~MCycle_Busy) begin
+                    Exec_Op <= OP[1*5+:5];
+                    WIndex <= DEST[1*3+:3];
+                    Exec_Cond <= COND[1*4+:4];
+                    Exec_FlagW <= FLAGW[1*4+:4];
+                    Exec_SrcA <= VJ[1*32+:32];
+                    Exec_SrcB <= VK[1*32+:32];
+                end
+            end
+        end
+    endgenerate
+endmodule
+
+
+
+module FP_Station #(
+    parameter FP_STATION_DEPTH = 2
+)(
+    input CLK,
+    input Reset,
+    input append,
+    output full,
+    
+    input [147:0] CDB,
+
+    // rrs: Register result status
+    input [1:0] rrs_result_busy,
+    input [5:0] rrs_index,
+    
+    input [31:0] ROB_ForwardDataA,
+    input [31:0] ROB_ForwardDataB,
+    input ROB_ForwardA,
+    input ROB_ForwardB,
+
+    input fs_flagready,
+    input [2:0] fs_index,
+
+    input ALUSrc,
+    input [31:0] ExtImm,
+    input [3:0] Cond,
+    input [3:0] FlagW,
+    input [31:0] RD1,
+    input [31:0] RD2,
+    input [4:0] Op,
+    input [2:0] ROBTail,
+    input FPU_Busy,
+
+    output Exec,
+    output reg [3:0] Exec_Cond,
+    output reg [4:0] Exec_Op,
+    output reg [2:0] WIndex,
+    output reg [3:0] Exec_FlagW,
+    output reg [31:0] Exec_SrcA,
+    output reg [31:0] Exec_SrcB
+);
+
+    reg [FP_STATION_DEPTH*1-1:0] BUSY;
+    reg [FP_STATION_DEPTH*5-1:0] OP;
+    reg [FP_STATION_DEPTH*4-1:0] COND;
+    reg [FP_STATION_DEPTH*4-1:0] FLAGW;
+    reg [FP_STATION_DEPTH*1-1:0] WAIT;
+    reg [FP_STATION_DEPTH*32-1:0] VJ, VK;
+    reg [FP_STATION_DEPTH*4-1:0] QJ, QK;
+    reg [FP_STATION_DEPTH*3-1:0] DEST;
+    reg [FP_STATION_DEPTH*4-1:0] F;
+
+    wire [FP_STATION_DEPTH-1:0] READY;
+    reg [FP_STATION_DEPTH-1:0] EXEC;
+
+    initial begin
+        BUSY = 0;
+        OP = 0;
+        COND = 0;
+        FLAGW = 0;
+        WAIT = 0;
+        VJ = 0;
+        VK = 0;
+        QJ = 0;
+        QK = 0;
+        DEST = 0;
+        F = 0;
+        Exec_Cond = 0;
+        Exec_FlagW = 0;
+        Exec_Op = 0;
+        WIndex = 0;
+        Exec_SrcA = 0;
+        Exec_SrcB = 0;
+    end
+
+    assign full = &BUSY;
+    assign Exec = |EXEC;
+
+    genvar i;
+    generate
+        for (i = 0; i < FP_STATION_DEPTH; i = i + 1) begin
+            assign READY[i] = BUSY[i] & ~QJ[i*4+3] & ~QK[i*4+3] & ~F[i*4+3] & WAIT[i];
+            if (i > 0) begin
+                always @(posedge CLK, posedge Reset) begin
+                    if (Reset) begin
+                        BUSY[i] <= 0;
+                    end
+                    else begin
+                        if (append & (&BUSY[i-1:0]) & ~BUSY[i]) begin
+                            BUSY[i] <= 1;
+                            WAIT[i] <= 1;
+                            OP[i*5+:5] <= Op;
+                            COND[i*4+:4] <= Cond;
+                            FLAGW[i*4+:4] <= FlagW;
+                            DEST[i*3+:3] <= ROBTail;
+                            if (rrs_result_busy[0]) begin
+                                if (CDB[3] & CDB[2:0] == rrs_index[2:0]) begin
+                                    VJ[i*32+:32] <= CDB[35:4];
+                                    QJ[i*4+:4] <= 4'b0;
+                                end
+                                else if (CDB[39] & CDB[38:36] == rrs_index[2:0]) begin
+                                    VJ[i*32+:32] <= CDB[71:40];
+                                    QJ[i*4+:4] <= 4'b0;
+                                end
+                                else if (CDB[75] & CDB[74:72] == rrs_index[2:0]) begin
+                                    VJ[i*32+:32] <= CDB[107:76];
+                                    QJ[i*4+:4] <= 4'b0;
+                                end
+                                else if (ROB_ForwardA) begin
+                                    VJ[i*32+:32] <= ROB_ForwardDataA;
+                                    QJ[i*4+:4] <= 4'b0;
+                                end
+                                else begin
+                                    VJ[i*32+:32] <= VJ[i*32+:32];
+                                    QJ[i*4+:4] <= {1'b1, rrs_index[2:0]};
+                                end
+                            end
+                            else begin
+                                VJ[i*32+:32] <= RD1;
+                                QJ[i*4+:4] <= 4'b0;
+                            end
+
+                            if (ALUSrc) begin
+                                VK[i*32+:32] <= ExtImm;
+                                QK[i*4+:4] <= 4'b0;
+                            end
+                            else if (rrs_result_busy[1]) begin
+                                if (CDB[3] & CDB[2:0] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[35:4];
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else if (CDB[39] & CDB[38:36] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[71:40];
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else if (CDB[75] & CDB[74:72] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[107:76];
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else if (ROB_ForwardB) begin
+                                    VK[i*32+:32] <= ROB_ForwardDataB;
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else begin
+                                    VK[i*32+:32] <= VK[i*32+:32];
+                                    QK[i*4+:4] <= {1'b1, rrs_index[5:3]};
+                                end
+                            end
+                            else begin
+                                VK[i*32+:32] <= RD2;
+                                QK[i*4+:4] <= 4'b0;
+                            end
+
+                            if (Cond == 4'hE & ~|FlagW) begin
+                                F[i*4+:4] <= 4'b0;
+                            end
+                            else if (fs_flagready) begin
+                                F[i*4+:4] <= 4'b0;
+                            end
+                            else begin
+                                F[i*4+:4] <= {1'b1, fs_index};
+                            end
+                        end
+
+                        if (READY[i] & (READY[i-1:0] == 0) & ~FPU_Busy & ~Exec) begin
+                            EXEC[i] <= 1;
+                            WAIT[i] <= 0;
+                        end
+                        else if (FPU_Busy) begin
+                            EXEC[i] <= EXEC[i];
+                        end
+                        else begin
+                            EXEC[i] <= 0;
+                        end
+
+
+                        if (BUSY[i]) begin
+                            if (QJ[i*4+3] & CDB[3:0] == QJ[i*4+:4]) begin
+                                QJ[i*4+3] <= 1'b0;
+                                VJ[i*32+:32] <= CDB[35:4];
+                            end
+                            else if (QJ[i*4+3] & CDB[39:36] == QJ[i*4+:4]) begin
+                                QJ[i*4+3] <= 1'b0;
+                                VJ[i*32+:32] <= CDB[71:40];
+                            end
+                            else if (QJ[i*4+3] & CDB[75:72] == QJ[i*4+:4]) begin
+                                QJ[i*4+3] <= 1'b0;
+                                VJ[i*32+:32] <= CDB[107:76];
+                            end
+                            
+                            if (QK[i*4+3] & CDB[3:0] == QK[i*4+:4]) begin
+                                QK[i*4+3] <= 1'b0;
+                                VK[i*32+:32] <= CDB[35:4];
+                            end
+                            else if (QK[i*4+3] & CDB[39:36] == QK[i*4+:4]) begin
+                                QK[i*4+3] <= 1'b0;
+                                VK[i*32+:32] <= CDB[71:40];
+                            end
+                            else if (QK[i*4+3] & CDB[75:72] == QK[i*4+:4]) begin
+                                QK[i*4+3] <= 1'b0;
+                                VK[i*32+:32] <= CDB[107:76];
+                            end
+
+                            if (F[i*4+3] & CDB[147:144] == F[i*4+:4]) begin
+                                F[i*4+3] <= 1'b0;
+                            end
+
+                            if (DEST[i*3+:3] == CDB[74:72] & CDB[75]) begin
+                                BUSY[i] <= 0;
+                            end
+                        end
+                    end
+                end
+            end
+            else begin  // i = 0
+                always @(posedge CLK, posedge Reset) begin
+                    if (Reset) begin
+                        BUSY[i] <= 0;
+                    end
+                    else begin
+                        if (append & ~BUSY[i]) begin
+                            BUSY[i] <= 1;
+                            WAIT[i] <= 1;
+                            OP[i*5+:5] <= Op;
+                            COND[i*4+:4] <= Cond;
+                            FLAGW[i*4+:4] <= FlagW;
+                            DEST[i*3+:3] <= ROBTail;
+                            if (rrs_result_busy[0]) begin
+                                if (CDB[3] & CDB[2:0] == rrs_index[2:0]) begin
+                                    VJ[i*32+:32] <= CDB[35:4];
+                                    QJ[i*4+:4] <= 4'b0;
+                                end
+                                else if (CDB[39] & CDB[38:36] == rrs_index[2:0]) begin
+                                    VJ[i*32+:32] <= CDB[71:40];
+                                    QJ[i*4+:4] <= 4'b0;
+                                end
+                                else if (CDB[75] & CDB[74:72] == rrs_index[2:0]) begin
+                                    VJ[i*32+:32] <= CDB[107:76];
+                                    QJ[i*4+:4] <= 4'b0;
+                                end
+                                else if (ROB_ForwardA) begin
+                                    VJ[i*32+:32] <= ROB_ForwardDataA;
+                                    QJ[i*4+:4] <= 4'b0;
+                                end
+                                else begin
+                                    VJ[i*32+:32] <= VJ[i*32+:32];
+                                    QJ[i*4+:4] <= {1'b1, rrs_index[2:0]};
+                                end
+                            end
+                            else begin
+                                VJ[i*32+:32] <= RD1;
+                                QJ[i*4+:4] <= 4'b0;
+                            end
+
+                            if (ALUSrc) begin
+                                VK[i*32+:32] <= ExtImm;
+                                QK[i*4+:4] <= 4'b0;
+                            end
+                            else if (rrs_result_busy[1]) begin
+                                if (CDB[3] & CDB[2:0] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[35:4];
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else if (CDB[39] & CDB[38:36] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[71:40];
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else if (CDB[75] & CDB[74:72] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[107:76];
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else if (ROB_ForwardB) begin
+                                    VK[i*32+:32] <= ROB_ForwardDataB;
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else begin
+                                    VK[i*32+:32] <= VK[i*32+:32];
+                                    QK[i*4+:4] <= {1'b1, rrs_index[5:3]};
+                                end
+                            end
+                            else begin
+                                VK[i*32+:32] <= RD2;
+                                QK[i*4+:4] <= 4'b0;
+                            end
+
+                            if (Cond == 4'hE & ~|FlagW) begin
+                                F[i*4+:4] <= 4'b0;
+                            end
+                            else if (fs_flagready) begin
+                                F[i*4+:4] <= 4'b0;
+                            end
+                            else begin
+                                F[i*4+:4] <= {1'b1, fs_index};
+                            end
+                        end
+
+                        if (READY[i] & ~FPU_Busy & ~Exec) begin
+                            EXEC[i] <= 1;
+                            WAIT[i] <= 0;
+                        end
+                        else if (FPU_Busy) begin
+                            EXEC[i] <= EXEC[i];
+                        end
+                        else begin
+                            EXEC[i] <= 0;
+                        end
+
+
+                        if (BUSY[i]) begin
+                            if (QJ[i*4+3] & CDB[3:0] == QJ[i*4+:4]) begin
+                                QJ[i*4+3] <= 1'b0;
+                                VJ[i*32+:32] <= CDB[35:4];
+                            end
+                            else if (QJ[i*4+3] & CDB[39:36] == QJ[i*4+:4]) begin
+                                QJ[i*4+3] <= 1'b0;
+                                VJ[i*32+:32] <= CDB[71:40];
+                            end
+                            else if (QJ[i*4+3] & CDB[75:72] == QJ[i*4+:4]) begin
+                                QJ[i*4+3] <= 1'b0;
+                                VJ[i*32+:32] <= CDB[107:76];
+                            end
+                            
+                            if (QK[i*4+3] & CDB[3:0] == QK[i*4+:4]) begin
+                                QK[i*4+3] <= 1'b0;
+                                VK[i*32+:32] <= CDB[35:4];
+                            end
+                            else if (QK[i*4+3] & CDB[39:36] == QK[i*4+:4]) begin
+                                QK[i*4+3] <= 1'b0;
+                                VK[i*32+:32] <= CDB[71:40];
+                            end
+                            else if (QK[i*4+3] & CDB[75:72] == QK[i*4+:4]) begin
+                                QK[i*4+3] <= 1'b0;
+                                VK[i*32+:32] <= CDB[107:76];
+                            end
+
+                            if (F[i*4+3] & CDB[147:144] == F[i*4+:4]) begin
+                                F[i*4+3] <= 1'b0;
+                            end
+
+                            if (DEST[i*3+:3] == CDB[74:72] & CDB[75]) begin
+                                BUSY[i] <= 0;
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    endgenerate
+
+    generate
+        if (FP_STATION_DEPTH == 2) begin
+            always @(posedge CLK, posedge Reset) begin
+                if (Reset) begin
+                    Exec_Op <= 0;
+                    WIndex <= 0;
+                    Exec_Cond <= 0;
+                    Exec_FlagW <= 0;
+                    Exec_SrcA <= 0;
+                    Exec_SrcB <= 0;
+                end
+                else if (READY[0] & ~FPU_Busy) begin
+                    Exec_Op <= OP[0*5+:5];
+                    WIndex <= DEST[0*3+:3];
+                    Exec_Cond <= COND[0*4+:4];
+                    Exec_FlagW <= FLAGW[0*4+:4];
+                    Exec_SrcA <= VJ[0*32+:32];
+                    Exec_SrcB <= VK[0*32+:32];
+                end
+                else if (READY[1] & ~FPU_Busy) begin
                     Exec_Op <= OP[1*5+:5];
                     WIndex <= DEST[1*3+:3];
                     Exec_Cond <= COND[1*4+:4];
