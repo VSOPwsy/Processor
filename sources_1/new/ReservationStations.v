@@ -300,6 +300,7 @@ module DP_Station #(
         QK = 0;
         DEST = 0;
         F = 0;
+        EXEC = 0;
         Exec_Cond = 0;
         Exec_FlagW = 0;
         Exec_RegW = 0;
@@ -786,6 +787,7 @@ module MEM_Station #(
         QK = 0;
         DEST = 0;
         F = 0;
+        EXEC = 0;
         Exec_Cond = 0;
         Exec_RegW = 0;
         WIndex = 0;
@@ -1133,8 +1135,6 @@ module MUL_Station #(
     input fs_flagready,
     input [2:0] fs_index,
 
-    input ALUSrc,
-    input [31:0] ExtImm,
     input [3:0] Cond,
     input [3:0] FlagW,
     input [31:0] RD1,
@@ -1177,6 +1177,7 @@ module MUL_Station #(
         QK = 0;
         DEST = 0;
         F = 0;
+        EXEC = 0;
         Exec_Cond = 0;
         Exec_FlagW = 0;
         Exec_Op = 0;
@@ -1232,11 +1233,7 @@ module MUL_Station #(
                                 QJ[i*4+:4] <= 4'b0;
                             end
 
-                            if (ALUSrc) begin
-                                VK[i*32+:32] <= ExtImm;
-                                QK[i*4+:4] <= 4'b0;
-                            end
-                            else if (rrs_result_busy[1]) begin
+                            if (rrs_result_busy[1]) begin
                                 if (CDB[3] & CDB[2:0] == rrs_index[5:3]) begin
                                     VK[i*32+:32] <= CDB[35:4];
                                     QK[i*4+:4] <= 4'b0;
@@ -1361,11 +1358,7 @@ module MUL_Station #(
                                 QJ[i*4+:4] <= 4'b0;
                             end
 
-                            if (ALUSrc) begin
-                                VK[i*32+:32] <= ExtImm;
-                                QK[i*4+:4] <= 4'b0;
-                            end
-                            else if (rrs_result_busy[1]) begin
+                            if (rrs_result_busy[1]) begin
                                 if (CDB[3] & CDB[2:0] == rrs_index[5:3]) begin
                                     VK[i*32+:32] <= CDB[35:4];
                                     QK[i*4+:4] <= 4'b0;
