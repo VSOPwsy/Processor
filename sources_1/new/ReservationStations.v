@@ -32,6 +32,7 @@ module ReservationStations #(
     input [2:0] fs_useindex,
     input fs_set_use_order,
 
+    input PCS,
     input ALUSrc,
     input [31:0] ExtImm,
     input [3:0] Cond,
@@ -59,6 +60,7 @@ module ReservationStations #(
     output [31:0]   DP_SrcA,
     output [31:0]   DP_SrcB,
     output          DP_ALUSrc,
+    output          DP_PCS,
 
     input           Cache_Busy,
     output          MEM_Exec,
@@ -129,6 +131,7 @@ module ReservationStations #(
         .fs_useflagready(fs_useflagready),
         .fs_useindex(fs_useindex),
         .fs_set_use_order(fs_set_use_order),
+        .PCS(PCS),
         .ALUSrc(ALUSrc),
         .ExtImm(ExtImm),
         .Cond(Cond),
@@ -156,7 +159,8 @@ module ReservationStations #(
         .Exec_Sh(DP_Sh),
         .Exec_SrcA(DP_SrcA),
         .Exec_SrcB(DP_SrcB),
-        .Exec_ALUSrc(DP_ALUSrc)
+        .Exec_ALUSrc(DP_ALUSrc),
+        .Exec_PCS(DP_PCS)
     );
 
     MEM_Station #(MEM_STATION_DEPTH) MEM_Station(
@@ -296,6 +300,7 @@ module DP_Station #(
     input [2:0] fs_useindex,
     input fs_set_use_order,
 
+    input PCS,
     input ALUSrc,
     input [31:0] ExtImm,
     input [3:0] Cond,
@@ -320,7 +325,8 @@ module DP_Station #(
     output reg [1:0] Exec_Sh,
     output reg [31:0] Exec_SrcA,
     output reg [31:0] Exec_SrcB,
-    output reg Exec_ALUSrc
+    output reg Exec_ALUSrc,
+    output reg Exec_PCS
 );
 
     reg [DP_STATION_DEPTH*1-1:0] BUSY;
@@ -337,6 +343,7 @@ module DP_Station #(
     reg [DP_STATION_DEPTH*4-1:0] QJ, QK;
     reg [DP_STATION_DEPTH*3-1:0] DEST;
     reg [DP_STATION_DEPTH*4-1:0] F;
+    reg [DP_STATION_DEPTH*1-1:0] BRANCH;
 
     wire [DP_STATION_DEPTH-1:0] READY;
     reg [DP_STATION_DEPTH-1:0] EXEC;
@@ -358,17 +365,20 @@ module DP_Station #(
         QK = 0;
         DEST = 0;
         F = 0;
+        BRANCH = 0;
+        WIndex = 0;
+        EXEC = 0;
         Exec_Cond = 0;
         Exec_FlagW = 0;
         Exec_RegW = 0;
         Exec_NoWrite = 0;
         Exec_Op = 0;
-        WIndex = 0;
         Exec_Shamt5 = 0;
         Exec_Sh = 0;
         Exec_SrcA = 0;
         Exec_SrcB = 0;
         Exec_ALUSrc = 0;
+        Exec_PCS = 0;
     end
 
     assign full = &BUSY;
@@ -396,6 +406,7 @@ module DP_Station #(
                             SHAMT[i*5+:5] <= Shamt5;
                             SH[i*2+:2] <= Sh;
                             I[i] <= ALUSrc;
+                            BRANCH[i] <= PCS;
                             if (rrs_result_busy[0]) begin
                                 if (CDB[3] & CDB[2:0] == rrs_index[2:0]) begin
                                     VJ[i*32+:32] <= CDB[35:4];
@@ -561,6 +572,7 @@ module DP_Station #(
                             SHAMT[i*5+:5] <= Shamt5;
                             SH[i*2+:2] <= Sh;
                             I[i] <= ALUSrc;
+                            BRANCH[i] <= PCS;
                             if (rrs_result_busy[0]) begin
                                 if (CDB[3] & CDB[2:0] == rrs_index[2:0]) begin
                                     VJ[i*32+:32] <= CDB[35:4];
@@ -726,6 +738,7 @@ module DP_Station #(
                     Exec_SrcA <= 0;
                     Exec_SrcB <= 0;
                     Exec_ALUSrc <= 0;
+                    Exec_PCS <= 0;
                 end
                 else if (READY[0]) begin
                     Exec_Op <= OP[0*5+:5];
@@ -739,6 +752,7 @@ module DP_Station #(
                     Exec_SrcA <= VJ[0*32+:32];
                     Exec_SrcB <= VK[0*32+:32];
                     Exec_ALUSrc <= I[0];
+                    Exec_PCS <= BRANCH[0];
                 end
                 else if (READY[1]) begin
                     Exec_Op <= OP[1*5+:5];
@@ -752,6 +766,7 @@ module DP_Station #(
                     Exec_SrcA <= VJ[1*32+:32];
                     Exec_SrcB <= VK[1*32+:32];
                     Exec_ALUSrc <= I[1];
+                    Exec_PCS <= BRANCH[1];
                 end
             end
         end
@@ -769,6 +784,7 @@ module DP_Station #(
                     Exec_SrcA <= 0;
                     Exec_SrcB <= 0;
                     Exec_ALUSrc <= 0;
+                    Exec_PCS <= 0;
                 end
                 else if (READY[0]) begin
                     Exec_Op <= OP[0*5+:5];
@@ -782,6 +798,7 @@ module DP_Station #(
                     Exec_SrcA <= VJ[0*32+:32];
                     Exec_SrcB <= VK[0*32+:32];
                     Exec_ALUSrc <= I[0];
+                    Exec_PCS <= BRANCH[0];
                 end
                 else if (READY[1]) begin
                     Exec_Op <= OP[1*5+:5];
@@ -795,6 +812,7 @@ module DP_Station #(
                     Exec_SrcA <= VJ[1*32+:32];
                     Exec_SrcB <= VK[1*32+:32];
                     Exec_ALUSrc <= I[1];
+                    Exec_PCS <= BRANCH[1];
                 end
                 else if (READY[2]) begin
                     Exec_Op <= OP[2*5+:5];
@@ -808,6 +826,7 @@ module DP_Station #(
                     Exec_SrcA <= VJ[2*32+:32];
                     Exec_SrcB <= VK[2*32+:32];
                     Exec_ALUSrc <= I[2];
+                    Exec_PCS <= BRANCH[2];
                 end
                 else if (READY[3]) begin
                     Exec_Op <= OP[3*5+:5];
@@ -821,6 +840,7 @@ module DP_Station #(
                     Exec_SrcA <= VJ[3*32+:32];
                     Exec_SrcB <= VK[3*32+:32];
                     Exec_ALUSrc <= I[3];
+                    Exec_PCS <= BRANCH[3];
                 end
             end
         end
@@ -1693,6 +1713,7 @@ module FP_Station #(
         QK = 0;
         DEST = 0;
         F = 0;
+        EXEC = 0;
         Exec_Cond = 0;
         Exec_FlagW = 0;
         Exec_Op = 0;
@@ -1734,6 +1755,10 @@ module FP_Station #(
                                     VJ[i*32+:32] <= CDB[107:76];
                                     QJ[i*4+:4] <= 4'b0;
                                 end
+                                else if (CDB[111] & CDB[110:108] == rrs_index[2:0]) begin
+                                    VJ[i*32+:32] <= CDB[143:112];
+                                    QJ[i*4+:4] <= 4'b0;
+                                end
                                 else if (ROB_ForwardA) begin
                                     VJ[i*32+:32] <= ROB_ForwardDataA;
                                     QJ[i*4+:4] <= 4'b0;
@@ -1763,6 +1788,10 @@ module FP_Station #(
                                 end
                                 else if (CDB[75] & CDB[74:72] == rrs_index[5:3]) begin
                                     VK[i*32+:32] <= CDB[107:76];
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else if (CDB[111] & CDB[110:108] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[143:112];
                                     QK[i*4+:4] <= 4'b0;
                                 end
                                 else if (ROB_ForwardB) begin
@@ -1815,6 +1844,10 @@ module FP_Station #(
                                 QJ[i*4+3] <= 1'b0;
                                 VJ[i*32+:32] <= CDB[107:76];
                             end
+                            else if (QJ[i*4+3] & CDB[111:108] == QJ[i*4+:4]) begin
+                                QJ[i*4+3] <= 1'b0;
+                                VJ[i*32+:32] <= CDB[143:112];
+                            end
                             
                             if (QK[i*4+3] & CDB[3:0] == QK[i*4+:4]) begin
                                 QK[i*4+3] <= 1'b0;
@@ -1828,12 +1861,16 @@ module FP_Station #(
                                 QK[i*4+3] <= 1'b0;
                                 VK[i*32+:32] <= CDB[107:76];
                             end
+                            else if (QK[i*4+3] & CDB[111:108] == QK[i*4+:4]) begin
+                                QK[i*4+3] <= 1'b0;
+                                VK[i*32+:32] <= CDB[143:112];
+                            end
 
                             if (F[i*4+3] & CDB[147:144] == F[i*4+:4]) begin
                                 F[i*4+3] <= 1'b0;
                             end
 
-                            if (DEST[i*3+:3] == CDB[74:72] & CDB[75]) begin
+                            if (DEST[i*3+:3] == CDB[110:108] & CDB[111]) begin
                                 BUSY[i] <= 0;
                             end
                         end
@@ -1866,6 +1903,10 @@ module FP_Station #(
                                     VJ[i*32+:32] <= CDB[107:76];
                                     QJ[i*4+:4] <= 4'b0;
                                 end
+                                else if (CDB[111] & CDB[110:108] == rrs_index[2:0]) begin
+                                    VJ[i*32+:32] <= CDB[143:112];
+                                    QJ[i*4+:4] <= 4'b0;
+                                end
                                 else if (ROB_ForwardA) begin
                                     VJ[i*32+:32] <= ROB_ForwardDataA;
                                     QJ[i*4+:4] <= 4'b0;
@@ -1895,6 +1936,10 @@ module FP_Station #(
                                 end
                                 else if (CDB[75] & CDB[74:72] == rrs_index[5:3]) begin
                                     VK[i*32+:32] <= CDB[107:76];
+                                    QK[i*4+:4] <= 4'b0;
+                                end
+                                else if (CDB[111] & CDB[110:108] == rrs_index[5:3]) begin
+                                    VK[i*32+:32] <= CDB[143:112];
                                     QK[i*4+:4] <= 4'b0;
                                 end
                                 else if (ROB_ForwardB) begin
@@ -1947,6 +1992,10 @@ module FP_Station #(
                                 QJ[i*4+3] <= 1'b0;
                                 VJ[i*32+:32] <= CDB[107:76];
                             end
+                            else if (QJ[i*4+3] & CDB[111:108] == QJ[i*4+:4]) begin
+                                QJ[i*4+3] <= 1'b0;
+                                VJ[i*32+:32] <= CDB[143:112];
+                            end
                             
                             if (QK[i*4+3] & CDB[3:0] == QK[i*4+:4]) begin
                                 QK[i*4+3] <= 1'b0;
@@ -1960,12 +2009,16 @@ module FP_Station #(
                                 QK[i*4+3] <= 1'b0;
                                 VK[i*32+:32] <= CDB[107:76];
                             end
+                            else if (QK[i*4+3] & CDB[111:108] == QK[i*4+:4]) begin
+                                QK[i*4+3] <= 1'b0;
+                                VK[i*32+:32] <= CDB[143:112];
+                            end
 
                             if (F[i*4+3] & CDB[147:144] == F[i*4+:4]) begin
                                 F[i*4+3] <= 1'b0;
                             end
 
-                            if (DEST[i*3+:3] == CDB[74:72] & CDB[75]) begin
+                            if (DEST[i*3+:3] == CDB[110:108] & CDB[111]) begin
                                 BUSY[i] <= 0;
                             end
                         end

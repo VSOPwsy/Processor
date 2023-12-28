@@ -61,7 +61,7 @@ module InstructionMemory #(
             INSTR_MEM[31] = 32'h07FB06FC;
             
             INSTR_MEM[32] = 32'hEE79BA88;
-            INSTR_MEM[33] = 32'hEE7BBAA9;
+            INSTR_MEM[33] = 32'hEE6BBAA9;
 
             INSTR_MEM[34] = 32'hEA000004;
             INSTR_MEM[35] = 32'hE0577007;

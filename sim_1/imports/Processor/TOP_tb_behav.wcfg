@@ -11,15 +11,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="0.000000 us"></ZoomStartTime>
-      <ZoomEndTime time="7.000000 us"></ZoomEndTime>
-      <Cursor1Time time="0.000000 us"></Cursor1Time>
+      <ZoomStartTime time="4,482.450 ns"></ZoomStartTime>
+      <ZoomEndTime time="6,446.451 ns"></ZoomEndTime>
+      <Cursor1Time time="7,000.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="182"></NameColumnWidth>
+      <NameColumnWidth column_width="176"></NameColumnWidth>
       <ValueColumnWidth column_width="90"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="6" />
+   <WVObjectSize size="8" />
    <wave_markers>
       <marker time="1415825" label="" />
    </wave_markers>
@@ -35,18 +35,25 @@
       <obj_property name="ElementShortName">PC[31:0]</obj_property>
       <obj_property name="ObjectShortName">PC[31:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/DIReg/FPSI" type="logic">
-      <obj_property name="ElementShortName">FPSI</obj_property>
-      <obj_property name="ObjectShortName">FPSI</obj_property>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/ControlUnit/Instr" type="array">
+      <obj_property name="ElementShortName">Instr[31:0]</obj_property>
+      <obj_property name="ObjectShortName">Instr[31:0]</obj_property>
    </wvobject>
    <wvobject fp_name="/TOP_tb/uut/ARMcore/RegisterFile/RegBankCore" type="array">
       <obj_property name="ElementShortName">RegBankCore[0:14][31:0]</obj_property>
       <obj_property name="ObjectShortName">RegBankCore[0:14][31:0]</obj_property>
-      <obj_property name="isExpanded"></obj_property>
    </wvobject>
-   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReservationStations/MEM_Station/EXEC" type="array">
-      <obj_property name="ElementShortName">EXEC[1:0]</obj_property>
-      <obj_property name="ObjectShortName">EXEC[1:0]</obj_property>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReorderBuffer/head" type="array">
+      <obj_property name="ElementShortName">head[3:0]</obj_property>
+      <obj_property name="ObjectShortName">head[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReorderBuffer/PCSrc" type="logic">
+      <obj_property name="ElementShortName">PCSrc</obj_property>
+      <obj_property name="ObjectShortName">PCSrc</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TOP_tb/uut/ARMcore/ReorderBuffer/PCSRC" type="array">
+      <obj_property name="ElementShortName">PCSRC[7:0]</obj_property>
+      <obj_property name="ObjectShortName">PCSRC[7:0]</obj_property>
       <obj_property name="isExpanded"></obj_property>
    </wvobject>
 </wave_config>

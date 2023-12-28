@@ -53,7 +53,7 @@ module ControlUnit(
         ALUSrc = 1'b1;
         ImmSrc = 2'b10;
         RegW = 1'b0;
-        RegSrc = 3'b001;
+        RegSrc = 3'b000;
         ALUOp = 2'b00;
         MS = 1'b0;
         MCycleOp = 1'b0;
@@ -180,7 +180,7 @@ module ControlUnit(
                 endcase
             end
 
-            2'b11: begin: _Float
+            2'b11: begin: _FloatingPoint
                 casex (Funct)
                     6'b100X11: begin: _FADDS
                         Branch = 1'b0;
@@ -194,6 +194,21 @@ module ControlUnit(
                         MS = 1'b0;
                         MCycleOp = 1'b0;
                         FPOp = 1'b0;
+                        FPS = 1'b1;
+                    end
+
+                    6'b100X10: begin: _FMULS
+                        Branch = 1'b0;
+                        MemtoReg = 1'b0;
+                        MemW = 1'b0;
+                        ALUSrc = 1'b0;
+                        ImmSrc = 2'b10;
+                        RegW = 1'b0;
+                        RegSrc = 3'b000;
+                        ALUOp = 2'b00;
+                        MS = 1'b0;
+                        MCycleOp = 1'b0;
+                        FPOp = 1'b1;
                         FPS = 1'b1;
                     end
                 endcase

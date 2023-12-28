@@ -3,6 +3,7 @@
 module ReorderBuffer(
     input CLK,
     input Reset,
+    input Branch,
     input append,
     output full,
     output [2:0] ROBTail,
@@ -15,6 +16,7 @@ module ReorderBuffer(
     output reg [3:0] WA,
     output reg WE,
     output reg [31:0] WD,
+    output reg PCSrc,
     output reg Commit,
 
     input [2:0] IndexA,
@@ -26,7 +28,7 @@ module ReorderBuffer(
 );
 
 
-    wire [35:0] CDB_DP, CDB_MEM, CDB_MUL, CDB_FP; 
+    wire [35:0] CDB_DP, CDB_MEM, CDB_MUL, CDB_FP;
     assign CDB_DP = CDB[35:0];
     assign CDB_MEM = CDB[71:36];
     assign CDB_MUL = CDB[107:72];
@@ -41,6 +43,7 @@ module ReorderBuffer(
     reg [3:0] DESTINATION [0:7];
     reg [31:0] VALUE [0:7];
     reg [7:0] WRITEBACK;
+    reg [7:0] PCSRC;
     integer i;
     initial begin
         BUSY = 0;
@@ -49,6 +52,7 @@ module ReorderBuffer(
         for (i = 0; i < 8; i = i + 1) begin
             DESTINATION[i] = 0;
             VALUE[i] = 0;
+            PCSRC[i] = 0;
         end
     end
 
@@ -57,7 +61,7 @@ module ReorderBuffer(
 
 
     always @(posedge CLK, posedge Reset) begin
-        if (Reset) begin
+        if (Reset | PCSrc) begin
             tail <= 0;
             BUSY <= 0;
         end
@@ -81,6 +85,7 @@ module ReorderBuffer(
             STATE[CDB_DP[2:0]] <= 1;
             VALUE[CDB_DP[2:0]] <= CDB_DP[35:4];
             WRITEBACK[CDB_DP[2:0]] <= DP_WriteBack;
+            PCSRC[CDB_DP[2:0]] <= Branch;
         end
         if (CDB_MEM[3] & BUSY[CDB_MEM[2:0]]) begin
             STATE[CDB_MEM[2:0]] <= 1;
@@ -116,14 +121,16 @@ module ReorderBuffer(
     always @(*) begin
         if (BUSY[ROBHead] & STATE[ROBHead] & ~empty) begin
             WA = DESTINATION[ROBHead];
-            WE = WRITEBACK[ROBHead];
+            WE = WRITEBACK[ROBHead] & ~PCSrc;
             WD = VALUE[ROBHead];
+            PCSrc = PCSRC[ROBHead];
             Commit = 1;
         end
         else begin
             WA = 0;
             WE = 0;
             WD = 0;
+            PCSrc = 0;
             Commit = 0;
         end
     end

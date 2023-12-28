@@ -15,7 +15,7 @@ module ProgramCounter(
     input Reset,
     input EN,
     input PCSrc,
-    input [31:0] Result,
+    input [31:0] Target,
     output reg [31:0] PC,
     output [31:0] PCPlus4
     );
@@ -27,7 +27,7 @@ module ProgramCounter(
         next_PC = 32'b0;
     end
     always @(*)
-        next_PC = PCSrc ? Result : PCPlus4;
+        next_PC = PCSrc ? Target : PCPlus4;
     
     always @(posedge CLK, posedge Reset) begin
         if (Reset) begin

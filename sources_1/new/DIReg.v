@@ -19,6 +19,7 @@ module DIReg(
     input MemtoRegD,
     input MULSD,
     input FPSD,
+    input PCSD,
     output reg IssueI,
     output reg [4:0] OpI,
     output reg [3:0] RA1I,
@@ -35,7 +36,8 @@ module DIReg(
     output reg MemWI,
     output reg MemtoRegI,
     output reg MULSI,
-    output reg FPSI
+    output reg FPSI,
+    output reg PCSI
 );
 
     initial begin
@@ -56,6 +58,7 @@ module DIReg(
         FPSI = 0;
         Shamt5I = 0;
         ShI = 0;
+        PCSI = 0;
     end
 
     always @(posedge CLK, posedge Reset) begin
@@ -77,6 +80,7 @@ module DIReg(
             FPSI <= 0;
             Shamt5I <= 0;
             ShI <= 0;
+            PCSI <= 0;
         end
         else begin
             if (EN) begin
@@ -97,6 +101,7 @@ module DIReg(
                 FPSI <= FPSD;
                 Shamt5I <= Shamt5D;
                 ShI <= ShD;
+                PCSI <= PCSD;
             end
             else begin
                 IssueI <= IssueI;
@@ -116,6 +121,7 @@ module DIReg(
                 FPSI <= FPSI;
                 Shamt5I <= Shamt5I;
                 ShI <= ShI;
+                PCSI <= PCSI;
             end
         end
     end

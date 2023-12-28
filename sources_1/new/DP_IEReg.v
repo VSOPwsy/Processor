@@ -15,6 +15,7 @@ module DP_IEReg(
     input ALUSrcI,
     input [4:0] OpI,
     input NoWriteI,
+    input PCSI,
     output reg ExecE,
     output reg [3:0] CondE,
     output reg [3:0] FlagWE,
@@ -26,7 +27,8 @@ module DP_IEReg(
     output reg [4:0] Shamt5E,
     output reg ALUSrcE,
     output reg [4:0] OpE,
-    output reg NoWriteE
+    output reg NoWriteE,
+    output reg PCSE
 );
 
     initial begin
@@ -42,6 +44,7 @@ module DP_IEReg(
         NoWriteE = 0;
         ALUSrcE = 0;
         OpE = 0;
+        PCSE = 0;
     end
 
     always @(posedge CLK, posedge Reset) begin
@@ -58,6 +61,7 @@ module DP_IEReg(
             NoWriteE <= 0;
             ALUSrcE <= 0;
             OpE <= 0;
+            PCSE <= 0;
         end
         else if (CLR) begin
             ExecE <= 0;
@@ -72,6 +76,7 @@ module DP_IEReg(
             NoWriteE <= 0;
             ALUSrcE <= 0;
             OpE <= 0;
+            PCSE <= 0;
         end
         else if (EN) begin
             ExecE <= ExecI;
@@ -86,6 +91,7 @@ module DP_IEReg(
             NoWriteE <= NoWriteI;
             ALUSrcE <= ALUSrcI;
             OpE <= OpI;
+            PCSE <= PCSI;
         end
         else begin
             ExecE <= ExecE;
@@ -100,6 +106,7 @@ module DP_IEReg(
             NoWriteE <= NoWriteE;
             ALUSrcE <= ALUSrcE;
             OpE <= OpE;
+            PCSE <= PCSE;
         end
     end
 endmodule
