@@ -26,6 +26,16 @@ module TOP #(
     output [6:0] SevenSegCat
 );
 
+    wire CLK_50M;
+    wire locked;
+
+    clk_wiz_0 PLL(
+        .clk_in1    (CLK    ),
+        .reset      (Reset  ),
+        .clk_out1   (CLK_50M),
+        .locked     (locked ));
+
+
     wire    [31:0]      PC;
     wire    [31:0]      Instr;
     wire    [31:0]      ARMcore_IO_ReadData;
@@ -103,8 +113,8 @@ module TOP #(
 
 
     ARMcore ARMcore(
-        .CLK            (CLK                    ),
-        .Reset          (Reset                  ),
+        .CLK            (CLK_50M                ),
+        .Reset          (Reset | ~locked        ),
         .PC             (PC                     ),
         .Instr          (Instr                  ),
         .IO_ReadData    (ARMcore_IO_ReadData    ),
@@ -127,8 +137,8 @@ module TOP #(
 
 
     Cache Cache(
-        .CLK            (CLK                ),
-        .Reset          (Reset              ),
+        .CLK            (CLK_50M            ),
+        .Reset          (Reset | ~locked    ),
         .rc_RW          (Cache_rc_RW        ),
         .rc_Valid       (Cache_rc_Valid     ),
         .rc_Addr        (Cache_rc_Addr      ),
@@ -147,7 +157,7 @@ module TOP #(
 
 
     DataMemory #(TEST) DataMemory(
-        .CLK        (CLK                    ),
+        .CLK        (CLK_50M                ),
         .ReadAddr   (DataMemory_ReadAddr    ),
         .WriteAddr  (DataMemory_WriteAddr   ),
         .ReadValid  (DataMemory_ReadValid   ),
@@ -173,8 +183,8 @@ module TOP #(
     //Peripherals
     ////////////////////////////////////////
     LedDriver LedDriver(
-        .CLK    (CLK                       ),
-        .Reset  (Reset                     ),
+        .CLK    (CLK_50M                   ),
+        .Reset  (Reset | ~locked           ),
         .LED    (LED                       ),
         .WE     (PeripheralConnector_LED_WE),
         .WD     (PeripheralConnector_LED_WD));
@@ -184,8 +194,8 @@ module TOP #(
         .RD     (SWDriver_RD));
 
     SegmentDriver SegmentDriver(
-        .CLK    (CLK                       ),
-        .Reset  (Reset                     ),
+        .CLK    (CLK_50M                   ),
+        .Reset  (Reset | ~locked           ),
         .SEG    (SEG                       ),
         .WE     (PeripheralConnector_SEG_WE),
         .WD     (PeripheralConnector_SEG_WD));
@@ -193,7 +203,7 @@ module TOP #(
     ////////////////////////////////////////
     
     Segment Segment(
-    .CLK    (CLK        ),
+    .CLK    (CLK_50M    ),
     .data   (SEG        ),
     .anode  (SevenSegAn ),
     .cathode(SevenSegCat),

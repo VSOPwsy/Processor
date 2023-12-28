@@ -171,7 +171,6 @@ module ARMcore(
     wire    [2:0]       ReservationStations_ROBTail;
     wire                ReservationStations_Cache_Busy;
     wire                ReservationStations_MCycle_Busy;
-    wire                ReservationStations_MULS;
     wire                ReservationStations_ROB_ForwardA;
     wire                ReservationStations_ROB_ForwardB;
     wire    [31:0]      ReservationStations_ROB_ForwardDataA;
@@ -214,7 +213,7 @@ module ARMcore(
     wire    [7:0]       RegisterResultStatus_query;
     wire    [3:0]       RegisterResultStatus_WA;
     wire                RegisterResultStatus_NoWrite;
-    wire    [31:0]      RegisterResultStatus_append;
+    wire                RegisterResultStatus_append;
     wire    [2:0]       RegisterResultStatus_ROBTail;
     wire    [1:0]       RegisterResultStatus_result_busy;
     wire    [5:0]       RegisterResultStatus_index;
@@ -286,12 +285,6 @@ module ARMcore(
     wire    [31:0]      ALU_ALUResult;
     wire    [3:0]       ALU_ALUFlags;
 
-    wire                DP_EWReg_ExecE;
-    wire    [31:0]      DP_EWReg_ALUResultE;
-    wire    [2:0]       DP_EWReg_WIndexE;
-    wire                DP_EWReg_ExecW;
-    wire    [31:0]      DP_EWReg_ALUResultW;
-    wire    [2:0]       DP_EWReg_WIndexW;
 
 
 
@@ -551,10 +544,6 @@ module ARMcore(
     assign  ALU_Op          =   DP_IEReg_OpE;
     assign  ALU_CFlag       =   Flags_Flags[1];
     
-
-    assign  DP_EWReg_ExecE         =   DP_IEReg_ExecE;
-    assign  DP_EWReg_ALUResultE    =   ALU_ALUResult;
-    assign  DP_EWReg_WIndexE       =   DP_IEReg_WIndexE;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -782,7 +771,7 @@ module ARMcore(
 
 
     RegisterFile RegisterFile(
-        .CLK_n  (CLK               ),
+        .CLK    (CLK                ),
         .Reset  (Reset              ),
         .WE3    (RegisterFile_WE3   ),
         .A1     (RegisterFile_A1    ),
@@ -834,38 +823,37 @@ module ARMcore(
         .ROB_ForwardA(ReservationStations_ROB_ForwardA),
         .ROB_ForwardB(ReservationStations_ROB_ForwardB),
 
-        .DP_Exec    (ReservationStations_DP_Exec),
-        .DP_Cond    (ReservationStations_DP_Cond),
-        .DP_FlagW   (ReservationStations_DP_FlagW),
-        .DP_RegW    (ReservationStations_DP_RegW),
-        .DP_NoWrite (ReservationStations_DP_NoWrite),
-        .DP_WIndex  (ReservationStations_DP_WIndex),
-        .DP_Op      (ReservationStations_DP_Op),
-        .DP_Shamt5  (ReservationStations_DP_Shamt5),
-        .DP_Sh      (ReservationStations_DP_Sh),
-        .DP_SrcA    (ReservationStations_DP_SrcA),
-        .DP_SrcB    (ReservationStations_DP_SrcB),
-        .DP_ALUSrc  (ReservationStations_DP_ALUSrc),
+        .DP_Exec    (ReservationStations_DP_Exec    ),
+        .DP_Cond    (ReservationStations_DP_Cond    ),
+        .DP_FlagW   (ReservationStations_DP_FlagW   ),
+        .DP_RegW    (ReservationStations_DP_RegW    ),
+        .DP_NoWrite (ReservationStations_DP_NoWrite ),
+        .DP_WIndex  (ReservationStations_DP_WIndex  ),
+        .DP_Op      (ReservationStations_DP_Op      ),
+        .DP_Shamt5  (ReservationStations_DP_Shamt5  ),
+        .DP_Sh      (ReservationStations_DP_Sh      ),
+        .DP_SrcA    (ReservationStations_DP_SrcA    ),
+        .DP_SrcB    (ReservationStations_DP_SrcB    ),
+        .DP_ALUSrc  (ReservationStations_DP_ALUSrc  ),
 
-        .MEM_Exec    (ReservationStations_MEM_Exec),
-        .MEM_Cond    (ReservationStations_MEM_Cond),
-        .MEM_RegW    (ReservationStations_MEM_RegW),
-        .MEM_WIndex  (ReservationStations_MEM_WIndex),
-        .MEM_ALUSrc  (ReservationStations_MEM_ALUSrc),
-        .MEM_Shamt5  (ReservationStations_MEM_Shamt5),
-        .MEM_Sh      (ReservationStations_MEM_Sh),
-        .MEM_SrcA    (ReservationStations_MEM_SrcA),
-        .MEM_SrcB    (ReservationStations_MEM_SrcB),
+        .MEM_Exec   (ReservationStations_MEM_Exec   ),
+        .MEM_Cond   (ReservationStations_MEM_Cond   ),
+        .MEM_RegW   (ReservationStations_MEM_RegW   ),
+        .MEM_WIndex (ReservationStations_MEM_WIndex ),
+        .MEM_ALUSrc (ReservationStations_MEM_ALUSrc ),
+        .MEM_Shamt5 (ReservationStations_MEM_Shamt5 ),
+        .MEM_Sh     (ReservationStations_MEM_Sh     ),
+        .MEM_SrcA   (ReservationStations_MEM_SrcA   ),
+        .MEM_SrcB   (ReservationStations_MEM_SrcB   ),
         .MEM_WriteData(ReservationStations_MEM_WriteData),
 
-        .MUL_Exec   (ReservationStations_MUL_Exec),
-        .MUL_Cond   (ReservationStations_MUL_Cond),
-        .MUL_FlagW  (ReservationStations_MUL_FlagW),
-        .MUL_Op     (ReservationStations_MUL_Op),
-        .MUL_WIndex (ReservationStations_MUL_WIndex),
-        .MUL_SrcA   (ReservationStations_MUL_SrcA),
-        .MUL_SrcB   (ReservationStations_MUL_SrcB)
-    );
+        .MUL_Exec   (ReservationStations_MUL_Exec   ),
+        .MUL_Cond   (ReservationStations_MUL_Cond   ),
+        .MUL_FlagW  (ReservationStations_MUL_FlagW  ),
+        .MUL_Op     (ReservationStations_MUL_Op     ),
+        .MUL_WIndex (ReservationStations_MUL_WIndex ),
+        .MUL_SrcA   (ReservationStations_MUL_SrcA   ),
+        .MUL_SrcB   (ReservationStations_MUL_SrcB   ));
         
 
 
@@ -973,17 +961,6 @@ module ARMcore(
         .ALUFlags   (ALU_ALUFlags   ),
         .CFlag      (ALU_CFlag      ));
         
-
-    DP_EWReg DP_EWReg(
-        .CLK(CLK),
-        .Reset(Reset),
-        .ExecE(DP_EWReg_ExecE),
-        .ALUResultE(DP_EWReg_ALUResultE),
-        .WIndexE(DP_EWReg_WIndexE),
-        .ExecW(DP_EWReg_ExecW),
-        .ALUResultW(DP_EWReg_ALUResultW),
-        .WIndexW(DP_EWReg_WIndexW)
-    );
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

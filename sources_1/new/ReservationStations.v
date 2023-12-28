@@ -96,6 +96,9 @@ module ReservationStations #(
         else if (fp) begin
             full = fp_full;
         end
+        else begin
+            full = 0;
+        end
     end
 
     assign rrs_query = {RA2, RA1};
@@ -585,7 +588,50 @@ module DP_Station #(
 
 
     generate
-        if (DP_STATION_DEPTH == 4) begin
+        if (DP_STATION_DEPTH == 2) begin
+            always @(posedge CLK, posedge Reset) begin
+                if (Reset) begin
+                    Exec_Op <= 0;
+                    WIndex <= 0;
+                    Exec_Cond <= 0;
+                    Exec_FlagW <= 0;
+                    Exec_RegW <= 0;
+                    Exec_NoWrite <= 0;
+                    Exec_Shamt5 <= 0;
+                    Exec_Sh <= 0;
+                    Exec_SrcA <= 0;
+                    Exec_SrcB <= 0;
+                    Exec_ALUSrc <= 0;
+                end
+                else if (READY[0]) begin
+                    Exec_Op <= OP[0*5+:5];
+                    WIndex <= DEST[0*3+:3];
+                    Exec_Cond <= COND[0*4+:4];
+                    Exec_FlagW <= FLAGW[0*4+:4];
+                    Exec_RegW <= REGW[0];
+                    Exec_NoWrite <= NOWRITE[0];
+                    Exec_Shamt5 <= SHAMT[0*5+:5];
+                    Exec_Sh <= SH[0*2+:2];
+                    Exec_SrcA <= VJ[0*32+:32];
+                    Exec_SrcB <= VK[0*32+:32];
+                    Exec_ALUSrc <= I[0];
+                end
+                else if (READY[1]) begin
+                    Exec_Op <= OP[1*5+:5];
+                    WIndex <= DEST[1*3+:3];
+                    Exec_Cond <= COND[1*4+:4];
+                    Exec_FlagW <= FLAGW[1*4+:4];
+                    Exec_RegW <= REGW[1];
+                    Exec_NoWrite <= NOWRITE[1];
+                    Exec_Shamt5 <= SHAMT[1*5+:5];
+                    Exec_Sh <= SH[1*2+:2];
+                    Exec_SrcA <= VJ[1*32+:32];
+                    Exec_SrcB <= VK[1*32+:32];
+                    Exec_ALUSrc <= I[1];
+                end
+            end
+        end
+        else if (DP_STATION_DEPTH == 4) begin
             always @(posedge CLK, posedge Reset) begin
                 if (Reset) begin
                     Exec_Op <= 0;
@@ -699,9 +745,7 @@ module MEM_Station #(
 
     output Exec,
     output reg [3:0] Exec_Cond,
-    output reg [4:0] Exec_Op,
     output reg [2:0] WIndex,
-    output reg [3:0] Exec_FlagW,
     output reg Exec_RegW,
     output reg [4:0] Exec_Shamt5,
     output reg [1:0] Exec_Sh,
@@ -743,7 +787,6 @@ module MEM_Station #(
         DEST = 0;
         F = 0;
         Exec_Cond = 0;
-        Exec_FlagW = 0;
         Exec_RegW = 0;
         WIndex = 0;
         Exec_Shamt5 = 0;

@@ -20,12 +20,10 @@ module MEM_CondUnit(
     );
     
     wire CondEx;
-    wire N = 0, Z = 0, C = 0, V = 0;
-    assign {N, Z, C, V} = Flags;
     
     ConditionCheck CondCheck(
         .Cond(Cond),
-        .Flags({N, Z, C, V}),
+        .Flags(Flags),
         .CondEx(CondEx)
         );
         

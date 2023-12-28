@@ -11,7 +11,7 @@
 
 
 module RegisterFile(
-    input CLK_n,
+    input CLK,
     input Reset,
     input WE3,
     input [3:0] A1,
@@ -31,7 +31,7 @@ module RegisterFile(
             RegBankCore[i] = 32'b0;
     end
     
-    always @(posedge CLK_n, posedge Reset) begin
+    always @(posedge CLK, posedge Reset) begin
         if (Reset) begin
             RegBankCore[0] <= 32'b0;
             RegBankCore[1] <= 32'b0;

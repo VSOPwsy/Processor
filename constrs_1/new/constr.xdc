@@ -156,3 +156,5 @@ set_property IOSTANDARD LVCMOS33 [get_ports {SevenSegAn[7]}]
 set_property PACKAGE_PIN P18 [get_ports Reset]
 set_property IOSTANDARD LVCMOS33 [get_ports Reset]
 #set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets Reset_IBUF]
+
+create_generated_clock -name CLK_50M -source [get_ports CLK] -divide_by 2 [get_nets CLK_50M]
