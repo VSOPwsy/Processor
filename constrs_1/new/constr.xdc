@@ -158,3 +158,9 @@ set_property IOSTANDARD LVCMOS33 [get_ports Reset]
 #set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets Reset_IBUF]
 
 create_generated_clock -name CLK_50M -source [get_ports CLK] -divide_by 2 [get_nets CLK_50M]
+
+set _xlnx_shared_i0 [get_pins -hierarchical -regexp .*Operand2_reg_reg.*]
+set _xlnx_shared_i1 [get_pins -hierarchical -regexp .*FP_Station/genblk1.*]
+set_false_path -from $_xlnx_shared_i0 -to $_xlnx_shared_i1
+set _xlnx_shared_i2 [get_pins -hierarchical -regexp .*Operand1_reg_reg.*]
+set_false_path -from $_xlnx_shared_i2 -to $_xlnx_shared_i1
