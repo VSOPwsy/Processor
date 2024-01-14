@@ -21,13 +21,17 @@ module EMReg(
     input [31:0] WriteDataE,
     input [3:0] WA3E,
     input [3:0] RA2E,
+    input MCycleBusyE,
+    input FPUBusyE,
     output reg RegWriteM,
     output reg MemWriteM,
     output reg MemtoRegM,
     output reg [31:0] ALUOutM,
     output reg [31:0] WriteDataM,
     output reg [3:0] WA3M,
-    output reg [3:0] RA2M
+    output reg [3:0] RA2M,
+    output reg MCycleBusyM,
+    output reg FPUBusyM
     );
     
     initial begin
@@ -38,6 +42,8 @@ module EMReg(
         WriteDataM = 0;
         WA3M = 0;
         RA2M = 0;
+        MCycleBusyM = 0;
+        FPUBusyM = 0;
     end
     
     always @(posedge CLK, posedge Reset) begin
@@ -49,6 +55,8 @@ module EMReg(
             WriteDataM <= 0;
             WA3M <= 0;
             RA2M <= 0;
+            MCycleBusyM <= 0;
+            FPUBusyM <= 0;
         end
         else if (EN) begin
             RegWriteM <= RegWriteE;
@@ -58,6 +66,8 @@ module EMReg(
             WriteDataM <= WriteDataE;
             WA3M <= WA3E;
             RA2M <= RA2E;
+            MCycleBusyM <= MCycleBusyE;
+            FPUBusyM <= FPUBusyE;
         end
         else begin
             RegWriteM <= RegWriteM;
@@ -67,6 +77,8 @@ module EMReg(
             WriteDataM <= WriteDataM;
             WA3M <= WA3M;
             RA2M <= RA2M;
+            MCycleBusyM <= MCycleBusyM;
+            FPUBusyM <= FPUBusyM;
         end
     end
     

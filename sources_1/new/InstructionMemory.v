@@ -115,6 +115,18 @@ module InstructionMemory #(
 				INSTR_MEM[i] = 32'h0; 
 			end
         end
+        else if (TEST == 3) begin: TASK_2
+            INSTR_MEM[0] = 32'hE59F11FC;     // LDR R1, switches;
+			INSTR_MEM[1] = 32'hE5914000;     // LDR R4, [R1, #0];
+			INSTR_MEM[2] = 32'hE0050494;     // MUL R5, R4, R4;
+			for(i = 3; i < 3 + 48; i = i+1) begin 
+				INSTR_MEM[i] = 32'hE2866001; // R6 = 48;
+			end
+//			INSTR_MEM[51] = 32'hE2856001;     // ADD R6, R5, #1;
+			for(i = 51; i < 128; i = i+1) begin 
+				INSTR_MEM[i] = 32'h0; 
+			end
+        end
         else begin
             for(i = 3; i < 128; i = i+1) begin 
                 INSTR_MEM[i] = 32'h0; 

@@ -30,7 +30,7 @@ wire [15:0] LED;
 wire [7:0] SevenSegAn;
 wire [6:0] SevenSegCat;
 
-TOP #(0) uut(
+TOP #(3) uut(
     .CLK(CLK),
     .Reset(Reset),
     .SW(SW),
@@ -43,7 +43,7 @@ always #5 CLK = ~CLK;
     
 initial begin
     CLK = 0;
-    SW = 16'h0010;
+    SW = 16'h0009;
     Reset = 0;
     #10;
     Reset = 1;

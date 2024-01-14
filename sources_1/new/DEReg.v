@@ -34,10 +34,8 @@ module DEReg(
     input NoWriteD,
     input MSD,
     input MCycleOpD,
-    input MCycleHazardD,
     input FPUSD,
     input FPUOpD,
-    input FPUHazardD,
     output reg [3:0] CondE,
     output reg [3:0] FlagWE,
     output reg PCSE,
@@ -57,10 +55,8 @@ module DEReg(
     output reg NoWriteE,
     output reg MSE,
     output reg MCycleOpE,
-    output reg MCycleHazardE,
     output reg FPUSE,
-    output reg FPUOpE,
-    output reg FPUHazardE
+    output reg FPUOpE
 );
 
     initial begin
@@ -83,10 +79,8 @@ module DEReg(
         NoWriteE = 0;
         MSE = 0;
         MCycleOpE = 0;
-        MCycleHazardE = 0;
         FPUSE = 0;
         FPUOpE = 0;
-        FPUHazardE = 0;
     end
 
     always @(posedge CLK, posedge Reset) begin
@@ -110,10 +104,8 @@ module DEReg(
             NoWriteE <= 0;
             MSE <= 0;
             MCycleOpE <= 0;
-            MCycleHazardE <= 0;
             FPUSE <= 0;
             FPUOpE <= 0;
-            FPUHazardE <= 0;
         end
         else if (CLR) begin
             CondE <= 0;
@@ -135,10 +127,8 @@ module DEReg(
             NoWriteE <= 0;
             MSE <= 0;
             MCycleOpE <= 0;
-            MCycleHazardE <= 0;
             FPUSE <= 0;
             FPUOpE <= 0;
-            FPUHazardE <= 0;
         end
         else if (EN) begin
             CondE <= CondD;
@@ -160,10 +150,8 @@ module DEReg(
             NoWriteE <= NoWriteD;
             MSE <= MSD;
             MCycleOpE <= MCycleOpD;
-            MCycleHazardE <= MCycleHazardD;
             FPUSE <= FPUSD;
             FPUOpE <= FPUOpD;
-            FPUHazardE <= FPUHazardD;
         end
         else begin
             CondE <= CondE;
@@ -185,10 +173,8 @@ module DEReg(
             NoWriteE <= NoWriteE;
             MSE <= MSE;
             MCycleOpE <= MCycleOpE;
-            MCycleHazardE <= MCycleHazardE;
             FPUSE <= FPUSE;
             FPUOpE <= FPUOpE;
-            FPUHazardE <= FPUHazardE;
         end
     end
 endmodule

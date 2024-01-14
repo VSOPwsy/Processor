@@ -30,13 +30,13 @@ module HazardUnit(
     input dec_mem,
     input PCSrcE,
     input [3:0] MCycleWA3,
-    input MCycleDone,
-    input MCycleBusy,
+    input MCycleBusyE,
+    input MCycleBusyM,
     input MStart,
     input MS,
     input [3:0] FPUWA3,
-    input FPUDone,
-    input FPUBusy,
+    input FPUBusyE,
+    input FPUBusyM,
     input FPUStart,
     input FPUS,
     input Cache_ReadReady,
@@ -51,9 +51,7 @@ module HazardUnit(
     output StallM,
     output StallW,
     output FlushD,
-    output FlushE,
-    output MCycleHazard,
-    output FPUHazard
+    output FlushE
     );
     
     wire Match_1E_M, Match_2E_M;
@@ -85,24 +83,21 @@ module HazardUnit(
     
     wire Match_12D_E;
     wire ldrstall;
-    wire cachestall;
+    wire memstall;
     assign Match_12D_E = (RA1D == WA3E) | (RA2D == WA3E);
     assign ldrstall = Match_12D_E & MemtoRegE & RegWriteE;
-    assign cachestall = dec_mem & ~Cache_ReadReady & (MemtoRegM & RegWriteM);
+    assign memstall = dec_mem & ~Cache_ReadReady & (MemtoRegM & RegWriteM);
 
     wire Match_123D_MCycleWA;
     wire Match_123D_FPUWA;
-    assign Match_123D_MCycleWA = (RA1D == MCycleWA3) | (RA2D == MCycleWA3) | (WA3D == MCycleWA3) | (MStart & WA3D == WA3E);
-    assign Match_123D_FPUWA = (RA1D == FPUWA3) | (RA2D == FPUWA3) | (WA3D == FPUWA3) | (FPUStart & WA3D == WA3E);
+    assign Match_123D_MCycleWA = MCycleBusyM & ((RA1E == MCycleWA3) | (RA2E == MCycleWA3) | (WA3E == MCycleWA3));
+    assign Match_123D_FPUWA = FPUBusyM & ((RA1E == FPUWA3) | (RA2E == FPUWA3) | (WA3E == FPUWA3));
     
-    assign StallF = ldrstall | (MCycleDone & ~PCSrcE) | (FPUDone & ~PCSrcE) | (Match_123D_MCycleWA & MCycleBusy) | (MCycleBusy & MS) | (Match_123D_FPUWA & FPUBusy) | (FPUBusy & FPUS) | cachestall;
-    assign StallD = ldrstall | (MCycleDone & ~PCSrcE) | (FPUDone & ~PCSrcE) | (Match_123D_MCycleWA & MCycleBusy) | (MCycleBusy & MS) | (Match_123D_FPUWA & FPUBusy) | (FPUBusy & FPUS) | cachestall;
-    assign StallE = cachestall;
-    assign StallM = cachestall;
-    assign StallW = cachestall;
+    assign StallF = ldrstall | memstall | (MCycleBusyE & Match_123D_MCycleWA) | (~MCycleBusyE & MCycleBusyM) | (FPUBusyE & Match_123D_FPUWA) | (~FPUBusyE & FPUBusyM);
+    assign StallD = ldrstall | memstall | (MCycleBusyE & Match_123D_MCycleWA) | (~MCycleBusyE & MCycleBusyM) | (FPUBusyE & Match_123D_FPUWA) | (~FPUBusyE & FPUBusyM);
+    assign StallE = memstall | (MCycleBusyE & Match_123D_MCycleWA) | (~MCycleBusyE & MCycleBusyM) | (FPUBusyE & Match_123D_FPUWA) | (~FPUBusyE & FPUBusyM);
+    assign StallM = memstall | (MCycleBusyE & Match_123D_MCycleWA) | (FPUBusyE & Match_123D_FPUWA);
+    assign StallW = memstall;
     assign FlushD = PCSrcE;
     assign FlushE = ldrstall | PCSrcE;
-    
-    assign MCycleHazard = Match_123D_MCycleWA | (MCycleBusy & MS);
-    assign FPUHazard = Match_123D_FPUWA | (FPUBusy & FPUS);
 endmodule
