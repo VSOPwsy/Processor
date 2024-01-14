@@ -24,8 +24,7 @@ module ControlTest #(
     output Init,
     output reg Shift,
     output Write,
-    output reg Busy,
-    output reg Done
+    output reg Busy
     );
     
     
@@ -38,7 +37,6 @@ module ControlTest #(
         Busy = 0;
         current_state = `IDLE;
         next_state = `IDLE;
-        Done = 0;
     end
 
     assign Init = current_state == `IDLE & next_state == `COMPUTING;
@@ -73,7 +71,6 @@ module ControlTest #(
             count <= 0;
             Shift <= 0;
             done <= 0;
-            Done <= 0;
         end
         else begin
             case (current_state)
@@ -93,13 +90,6 @@ module ControlTest #(
                         done <= done;
                         count <= count + 1;
                         Shift <= 1'b1;
-                    end
-                    
-                    if (count == (MCycleOp ? width - 1 : width - 2)) begin
-                        Done <= 1'b1;
-                    end
-                    else begin
-                        Done <= 1'b0;
                     end
                 end
             endcase

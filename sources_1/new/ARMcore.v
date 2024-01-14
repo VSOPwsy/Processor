@@ -207,8 +207,8 @@ module ARMcore(
     wire    [3:0]       MCycle_WA3;
     wire    [31:0]      MCycle_Result;
     wire                MCycle_Busy;
-    wire                MCycle_Done;
     wire    [3:0]       MCycle_MCycleWA3;
+
     wire                MCycle_MPushIn;
 
     wire                FPU_Start;
@@ -220,6 +220,7 @@ module ARMcore(
     wire                FPU_Busy;
     wire                FPU_Done;
     wire    [3:0]       FPU_FPUWA3;
+
     wire                FPU_FPUPushIn;
 
     wire                EMReg_EN;
@@ -667,7 +668,6 @@ module ARMcore(
         .WA3        (MCycle_WA3         ),
         .Result     (MCycle_Result      ),
         .Busy       (MCycle_Busy        ),
-        .Done       (MCycle_Done        ),
         .MCycleWA3  (MCycle_MCycleWA3   ));
         
     FPU FPU(
@@ -680,7 +680,6 @@ module ARMcore(
         .WA3        (FPU_WA3            ),
         .Result     (FPU_Result         ),
         .Busy       (FPU_Busy           ),
-        .Done       (FPU_Done           ),
         .FPUWA3     (FPU_FPUWA3         ));
 
         

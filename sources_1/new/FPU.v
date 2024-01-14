@@ -8,12 +8,8 @@ module FPU(
     input [3:0] WA3,
     output [31:0] Result,
     output Busy,
-    output Done,
-    output [3:0] FPUWA3,
-    output reg FPUPushIn
+    output [3:0] FPUWA3
     );
-
-    initial FPUPushIn = 0;
 
     wire ADD_Start, MUL_Start;
     wire [31:0] ADD_Result, MUL_Result;
@@ -25,7 +21,6 @@ module FPU(
     assign MUL_Start = Start & FPUOp;
     assign Result = Op_reg ? MUL_Result : ADD_Result;
     assign Busy = ADD_Busy | MUL_Busy;
-    assign Done = ADD_Done | MUL_Done;
 
     always @(posedge CLK, posedge Reset) begin
         if (Reset) begin
@@ -52,7 +47,6 @@ module FPU(
         .WA3(WA3),
         .Result(ADD_Result),
         .Busy(ADD_Busy),
-        .Done(ADD_Done),
         .FADDWA3(FADDWA3)
     );
 
@@ -65,12 +59,8 @@ module FPU(
         .WA3(WA3),
         .Result(MUL_Result),
         .Busy(MUL_Busy),
-        .Done(MUL_Done),
         .FMULWA3(FMULWA3)
     );
 
-    // assign FPUWA3 = FMULWA3;
     assign FPUWA3 = Op_reg ? FMULWA3 : FADDWA3;
-    always @(posedge CLK, posedge Reset) FPUPushIn <= Reset  ? 0 : 
-                                                      Op_reg ? MUL_Done : ADD_Done;
 endmodule

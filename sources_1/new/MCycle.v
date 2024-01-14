@@ -23,9 +23,7 @@ module MCycle #(
 
     output  [width-1:0]     Result,
     output                  Busy,
-    output                  Done,
-    output  reg [3:0]       MCycleWA3,
-    output  reg             MPushIn
+    output  reg [3:0]       MCycleWA3
 );
     reg MCycleOp_reg;
     wire [width-1:0] a, b, s;
@@ -35,7 +33,6 @@ module MCycle #(
     reg [width-1:0] shifted_op1 = 0 ;
 
     initial begin
-        MPushIn = 0;
         MCycleWA3 = 0;
         MCycleOp_reg = 0;
     end
@@ -51,8 +48,7 @@ module MCycle #(
         .Init(Init),
         .Shift(Shift),
         .Write(Write),
-        .Busy(Busy),
-        .Done(Done)
+        .Busy(Busy)
     );
     
     adder #(width) adder(
@@ -96,5 +92,4 @@ module MCycle #(
     end
 
     assign Result = temp_sum[width-1:0];
-    always @(posedge CLK, posedge Reset) MPushIn <= Reset ? 0 : Done;
 endmodule

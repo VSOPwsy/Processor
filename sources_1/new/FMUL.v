@@ -7,7 +7,6 @@ module FMUL (
     input [3:0]     WA3,
     output reg  [31:0]  Result,
     output  Busy,
-    output Done,
     output [3:0] FMULWA3
     );
 
@@ -102,7 +101,7 @@ module FMUL (
         end
 
         begin
-            if (CA&&Done&&MResult!=0) begin
+            if (CA&&~Busy&&MResult!=0) begin
                 if (MResult[47]) begin
                     exponent_Ans={0,exponent_1}+{0,exponent_2}-7'd127+1'b1;
                     fraction_Ans=MResult[46:15];
@@ -133,10 +132,8 @@ MCycle  #(.width(48)) MCycle(
 	.Operand1 	( {16'b0,fraction_1}  ),
 	.Operand2 	( {16'b0,fraction_2}  ),
 	.Result  	( MResult   ),
-    .Done(Done),
 	.Busy     	( Busy      ),
-    .MCycleWA3(FMULWA3),
-    .MPushIn()
+    .MCycleWA3(FMULWA3)
 );
 
 
