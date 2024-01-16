@@ -20,10 +20,15 @@ module CondUnit(
     input [3:0] Cond,
     input [3:0] ALUControl,
     input [3:0] ALUFlags,
+    input ALUSrc,
     input ShifterCarry,
+    input ShifterCFlagNoWrite,
+    input ExtendCarry,
+    input ExtendCFlagNoWrite,
     input NoWrite,
     input MS,
     input FPUS,
+    output CondEx,
     output PCSrc,
     output RegWrite,
     output MemWrite,
@@ -32,7 +37,6 @@ module CondUnit(
     output FPUStart
     );
     
-    wire CondEx;
     reg N = 0, Z = 0, C = 0, V = 0;
     wire [3:0] FlagWrite;
     
@@ -58,10 +62,17 @@ module CondUnit(
             Z <= FlagWrite[2] ? ALUFlags[2] : Z;
             if (FlagWrite[1]) begin
                 if (ALUControl == `AND || ALUControl == `EOR || ALUControl == `TST || ALUControl == `TEQ || 
-                    ALUControl == `ORR || ALUControl == `MOV || ALUControl == `BIC || ALUControl == `MVN)
-                    C <= ShifterCarry;
-                else
+                    ALUControl == `ORR || ALUControl == `MOV || ALUControl == `BIC || ALUControl == `MVN) begin
+                    if (ALUSrc) begin
+                        C <= ExtendCFlagNoWrite ? C : ExtendCarry;
+                    end
+                    else begin
+                        C <= ShifterCFlagNoWrite ? C : ShifterCarry;
+                    end
+                end
+                else begin
                     C <= ALUFlags[1];
+                end
             end
             else begin
                 C <= C;

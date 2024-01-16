@@ -16,20 +16,22 @@ module Shifter(
     input       [31:0]  ShIn,
     input               CFlag,
     output reg  [31:0]  ShOut,
-    output reg          Carry
+    output reg          ShifterCarry,
+    output reg          ShifterCFlagNoWrite
     );
     
     wire [31:0] ShOutLSL;
     wire [31:0] ShOutLSR;
     wire [31:0] ShOutASR;
     wire [31:0] ShOutROR;
+    wire CFlagNoWriteLSL;
     
     LSL LSL(
         .ShIn       (ShIn       ),
         .Shamt5     (Shamt5     ),
-        .CFlag      (CFlag      ),
         .ShOutLSL   (ShOutLSL   ),
-        .CarryLSL   (CarryLSL   ));
+        .CarryLSL   (CarryLSL   ),
+        .CFlagNoWriteLSL(CFlagNoWriteLSL));
         
     LSR LSR(
         .ShIn       (ShIn       ),
@@ -54,22 +56,26 @@ module Shifter(
         case (Sh)
             2'b00: begin
                 ShOut = ShOutLSL;
-                Carry = CarryLSL;
+                ShifterCarry = CarryLSL;
+                ShifterCFlagNoWrite = CFlagNoWriteLSL;
             end
 
             2'b01: begin
                 ShOut = ShOutLSR;
-                Carry = CarryLSR;
+                ShifterCarry = CarryLSR;
+                ShifterCFlagNoWrite = 0;
             end
 
             2'b10: begin
                 ShOut = ShOutASR;
-                Carry = CarryASR;
+                ShifterCarry = CarryASR;
+                ShifterCFlagNoWrite = 0;
             end
 
             2'b11: begin
                 ShOut = ShOutROR;
-                Carry = CarryROR;
+                ShifterCarry = CarryROR;
+                ShifterCFlagNoWrite = 0;
             end
         endcase
     end

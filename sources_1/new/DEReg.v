@@ -36,6 +36,8 @@ module DEReg(
     input MCycleOpD,
     input FPUSD,
     input FPUOpD,
+    input ExtendCarryD,
+    input ExtendCFlagNoWriteD,
     output reg [3:0] CondE,
     output reg [3:0] FlagWE,
     output reg PCSE,
@@ -56,7 +58,9 @@ module DEReg(
     output reg MSE,
     output reg MCycleOpE,
     output reg FPUSE,
-    output reg FPUOpE
+    output reg FPUOpE,
+    output reg ExtendCarryE,
+    output reg ExtendCFlagNoWriteE
 );
 
     initial begin
@@ -81,6 +85,8 @@ module DEReg(
         MCycleOpE = 0;
         FPUSE = 0;
         FPUOpE = 0;
+        ExtendCarryE = 0;
+        ExtendCFlagNoWriteE = 0;
     end
 
     always @(posedge CLK, posedge Reset) begin
@@ -106,6 +112,8 @@ module DEReg(
             MCycleOpE <= 0;
             FPUSE <= 0;
             FPUOpE <= 0;
+            ExtendCarryE <= 0;
+            ExtendCFlagNoWriteE <= 0;
         end
         else if (CLR) begin
             CondE <= 0;
@@ -129,6 +137,8 @@ module DEReg(
             MCycleOpE <= 0;
             FPUSE <= 0;
             FPUOpE <= 0;
+            ExtendCarryE <= 0;
+            ExtendCFlagNoWriteE <= 0;
         end
         else if (EN) begin
             CondE <= CondD;
@@ -152,6 +162,8 @@ module DEReg(
             MCycleOpE <= MCycleOpD;
             FPUSE <= FPUSD;
             FPUOpE <= FPUOpD;
+            ExtendCarryE <= ExtendCarryD;
+            ExtendCFlagNoWriteE <= ExtendCFlagNoWriteD;
         end
         else begin
             CondE <= CondE;
@@ -175,6 +187,8 @@ module DEReg(
             MCycleOpE <= MCycleOpE;
             FPUSE <= FPUSE;
             FPUOpE <= FPUOpE;
+            ExtendCarryE <= ExtendCarryE;
+            ExtendCFlagNoWriteE <= ExtendCFlagNoWriteE;
         end
     end
 endmodule

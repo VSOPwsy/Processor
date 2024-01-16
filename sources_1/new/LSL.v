@@ -13,9 +13,9 @@
 module LSL(
     input   [31:0]      ShIn,
     input   [4:0]       Shamt5,
-    input               CFlag,
     output  [31:0]      ShOutLSL,
-    output              CarryLSL
+    output              CarryLSL,
+    output              CFlagNoWriteLSL
     );
     
     wire [31:0] ShOutA;
@@ -30,5 +30,6 @@ module LSL(
     assign  ShOutD      =   Shamt5[1] ? {ShOutC[29:0], 2'b0} : ShOutC;
     assign  ShOutLSL    =   Shamt5[0] ? {ShOutD[30:0], 1'b0} : ShOutD;
 
-    assign  CarryLSL    =   Shamt5 == 0 ? CFlag : ShIn[32 - Shamt5];
+    assign  CarryLSL    =   ShIn[32 - Shamt5];
+    assign  CFlagNoWriteLSL =   Shamt5 == 0;
 endmodule

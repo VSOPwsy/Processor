@@ -52,6 +52,7 @@ module ARMcore(
     wire                HazardUnit_MemtoRegE;
     wire                HazardUnit_MemtoRegW;
     wire                HazardUnit_MemtoRegM;
+    wire                HazardUnit_CondEx;
     wire                HazardUnit_dec_mem;
     wire                HazardUnit_PCSrcE;
     wire    [3:0]       HazardUnit_MCycleWA3;
@@ -119,6 +120,8 @@ module ARMcore(
     wire    [1:0]       Extend_ImmSrc;
     wire    [23:0]      Extend_InstrImm;
     wire    [31:0]      Extend_ExtImm;
+    wire                Extend_ExtendCarry;
+    wire                Extend_ExtendCFlagNoWrite;
 
     wire                DEReg_EN;
     wire                DEReg_CLR;
@@ -143,6 +146,8 @@ module ARMcore(
     wire                DEReg_MCycleOpD;
     wire                DEReg_FPUSD;
     wire                DEReg_FPUOpD;
+    wire                DEReg_ExtendCarryD;
+    wire                DEReg_ExtendCFlagNoWriteD;
     wire    [3:0]       DEReg_CondE;
     wire    [3:0]       DEReg_FlagWE;
     wire                DEReg_PCSE;
@@ -164,13 +169,16 @@ module ARMcore(
     wire                DEReg_MCycleOpE;
     wire                DEReg_FPUSE;
     wire                DEReg_FPUOpE;
+    wire                DEReg_ExtendCarryE;
+    wire                DEReg_ExtendCFlagNoWriteE;
 
     wire    [1:0]       Shifter_Sh;
     wire    [4:0]       Shifter_Shamt5;
     wire    [31:0]      Shifter_ShIn;
     wire                Shifter_CFlag;
     wire    [31:0]      Shifter_ShOut;
-    wire                Shifter_Carry;
+    wire                Shifter_ShifterCarry;
+    wire                Shifter_ShifterCFlagNoWrite;
 
     wire    [3:0]       CondUnit_Cond;
     wire    [3:0]       CondUnit_ALUControl;
@@ -179,10 +187,15 @@ module ARMcore(
     wire                CondUnit_MemW;
     wire    [3:0]       CondUnit_FlagW;
     wire    [3:0]       CondUnit_ALUFlags;
+    wire                CondUnit_ALUSrc;
     wire                CondUnit_ShifterCarry;
+    wire                CondUnit_ShifterCFlagNoWrite;
+    wire                CondUnit_ExtendCarry;
+    wire                CondUnit_ExtendCFlagNoWrite;
     wire                CondUnit_NoWrite;
     wire                CondUnit_MS;
     wire                CondUnit_FPUS;
+    wire                CondUnit_CondEx;
     wire                CondUnit_PCSrc;
     wire                CondUnit_RegWrite;
     wire                CondUnit_MemWrite;
@@ -294,6 +307,7 @@ module ARMcore(
     assign  HazardUnit_MemtoRegE    =   DEReg_MemtoRegE;
     assign  HazardUnit_MemtoRegW    =   MWReg_MemtoRegW;
     assign  HazardUnit_MemtoRegM    =   MWReg_MemtoRegM;
+    assign  HazardUnit_CondEx       =   CondUnit_CondEx;
     assign  HazardUnit_dec_mem      =   MemOrIO_dec_mem;
     assign  HazardUnit_PCSrcE       =   CondUnit_PCSrc;
     assign  HazardUnit_MCycleWA3    =   MCycle_MCycleWA3;
@@ -313,8 +327,6 @@ module ARMcore(
     assign  ProgramCounter_EN       =   ~HazardUnit_StallF;
     assign  ProgramCounter_PCSrc    =   CondUnit_PCSrc;
     assign  ProgramCounter_Result   =   ALU_ALUResult;
-    
-    assign  InstructionMemory_PC    =   ProgramCounter_PC;
     
     assign  FDReg_EN        =   ~HazardUnit_StallD;
     assign  FDReg_CLR       =   HazardUnit_FlushD;
@@ -355,6 +367,8 @@ module ARMcore(
     assign  DEReg_MCycleOpD     =   ControlUnit_MCycleOp;
     assign  DEReg_FPUSD         =   ControlUnit_FPUS;
     assign  DEReg_FPUOpD        =   ControlUnit_FPUOp;
+    assign  DEReg_ExtendCarryD  =   Extend_ExtendCarry;
+    assign  DEReg_ExtendCFlagNoWriteD   =   Extend_ExtendCFlagNoWrite;
 
     
     assign  Shifter_Sh      =   DEReg_ShE;
@@ -369,7 +383,11 @@ module ARMcore(
     assign  CondUnit_MemW       =   DEReg_MemWE;
     assign  CondUnit_FlagW      =   DEReg_FlagWE;
     assign  CondUnit_ALUFlags   =   ALU_ALUFlags;
-    assign  CondUnit_ShifterCarry   =   Shifter_Carry;
+    assign  CondUnit_ALUSrc     =   DEReg_ALUSrcE;
+    assign  CondUnit_ShifterCarry   =   Shifter_ShifterCarry;
+    assign  CondUnit_ShifterCFlagNoWrite    =   Shifter_ShifterCFlagNoWrite;
+    assign  CondUnit_ExtendCarry   =   DEReg_ExtendCarryE;
+    assign  CondUnit_ExtendCFlagNoWrite    =   DEReg_ExtendCFlagNoWriteE;
     assign  CondUnit_NoWrite    =   DEReg_NoWriteE;
     assign  CondUnit_MS         =   DEReg_MSE;
     assign  CondUnit_FPUS       =   DEReg_FPUSE;
@@ -485,6 +503,7 @@ module ARMcore(
         .MemtoRegE  (HazardUnit_MemtoRegE   ),
         .MemtoRegW  (HazardUnit_MemtoRegW   ),
         .MemtoRegM  (HazardUnit_MemtoRegM   ),
+        .CondEx     (HazardUnit_CondEx      ),
         .dec_mem    (HazardUnit_dec_mem     ),
         .PCSrcE     (HazardUnit_PCSrcE      ),
         .MCycleWA3  (HazardUnit_MCycleWA3   ),
@@ -568,13 +587,16 @@ module ARMcore(
         .ShIn   (Shifter_ShIn   ),
         .CFlag  (Shifter_CFlag  ),
         .ShOut  (Shifter_ShOut  ),
-        .Carry  (Shifter_Carry  ));
+        .ShifterCarry(Shifter_ShifterCarry),
+        .ShifterCFlagNoWrite(Shifter_ShifterCFlagNoWrite));
     
         
     Extend Extend(
         .ImmSrc     (Extend_ImmSrc      ),
         .InstrImm   (Extend_InstrImm    ),
-        .ExtImm     (Extend_ExtImm      ));
+        .ExtImm     (Extend_ExtImm      ),
+        .ExtendCarry(Extend_ExtendCarry ),
+        .ExtendCFlagNoWrite(Extend_ExtendCFlagNoWrite));
         
         
     DEReg DEReg(
@@ -603,6 +625,8 @@ module ARMcore(
         .MCycleOpD      (DEReg_MCycleOpD    ),
         .FPUSD          (DEReg_FPUSD        ),
         .FPUOpD         (DEReg_FPUOpD       ),
+        .ExtendCarryD   (DEReg_ExtendCarryD ),
+        .ExtendCFlagNoWriteD(DEReg_ExtendCFlagNoWriteD),
         
         .CondE          (DEReg_CondE        ),
         .FlagWE         (DEReg_FlagWE       ),
@@ -624,7 +648,9 @@ module ARMcore(
         .MSE            (DEReg_MSE          ),
         .MCycleOpE      (DEReg_MCycleOpE    ),
         .FPUSE          (DEReg_FPUSE        ),
-        .FPUOpE         (DEReg_FPUOpE       ));
+        .FPUOpE         (DEReg_FPUOpE       ),
+        .ExtendCarryE   (DEReg_ExtendCarryE ),
+        .ExtendCFlagNoWriteE(DEReg_ExtendCFlagNoWriteE));
         
     
     CondUnit CondUnit(
@@ -637,7 +663,12 @@ module ARMcore(
         .MemW       (CondUnit_MemW      ),
         .FlagW      (CondUnit_FlagW     ),
         .ALUFlags   (CondUnit_ALUFlags  ),
+        .ALUSrc     (CondUnit_ALUSrc    ),
         .ShifterCarry(CondUnit_ShifterCarry),
+        .ShifterCFlagNoWrite(CondUnit_ShifterCFlagNoWrite),
+        .ExtendCarry(CondUnit_ExtendCarry),
+        .ExtendCFlagNoWrite(CondUnit_ExtendCFlagNoWrite),
+        .CondEx     (CondUnit_CondEx    ),
         .PCSrc      (CondUnit_PCSrc     ),
         .RegWrite   (CondUnit_RegWrite  ),
         .MemWrite   (CondUnit_MemWrite  ),
