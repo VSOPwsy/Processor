@@ -51,4 +51,16 @@
 `define     RANDOM  1'b1
 
 
+
+`define     TASK_1_1    11
+`define     TASK_1_2    12
+`define     TASK_1_3    13
+`define     TASK_1_4    14
+
+
+`define     TASK_2_1    21
+`define     TASK_2_2    22
+`define     TASK_2_3    23
+`define     TASK_2_4    24
+
 `endif

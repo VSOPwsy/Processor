@@ -45,6 +45,7 @@ module ARMcore(
     wire    [3:0]       HazardUnit_WA3E;
     wire    [3:0]       HazardUnit_WA3M;
     wire    [3:0]       HazardUnit_WA3W;
+    wire                HazardUnit_MemWD;
     wire                HazardUnit_RegWriteE;
     wire                HazardUnit_RegWriteM;
     wire                HazardUnit_RegWriteW;
@@ -300,6 +301,7 @@ module ARMcore(
     assign  HazardUnit_WA3E     =   EMReg_WA3E;
     assign  HazardUnit_WA3M     =   EMReg_WA3M;
     assign  HazardUnit_WA3W     =   MWReg_WA3W;
+    assign  HazardUnit_MemWD    =   DEReg_MemWD;
     assign  HazardUnit_RegWriteE    =   CondUnit_RegWrite;
     assign  HazardUnit_RegWriteM    =   EMReg_RegWriteM;
     assign  HazardUnit_RegWriteW    =   MWReg_RegWriteW;
@@ -434,14 +436,11 @@ module ARMcore(
 
     assign  EMReg_EN            =   ~HazardUnit_StallM;
     assign  EMReg_RegWriteE     =   MCycle_MPushIn | FPU_FPUPushIn | CondUnit_RegWrite;
-    assign  EMReg_MemWriteE     =   CondUnit_MemWrite;
-    assign  EMReg_MemtoRegE     =   DEReg_MemtoRegE;
-    assign  EMReg_ALUResultE    =   CondUnit_FPUStart & ~DEReg_FPUOpE ? FPU_Result : 
-                                    FPU_FPUPushIn ? FPU_Result : 
-                                    MCycle_MPushIn ? MCycle_Result : ALU_ALUResult;
+    assign  EMReg_MemWriteE     =   MCycle_MPushIn | FPU_FPUPushIn ? 0 : CondUnit_MemWrite;
+    assign  EMReg_MemtoRegE     =   MCycle_MPushIn | FPU_FPUPushIn ? 0 : DEReg_MemtoRegE;
+    assign  EMReg_ALUResultE    =   MCycle_MPushIn ? MCycle_Result : FPU_FPUPushIn ? FPU_Result : ALU_ALUResult;
     assign  EMReg_WriteDataE    =   SB;
-    assign  EMReg_WA3E          =   MCycle_MPushIn ? MCycle_MCycleWA3 : 
-                                    FPU_FPUPushIn ? FPU_FPUWA3 : DEReg_WA3E;
+    assign  EMReg_WA3E          =   MCycle_MPushIn ? MCycle_MCycleWA3 : FPU_FPUPushIn ? FPU_FPUWA3 : DEReg_WA3E;
     assign  EMReg_RA2E          =   DEReg_RA2E;
     assign  EMReg_MCycleBusyE   =   MCycle_Busy;
     assign  EMReg_FPUBusyE      =   FPU_Busy;
@@ -496,6 +495,7 @@ module ARMcore(
         .WA3E   (HazardUnit_WA3E),
         .WA3M   (HazardUnit_WA3M),
         .WA3W   (HazardUnit_WA3W),
+        .MemWD      (HazardUnit_MemWD       ),
         .RegWriteE  (HazardUnit_RegWriteE   ),
         .RegWriteM  (HazardUnit_RegWriteM   ),
         .RegWriteW  (HazardUnit_RegWriteW   ),

@@ -10,6 +10,8 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
+`include "config.v"
+
 module InstructionMemory #(
     parameter TEST = 0
 )(
@@ -21,7 +23,67 @@ module InstructionMemory #(
     integer i;
     
     initial begin
-        if (TEST == 0) begin
+        if (TEST == `TASK_1_1) begin
+            INSTR_MEM[0] = 32'hE3A01001;         // MOV     R1, #1;
+            INSTR_MEM[1] = 32'hE2912009;         // ADDS    R2, R1, #1;
+            INSTR_MEM[2] = 32'h51E03001;         // MVNPL   R3, R1;
+            INSTR_MEM[3] = 32'hE1834001;         // ORR     R4, R3, R1;
+			for(i = 4; i < 128; i = i+1) begin 
+				INSTR_MEM[i] = 32'h0; 
+			end
+        end
+        else if (TEST == `TASK_1_2) begin
+            INSTR_MEM[0] = 32'hE3A01C0C;         // MOV R1, #0x00000C00;
+            INSTR_MEM[1] = 32'hE59F2204;         // LDR R2, constant1;
+            INSTR_MEM[2] = 32'hE5812018;         // STR R2, [R1, #0x18];
+			for(i = 3; i < 128; i = i+1) begin 
+				INSTR_MEM[i] = 32'h0; 
+			end
+        end
+        else if (TEST == `TASK_1_3) begin
+            INSTR_MEM[0] = 32'hE59F2208;         // LDR     R2, constant1;
+            INSTR_MEM[1] = 32'hE1E03002;         // MVN     R3, R2;
+			for(i = 2; i < 128; i = i+1) begin 
+				INSTR_MEM[i] = 32'h0; 
+			end
+        end
+        
+        else if (TEST == `TASK_2_1) begin
+            INSTR_MEM[0] = 32'hE59F11FC;
+            INSTR_MEM[1] = 32'hE59F21F4;
+            INSTR_MEM[2] = 32'hE59F31F8;
+            INSTR_MEM[3] = 32'hE5914000;
+        
+            INSTR_MEM[4] = 32'hE0050494;
+            INSTR_MEM[5] = 32'hE3A09000;
+        
+            INSTR_MEM[6] = 32'hE1A00000;
+            INSTR_MEM[7] = 32'hE1A00000;
+            INSTR_MEM[8] = 32'hE1A00000;
+            INSTR_MEM[9] = 32'hE1A00000;
+        
+            INSTR_MEM[10] = 32'hE2899001;
+            INSTR_MEM[11] = 32'hE3590007;
+        
+            INSTR_MEM[12] = 32'h1AFFFFFC; 
+            INSTR_MEM[13] = 32'hE5835000;
+			for(i = 14; i < 128; i = i+1) begin 
+				INSTR_MEM[i] = 32'h0; 
+			end
+        end
+        else if (TEST == `TASK_2_2) begin
+            INSTR_MEM[0] = 32'hE59F11FC;
+            INSTR_MEM[1] = 32'hE5912000;
+            INSTR_MEM[2] = 32'hE0030292;
+            INSTR_MEM[3] = 32'hE3A0400F;
+            INSTR_MEM[4] = 32'hE354000F;
+            INSTR_MEM[5] = 32'h17F503F3;
+            INSTR_MEM[6] = 32'hE2836001;
+			for(i = 7; i < 128; i = i+1) begin 
+				INSTR_MEM[i] = 32'h0; 
+			end
+        end
+        else if (TEST == 0) begin
             INSTR_MEM[0] = 32'hE59F1204;
             INSTR_MEM[1] = 32'hE59F9204;
             INSTR_MEM[2] = 32'hE59F8204;
@@ -63,7 +125,7 @@ module InstructionMemory #(
             INSTR_MEM[32] = 32'hEE79BA88;
             INSTR_MEM[33] = 32'hEE7BBAA9;
 
-            INSTR_MEM[34] = 32'hEA000004;
+            INSTR_MEM[34] = 32'hEA000001;
             INSTR_MEM[35] = 32'hE0577007;
             INSTR_MEM[36] = 32'hE0577006;
 

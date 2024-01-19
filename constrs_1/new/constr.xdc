@@ -156,3 +156,7 @@ set_property IOSTANDARD LVCMOS33 [get_ports {SevenSegAn[7]}]
 set_property PACKAGE_PIN P18 [get_ports Reset]
 set_property IOSTANDARD LVCMOS33 [get_ports Reset]
 #set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets Reset_IBUF]
+
+set _xlnx_shared_i0 [get_pins -hierarchical -regexp .*ARMcore/FPU/FADD/Operand.*]
+set _xlnx_shared_i1 [get_pins -hierarchical -regexp .*ARMcore/EMReg/ALUOutM_reg.*]
+set_false_path -from $_xlnx_shared_i0 -to $_xlnx_shared_i1

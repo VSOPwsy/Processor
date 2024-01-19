@@ -57,4 +57,18 @@ module RegisterFile(
     
     assign RD1 = A1 == 4'd15 ? R15 : RegBankCore[A1];
     assign RD2 = A2 == 4'd15 ? R15 : RegBankCore[A2];
+    
+    
+    wire [31:0] R0, R1, R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12,R13,R14,R15;
+    assign R0 = RegBankCore[0];
+    assign R1 = RegBankCore[1];
+    assign R2 = RegBankCore[2];
+    assign R3 = RegBankCore[3];
+    assign R4 = RegBankCore[4];
+    assign R5 = RegBankCore[5];
+    assign R6 = RegBankCore[6];
+    assign R7 = RegBankCore[7];
+    assign R8 = RegBankCore[8];
+    assign R9 = RegBankCore[9];
+    
 endmodule

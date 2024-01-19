@@ -20,6 +20,7 @@ module HazardUnit(
     input [3:0] WA3E,
     input [3:0] WA3M,
     input [3:0] WA3W,
+    input MemWD,
     input RegWriteE,
     input RegWriteM,
     input RegWriteW,
@@ -85,28 +86,28 @@ module HazardUnit(
     wire Match_12D_E;
     wire Match_123D_MCycleWA;
     wire Match_123D_FPUWA;
-    assign Match_12D_E = (RA1D == WA3E) | (RA2D == WA3E);
+    assign Match_12D_E = (RA1D == WA3E) | ((RA2D == WA3E) & ~(MemWD & MemtoRegE & RegWriteE));
     assign Match_123D_MCycleWA = (RA1E == MCycleWA3) | (RA2E == MCycleWA3) | (WA3E == MCycleWA3);
     assign Match_123D_FPUWA = (RA1E == FPUWA3) | (RA2E == FPUWA3) | (WA3E == FPUWA3);
 
     wire ldr_stall;
-    wire mem_stall;
+    wire mem_access_stall;
     wire mcycle_stall, fpu_stall;
     wire mcycle_pushin_stall, fpu_pushin_stall;
     assign ldr_stall = Match_12D_E & MemtoRegE & RegWriteE;
-    assign mem_stall = dec_mem & ~Cache_ReadReady & (MemtoRegM & RegWriteM);
+    assign mem_access_stall = dec_mem & ~Cache_ReadReady & MemtoRegM & RegWriteM;
     assign mcycle_stall = (Match_123D_MCycleWA | MStart) & CondEx & MCycleBusyM & MCycleBusyE;
     assign mcycle_pushin_stall = ~MCycleBusyE & MCycleBusyM;
     assign fpu_stall = (Match_123D_FPUWA | FPUStart) & CondEx & FPUBusyM & FPUBusyE;
     assign fpu_pushin_stall = ~FPUBusyE & FPUBusyM;
 
     
-    assign StallF = ldr_stall | mem_stall | mcycle_stall | mcycle_pushin_stall | fpu_stall | fpu_pushin_stall;
-    assign StallD = ldr_stall | mem_stall | mcycle_stall | mcycle_pushin_stall | fpu_stall | fpu_pushin_stall;
-    assign StallE = mem_stall | mcycle_stall | mcycle_pushin_stall | fpu_stall | fpu_pushin_stall;
-    assign StallM = mem_stall | mcycle_stall | fpu_stall;
-    assign StallW = mem_stall;
+    assign StallF = ldr_stall | mem_access_stall | mcycle_stall | mcycle_pushin_stall | fpu_stall | fpu_pushin_stall;
+    assign StallD = ldr_stall | mem_access_stall | mcycle_stall | mcycle_pushin_stall | fpu_stall | fpu_pushin_stall;
+    assign StallE = mem_access_stall | mcycle_stall | mcycle_pushin_stall | fpu_stall | fpu_pushin_stall;
+    assign StallM = mem_access_stall | mcycle_stall | fpu_stall;
+    assign StallW = mem_access_stall;
     
     assign FlushD = PCSrcE;
-    assign FlushE = (ldr_stall & ~StallM) | PCSrcE;
+    assign FlushE = (ldr_stall & ~StallM) | (PCSrcE & ~StallF);
 endmodule
